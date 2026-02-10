@@ -13,7 +13,7 @@ export function TechHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-200 bg-foreground ${
+      className={`sticky top-0 z-50 transition-all duration-200 bg-[#f3873e] ${
         isScrolled
           ? "backdrop-blur-md shadow-sm"
           : ""
