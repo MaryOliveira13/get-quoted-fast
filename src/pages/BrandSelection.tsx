@@ -18,7 +18,7 @@ export default function BrandSelection() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dark min-h-screen bg-background">
       <PageHeader title="Orçamento Rápido" subtitle="Escolha a marca do seu aparelho" />
 
       <main className="px-4 py-6 max-w-lg mx-auto">
