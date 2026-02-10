@@ -21,6 +21,17 @@ const BRAND_LOGO: Record<string, string> = {
   realme: realmeLogo,
 };
 
+const LOGO_SIZE: Record<string, string> = {
+  apple: "h-12",
+  samsung: "h-8",
+  xiaomi: "h-10",
+  redmi: "h-10",
+  poco: "h-10",
+  motorola: "h-10",
+  lg: "h-12",
+  realme: "h-10",
+};
+
 export default function BrandSelection() {
   const navigate = useNavigate();
 
@@ -44,7 +55,7 @@ export default function BrandSelection() {
               <img
                 src={BRAND_LOGO[brand.id]}
                 alt={`${brand.name} logo`}
-                className="h-12 w-auto object-contain"
+                className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
               />
               <span className="font-semibold text-card-foreground">{brand.name}</span>
             </button>
