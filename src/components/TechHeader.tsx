@@ -13,17 +13,17 @@ export function TechHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-200 ${
+      className={`sticky top-0 z-50 transition-all duration-200 bg-foreground ${
         isScrolled
-          ? "bg-card/70 backdrop-blur-md border-b shadow-sm"
-          : "bg-card border-b border-transparent"
+          ? "backdrop-blur-md shadow-sm"
+          : ""
       }`}
     >
       <div className="max-w-lg mx-auto flex items-center gap-2.5 px-4 py-3">
-        <div className="w-9 h-9 rounded-xl bg-primary/10 grid place-items-center">
-          <Wrench className="w-5 h-5 text-primary" />
+        <div className="w-9 h-9 rounded-xl bg-background/20 grid place-items-center">
+          <Wrench className="w-5 h-5 text-background" />
         </div>
-        <span className="text-lg font-bold text-card-foreground">TechFix</span>
+        <span className="text-lg font-bold text-background">TechFix</span>
       </div>
     </header>
   );
