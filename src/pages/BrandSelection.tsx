@@ -29,7 +29,7 @@ const LOGO_SIZE: Record<string, string> = {
   poco: "h-10",
   motorola: "h-[104px]",
   lg: "h-12",
-  realme: "h-10",
+  realme: "h-[104px]",
 };
 
 export default function BrandSelection() {
