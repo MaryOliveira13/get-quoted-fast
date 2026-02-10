@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { BRANDS } from "@/data/catalog";
-import { PageHeader } from "@/components/PageHeader";
-import { Smartphone } from "lucide-react";
+import { Smartphone, Wrench } from "lucide-react";
 
 const BRAND_EMOJI: Record<string, string> = {
   apple: "🍎",
@@ -18,10 +17,25 @@ export default function BrandSelection() {
   const navigate = useNavigate();
 
   return (
-    <div className="dark min-h-screen bg-background">
-      <PageHeader title="Orçamento Rápido" subtitle="Escolha a marca do seu aparelho" />
+    <div className="min-h-screen bg-secondary">
+      {/* Top bar */}
+      <header className="bg-card border-b px-4 py-3">
+        <div className="max-w-lg mx-auto flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Wrench className="w-5 h-5 text-primary" />
+          </div>
+          <span className="text-lg font-bold text-card-foreground">TechFix</span>
+        </div>
+      </header>
 
       <main className="px-4 py-6 max-w-lg mx-auto">
+        {/* Heading */}
+        <div className="mb-5">
+          <h1 className="text-2xl font-extrabold text-foreground">Selecione a Marca</h1>
+          <p className="text-sm text-muted-foreground mt-1">Qual é a marca do seu aparelho?</p>
+        </div>
+
+        {/* Brand grid */}
         <div className="grid grid-cols-2 gap-3">
           {BRANDS.map((brand) => (
             <button
