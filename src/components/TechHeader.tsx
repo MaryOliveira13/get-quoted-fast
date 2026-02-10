@@ -19,9 +19,9 @@ export function TechHeader() {
           : ""
       }`}
     >
-      <div className="max-w-lg mx-auto flex items-center gap-2.5 px-4 py-3">
-        <img src={logo} alt="TechFix" className="w-9 h-9 rounded-xl object-cover" />
-        <span className="text-lg font-bold text-background">TechFix</span>
+      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-4">
+        <img src={logo} alt="TechFix" className="w-14 h-14 rounded-xl object-cover" />
+        <span className="text-xl font-bold text-background">TechFix</span>
       </div>
     </header>
   );
