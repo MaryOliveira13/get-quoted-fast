@@ -49,13 +49,14 @@ export default function BrandSelection() {
           ))}
         </div>
 
-        <div className="mt-8 text-center">
+        {/* CTA box */}
+        <div className="mt-6 rounded-xl bg-card border p-5 flex flex-col items-center gap-3">
+          <p className="text-sm text-muted-foreground">Não encontrou sua marca?</p>
           <button
             onClick={() => navigate("/orcamento-personalizado")}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="px-6 py-2.5 rounded-full border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
           >
-            <Smartphone className="w-4 h-4" />
-            Não encontrou? Solicite um orçamento personalizado
+            Orçamento Personalizado
           </button>
         </div>
       </main>
