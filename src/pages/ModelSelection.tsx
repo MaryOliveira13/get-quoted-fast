@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { findBrand, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Search, AlertCircle } from "lucide-react";
@@ -51,14 +52,15 @@ export default function ModelSelection() {
     <div className="dark min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-card rounded-2xl border flex flex-col overflow-hidden" style={{ maxHeight: "85vh" }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h1 className="text-xl font-bold text-foreground">Escolha o modelo</h1>
+        <div className="flex items-center gap-3 px-5 pt-5 pb-3">
           <button
             onClick={() => navigate("/orcamento")}
-            className="text-sm font-semibold text-destructive hover:text-destructive/80 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-muted/40 transition-colors"
+            aria-label="Voltar"
           >
-            Trocar marca
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
+          <h1 className="text-xl font-bold text-foreground">Escolha o modelo</h1>
         </div>
 
         {/* Search */}
