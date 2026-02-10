@@ -5,7 +5,7 @@ import appleLogo from "@/assets/brands/apple.svg";
 import samsungLogo from "@/assets/brands/samsung.svg";
 import xiaomiLogo from "@/assets/brands/xiaomi.svg";
 
-import pocoLogo from "@/assets/brands/poco-new.png";
+
 import motorolaLogo from "@/assets/brands/motorola.png";
 import lgLogo from "@/assets/brands/lg.svg";
 import realmeLogo from "@/assets/brands/realme-new.png";
@@ -15,7 +15,7 @@ const BRAND_LOGO: Record<string, string> = {
   samsung: samsungLogo,
   xiaomi: xiaomiLogo,
   
-  poco: pocoLogo,
+  
   motorola: motorolaLogo,
   lg: lgLogo,
   realme: realmeLogo,
@@ -26,7 +26,7 @@ const LOGO_SIZE: Record<string, string> = {
   samsung: "h-8",
   xiaomi: "h-10",
   
-  poco: "h-[80px]",
+  
   motorola: "h-[104px]",
   lg: "h-12",
   realme: "h-[104px]",
