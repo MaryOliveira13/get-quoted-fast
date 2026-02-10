@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { BRANDS } from "@/data/catalog";
-import { Smartphone, Wrench } from "lucide-react";
 
 const BRAND_EMOJI: Record<string, string> = {
   apple: "🍎",
@@ -18,15 +17,6 @@ export default function BrandSelection() {
 
   return (
     <div className="min-h-screen bg-secondary">
-      {/* Top bar */}
-      <header className="bg-card border-b px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Wrench className="w-5 h-5 text-primary" />
-          </div>
-          <span className="text-lg font-bold text-card-foreground">TechFix</span>
-        </div>
-      </header>
 
       <main className="px-4 py-6 max-w-lg mx-auto">
         {/* Heading */}
