@@ -7,7 +7,6 @@ export const BRANDS: Brand[] = [
   { id: "apple", name: "Apple" },
   { id: "samsung", name: "Samsung" },
   { id: "xiaomi", name: "Xiaomi" },
-  { id: "redmi", name: "Redmi" },
   { id: "poco", name: "POCO" },
   { id: "motorola", name: "Motorola" },
   { id: "lg", name: "LG" },
@@ -64,8 +63,6 @@ export const MODELS_BY_BRAND: Record<string, string[]> = {
     "Xiaomi 12S Ultra","Xiaomi 12 Pro","Xiaomi 12","Xiaomi 12 Lite",
     "Xiaomi 11T Pro","Xiaomi 11T",
     "Mi 11 Ultra","Mi 11","Mi 11 Lite",
-  ],
-  redmi: [
     "Redmi Note 15 Pro+ 5G","Redmi Note 15 Pro 5G","Redmi Note 15 5G","Redmi Note 15 4G",
     "Redmi 14C",
     "Redmi Note 14 Pro+ 5G","Redmi Note 14 Pro 5G","Redmi Note 14 5G","Redmi Note 14 4G",
