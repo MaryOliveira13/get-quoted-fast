@@ -1,15 +1,24 @@
 import { useNavigate } from "react-router-dom";
 import { BRANDS } from "@/data/catalog";
 
-const BRAND_EMOJI: Record<string, string> = {
-  apple: "🍎",
-  samsung: "⭐",
-  xiaomi: "🟠",
-  redmi: "🔴",
-  poco: "🟡",
-  motorola: "🔵",
-  lg: "🟣",
-  realme: "🟢",
+import appleLogo from "@/assets/brands/apple.svg";
+import samsungLogo from "@/assets/brands/samsung.svg";
+import xiaomiLogo from "@/assets/brands/xiaomi.svg";
+import redmiLogo from "@/assets/brands/redmi.png";
+import pocoLogo from "@/assets/brands/poco.png";
+import motorolaLogo from "@/assets/brands/motorola.svg";
+import lgLogo from "@/assets/brands/lg.svg";
+import realmeLogo from "@/assets/brands/realme.png";
+
+const BRAND_LOGO: Record<string, string> = {
+  apple: appleLogo,
+  samsung: samsungLogo,
+  xiaomi: xiaomiLogo,
+  redmi: redmiLogo,
+  poco: pocoLogo,
+  motorola: motorolaLogo,
+  lg: lgLogo,
+  realme: realmeLogo,
 };
 
 export default function BrandSelection() {
@@ -17,7 +26,6 @@ export default function BrandSelection() {
 
   return (
     <div className="min-h-screen bg-secondary">
-
       <main className="px-4 py-6 max-w-lg mx-auto">
         {/* Heading */}
         <div className="mb-5">
@@ -31,9 +39,13 @@ export default function BrandSelection() {
             <button
               key={brand.id}
               onClick={() => navigate(`/orcamento/${brand.id}`)}
-              className="flex flex-col items-center gap-2 p-5 rounded-xl bg-card border shadow-sm hover:shadow-md hover:border-foreground/20 transition-all active:scale-[0.97]"
+              className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-card border shadow-sm hover:shadow-md hover:border-foreground/20 transition-all active:scale-[0.97] aspect-square"
             >
-              <span className="text-3xl">{BRAND_EMOJI[brand.id] ?? "📱"}</span>
+              <img
+                src={BRAND_LOGO[brand.id]}
+                alt={`${brand.name} logo`}
+                className="h-12 w-auto object-contain"
+              />
               <span className="font-semibold text-card-foreground">{brand.name}</span>
             </button>
           ))}
