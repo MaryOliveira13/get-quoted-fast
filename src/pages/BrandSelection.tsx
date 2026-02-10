@@ -8,7 +8,7 @@ import redmiLogo from "@/assets/brands/redmi.png";
 import pocoLogo from "@/assets/brands/poco.png";
 import motorolaLogo from "@/assets/brands/motorola.png";
 import lgLogo from "@/assets/brands/lg.svg";
-import realmeLogo from "@/assets/brands/realme.png";
+import realmeLogo from "@/assets/brands/realme-new.png";
 
 const BRAND_LOGO: Record<string, string> = {
   apple: appleLogo,
