@@ -6,7 +6,7 @@ import samsungLogo from "@/assets/brands/samsung.svg";
 import xiaomiLogo from "@/assets/brands/xiaomi.svg";
 import redmiLogo from "@/assets/brands/redmi.png";
 import pocoLogo from "@/assets/brands/poco.png";
-import motorolaLogo from "@/assets/brands/motorola.svg";
+import motorolaLogo from "@/assets/brands/motorola.png";
 import lgLogo from "@/assets/brands/lg.svg";
 import realmeLogo from "@/assets/brands/realme.png";
 
