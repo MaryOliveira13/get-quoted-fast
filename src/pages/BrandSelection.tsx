@@ -27,7 +27,7 @@ const LOGO_SIZE: Record<string, string> = {
   xiaomi: "h-10",
   redmi: "h-10",
   poco: "h-10",
-  motorola: "h-14",
+  motorola: "h-20",
   lg: "h-12",
   realme: "h-10",
 };
