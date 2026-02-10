@@ -5,7 +5,7 @@ import appleLogo from "@/assets/brands/apple.svg";
 import samsungLogo from "@/assets/brands/samsung.svg";
 import xiaomiLogo from "@/assets/brands/xiaomi.svg";
 
-import pocoLogo from "@/assets/brands/poco.png";
+import pocoLogo from "@/assets/brands/poco-new.png";
 import motorolaLogo from "@/assets/brands/motorola.png";
 import lgLogo from "@/assets/brands/lg.svg";
 import realmeLogo from "@/assets/brands/realme-new.png";
