@@ -40,8 +40,7 @@ export default function BrandSelection() {
       <main className="px-4 py-6 max-w-lg mx-auto">
         {/* Heading */}
         <div className="mb-5">
-          <h1 className="text-2xl font-extrabold text-foreground">Selecione a Marca</h1>
-          <p className="text-sm text-muted-foreground mt-1">Qual é a marca do seu aparelho?</p>
+          <h1 className="text-2xl font-extrabold text-foreground">Escolha a marca do seu aparelho</h1>
         </div>
 
         {/* Brand grid */}
@@ -50,13 +49,15 @@ export default function BrandSelection() {
             <button
               key={brand.id}
               onClick={() => navigate(`/orcamento/${brand.id}`)}
-              className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-card border shadow-sm hover:shadow-md hover:border-foreground/20 transition-all active:scale-[0.97] aspect-square"
+              className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-foreground/20 transition-all active:scale-[0.97]"
             >
-              <img
-                src={BRAND_LOGO[brand.id]}
-                alt={`${brand.name} logo`}
-                className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
-              />
+              <div className="w-full aspect-square rounded-xl bg-white flex items-center justify-center p-4">
+                <img
+                  src={BRAND_LOGO[brand.id]}
+                  alt={`${brand.name} logo`}
+                  className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
+                />
+              </div>
               <span className="font-semibold text-card-foreground">{brand.name}</span>
             </button>
           ))}
