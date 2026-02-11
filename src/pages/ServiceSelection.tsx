@@ -112,10 +112,10 @@ export default function ServiceSelection() {
                 `/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`
               )
             }
-            className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-dashed border-muted-foreground/30 bg-card hover:border-foreground/20 transition-all active:scale-[0.98]"
+            className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-[#ff812a]/40 bg-[#ff812a]/10 hover:bg-[#ff812a]/20 transition-all active:scale-[0.98]"
           >
-            <span className="font-medium text-muted-foreground">Outro Defeito</span>
-            <span className="text-xs text-muted-foreground">Orçamento personalizado →</span>
+            <span className="font-medium text-[#ff812a]">Outro Defeito</span>
+            <span className="text-xs text-[#ff812a]/80">Orçamento personalizado →</span>
           </button>
         </div>
       </main>
