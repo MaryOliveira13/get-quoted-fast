@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import BrandSelection from "./pages/BrandSelection";
 import ModelSelection from "./pages/ModelSelection";
 import ServiceSelection from "./pages/ServiceSelection";
+import QuoteReview from "./pages/QuoteReview";
 import PersonalizedQuote from "./pages/PersonalizedQuote";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/orcamento" element={<BrandSelection />} />
           <Route path="/orcamento/:brand" element={<ModelSelection />} />
           <Route path="/orcamento/:brand/:model" element={<ServiceSelection />} />
+          <Route path="/orcamento-revisao" element={<QuoteReview />} />
           <Route path="/orcamento-personalizado" element={<PersonalizedQuote />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

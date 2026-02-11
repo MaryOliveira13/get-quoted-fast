@@ -1,17 +1,20 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { findBrand, findModel } from "@/data/catalog";
 import { SERVICES } from "@/data/services";
 import { formatBRL } from "@/lib/money";
-import { openWhatsApp, msgOrcamentoRapido } from "@/lib/whatsapp";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Check, MessageCircle } from "lucide-react";
+import { AlertCircle, Check, ArrowRight } from "lucide-react";
 
 export default function ServiceSelection() {
   const { brand: brandSlug, model: modelSlug } = useParams<{ brand: string; model: string }>();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const location = useLocation();
+  const preSelected = (location.state as { preSelected?: string[] } | null)?.preSelected;
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(preSelected ?? [])
+  );
 
   const brand = findBrand(brandSlug ?? "");
   const model = brand ? findModel(brand.id, modelSlug ?? "") : undefined;
@@ -54,10 +57,21 @@ export default function ServiceSelection() {
   const selectedServices = SERVICES.filter((s) => selected.has(s.id));
   const totalCents = selectedServices.reduce((sum, s) => sum + s.priceCents, 0);
 
-  const handleSend = () => {
-    const items = selectedServices.map((s) => ({ label: s.label, priceCents: s.priceCents }));
-    const msg = msgOrcamentoRapido(brand.name, model, items, totalCents);
-    openWhatsApp(msg);
+  const handleReview = () => {
+    navigate("/orcamento-revisao", {
+      state: {
+        brandId: brand.id,
+        brandName: brand.name,
+        modelSlug: modelSlug,
+        modelName: model,
+        services: selectedServices.map((s) => ({
+          id: s.id,
+          label: s.label,
+          priceCents: s.priceCents,
+        })),
+        totalCents,
+      },
+    });
   };
 
   return (
@@ -136,10 +150,10 @@ export default function ServiceSelection() {
             size="lg"
             className="w-full text-base"
             disabled={selected.size === 0}
-            onClick={handleSend}
+            onClick={handleReview}
           >
-            <MessageCircle className="w-5 h-5" />
-            Enviar para WhatsApp
+            <ArrowRight className="w-5 h-5" />
+            Revisar orçamento
           </Button>
         </div>
       </div>
