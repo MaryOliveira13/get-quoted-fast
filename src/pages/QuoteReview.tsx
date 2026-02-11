@@ -2,8 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
-import { openWhatsApp, msgOrcamentoRapido } from "@/lib/whatsapp";
-import { AlertCircle, MessageCircle, Pencil } from "lucide-react";
+import { setQuoteDraft } from "@/lib/storage";
+import { AlertCircle, ArrowRight, Pencil } from "lucide-react";
 
 interface QuoteState {
   brandId: string;
@@ -38,10 +38,9 @@ export default function QuoteReview() {
 
   const { brandId, brandName, modelSlug, modelName, services, totalCents } = state;
 
-  const handleConfirm = () => {
-    const items = services.map((s) => ({ label: s.label, priceCents: s.priceCents }));
-    const msg = msgOrcamentoRapido(brandName, modelName, items, totalCents);
-    openWhatsApp(msg);
+  const handleContinue = () => {
+    setQuoteDraft({ brandId, brandName, modelSlug, modelName, services, totalCents });
+    navigate("/envio");
   };
 
   const handleEdit = () => {
@@ -97,10 +96,10 @@ export default function QuoteReview() {
             variant="whatsapp"
             size="lg"
             className="w-full text-base"
-            onClick={handleConfirm}
+            onClick={handleContinue}
           >
-            <MessageCircle className="w-5 h-5" />
-            Confirmar e enviar no WhatsApp
+            <ArrowRight className="w-5 h-5" />
+            Continuar para envio
           </Button>
           <Button
             variant="outline"
