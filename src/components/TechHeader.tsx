@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
+import powercellLogo from "@/assets/powercell-logo.png";
 
 export function TechHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,7 +22,7 @@ export function TechHeader() {
     >
       <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-4">
         <img src={logo} alt="TechFix" className="w-14 h-14 rounded-xl object-cover" />
-        <span className="text-xl font-bold text-background">TechFix</span>
+        <img src={powercellLogo} alt="PowerCell" className="h-10 object-contain" />
       </div>
     </header>
   );
