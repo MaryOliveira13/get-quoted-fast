@@ -20,8 +20,9 @@ export function TechHeader() {
           : ""
       }`}
     >
-      <div className="max-w-lg mx-auto flex items-center justify-center px-4 py-4">
-        <img src={powercellLogo} alt="Power Cell" className="h-20 object-contain" />
+      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-4">
+        <img src={logo} alt="TechFix" className="w-14 h-14 rounded-xl object-cover" />
+        <img src={powercellLogo} alt="PowerCell" className="h-16 object-contain" />
       </div>
     </header>
   );
