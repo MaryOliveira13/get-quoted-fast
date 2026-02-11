@@ -58,7 +58,7 @@ export default function PersonalizedQuote() {
       <PageHeader
         title="Orçamento Personalizado"
         subtitle="Preencha os dados abaixo"
-        backTo={prefillBrand ? undefined : "/orcamento"}
+        backTo="/orcamento"
       />
 
       <main className="px-4 py-4 max-w-lg mx-auto space-y-4">
