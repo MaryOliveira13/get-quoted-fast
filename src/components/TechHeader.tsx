@@ -14,14 +14,14 @@ export function TechHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-200 bg-[#f3873e] ${
+      className={`sticky top-0 z-50 transition-all duration-200 ${
         isScrolled
-          ? "backdrop-blur-md shadow-sm"
-          : ""
+          ? "bg-white/70 backdrop-blur-md border-b border-black/5 shadow-sm"
+          : "bg-white border-b border-transparent"
       }`}
     >
-      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-4">
-        <img src={logo} alt="TechFix" className="w-14 h-14 rounded-xl object-cover" />
+      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-3">
+        <img src={logo} alt="TechFix" className="w-12 h-12 rounded-2xl object-cover" />
         <img src={powercellLogo} alt="PowerCell" className="h-7 object-contain" />
       </div>
     </header>
