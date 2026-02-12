@@ -17,6 +17,10 @@ import ShippingDevice from "./pages/ShippingDevice";
 import ShippingConfirm from "./pages/ShippingConfirm";
 import ShippingRates from "./pages/ShippingRates";
 import PixPayment from "./pages/PixPayment";
+import SelfLabelPersonal from "./pages/SelfLabelPersonal";
+import SelfLabelDevice from "./pages/SelfLabelDevice";
+import SelfLabelConfirm from "./pages/SelfLabelConfirm";
+import SelfLabelSuccess from "./pages/SelfLabelSuccess";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +44,10 @@ const App = () => (
           <Route path="/envio/confirmacao" element={<ShippingConfirm />} />
           <Route path="/envio/frete" element={<ShippingRates />} />
           <Route path="/envio/pagamento-pix" element={<PixPayment />} />
+          <Route path="/envio/etiqueta-propria/dados" element={<SelfLabelPersonal />} />
+          <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
+          <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
+          <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
