@@ -8,7 +8,7 @@ export const BRANDS: Brand[] = [
   { id: "samsung", name: "Samsung" },
   { id: "xiaomi", name: "Xiaomi" },
   { id: "motorola", name: "Motorola" },
-  { id: "lg", name: "LG" },
+  
   { id: "realme", name: "Realme" },
   { id: "infinix", name: "Infinix" },
 ];
