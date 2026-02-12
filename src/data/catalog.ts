@@ -112,6 +112,56 @@ export const MODELS_BY_BRAND: Record<string, string[]> = {
   infinix: [],
 };
 
+/** Modelos removidos do catálogo — filtro centralizado */
+const EXCLUDED_MODELS: Record<string, string[]> = {
+  apple: [
+    "iPhone 16 Plus",
+    "iPhone 7 Plus", "iPhone 7",
+    "iPhone SE",
+    "iPhone 6S Plus", "iPhone 6S", "iPhone 6 Plus", "iPhone 6", "iPhone 5S",
+  ],
+  samsung: [
+    "Galaxy S26 Ultra", "Galaxy S26",
+    "Galaxy Note 9", "Galaxy S9",
+    "Galaxy S8+",
+    "Galaxy S7 Edge",
+    "Galaxy S6 Edge", "Galaxy S5",
+  ],
+  xiaomi: [
+    "Xiaomi 17 Ultra", "Xiaomi 17 Pro", "Xiaomi 17",
+    "Xiaomi 15T Pro", "Xiaomi 15T",
+    "Xiaomi 15 Ultra", "Xiaomi 15 Pro", "Xiaomi 15",
+    "Xiaomi 14T Pro", "Xiaomi 14T", "Xiaomi 14 Ultra",
+    "Xiaomi 13 Ultra", "Xiaomi 13T Pro", "Xiaomi 13T", "Xiaomi 13 Lite",
+    "Xiaomi 12T Pro", "Xiaomi 12T", "Xiaomi 12S Ultra", "Xiaomi 12 Lite",
+    "Xiaomi 11T Pro", "Xiaomi 11T",
+    "Mi 11 Ultra",
+    "Redmi Note 15 Pro+ 5G", "Redmi Note 15 Pro 5G", "Redmi Note 15 5G", "Redmi Note 15 4G",
+    "Redmi Note 14 Pro+ 5G",
+    "Redmi Note 13 Pro+ 5G",
+    "Redmi Note 12 Pro+",
+    "Redmi Note 11 Pro+ 5G",
+    "Redmi Note 10 Pro",
+    "POCO F8 Pro", "POCO F8",
+    "POCO X8 Pro", "POCO X8",
+    "POCO M8 Pro 5G", "POCO M8 5G",
+    "POCO F7 Ultra",
+  ],
+  motorola: [
+    "Motorola Signature",
+    "Motorola Razr 70 Ultra", "Motorola Razr 70",
+  ],
+};
+
+// Aplica o filtro de exclusão sobre o catálogo bruto
+for (const [brandId, excluded] of Object.entries(EXCLUDED_MODELS)) {
+  const raw = MODELS_BY_BRAND[brandId];
+  if (raw) {
+    const set = new Set(excluded);
+    MODELS_BY_BRAND[brandId] = raw.filter((m) => !set.has(m));
+  }
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()
