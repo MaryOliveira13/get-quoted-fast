@@ -10,6 +10,7 @@ export const BRANDS: Brand[] = [
   { id: "motorola", name: "Motorola" },
   { id: "lg", name: "LG" },
   { id: "realme", name: "Realme" },
+  { id: "infinix", name: "Infinix" },
 ];
 
 export const MODELS_BY_BRAND: Record<string, string[]> = {
@@ -108,6 +109,7 @@ export const MODELS_BY_BRAND: Record<string, string[]> = {
   ],
   lg: [],
   realme: [],
+  infinix: [],
 };
 
 export function slugify(text: string): string {
