@@ -28,7 +28,11 @@ export default function ShippingMethod() {
 
   const choose = (method: "label_by_us" | "self_label") => {
     updateShippingDraft({ shippingMethod: method });
-    navigate("/envio/dados-pessoais");
+    if (method === "self_label") {
+      navigate("/envio/etiqueta-propria/dados");
+    } else {
+      navigate("/envio/dados-pessoais");
+    }
   };
 
   const addr = STORE_SHIPPING_ADDRESS;

@@ -64,3 +64,52 @@ export function msgOrcamentoPersonalizado(data: PersonalizedQuoteData): string {
   msg += `\nConsegue me informar valor aproximado e prazo?`;
   return msg;
 }
+
+export interface SelfLabelOsData {
+  osCode: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  street: string;
+  number: string;
+  district: string;
+  city: string;
+  uf: string;
+  cep: string;
+  modelName: string;
+  brandName: string;
+  services: { label: string; priceCents: number }[];
+  totalCents: number;
+  accessories: string[];
+}
+
+export function msgEtiquetaPropria(data: SelfLabelOsData): string {
+  const servLines = data.services
+    .map((s) => `• ${s.label} — ${formatBRL(s.priceCents)}`)
+    .join("\n");
+  const accText = data.accessories.length > 0 ? data.accessories.join(", ") : "Nenhum";
+
+  return `Olá! Vou enviar meu aparelho com etiqueta própria.
+
+✅ OS: ${data.osCode}
+👤 Cliente: ${data.fullName}
+📞 WhatsApp: ${data.phone}
+📧 E-mail: ${data.email}
+
+📍 Endereço do cliente:
+${data.street}, ${data.number} - ${data.district}
+${data.city}-${data.uf} | CEP: ${data.cep}
+
+📱 Aparelho: ${data.modelName} (${data.brandName})
+
+🧾 Serviços/Problema:
+${servLines}
+
+💰 Total estimado: ${formatBRL(data.totalCents)}
+
+🔌 Acessórios enviados:
+${accText}
+
+📦 Enviarei para o endereço informado no site.
+Pode me confirmar o recebimento e os próximos passos?`;
+}
