@@ -120,19 +120,11 @@ export default function SelfLabelSuccess() {
   return (
     <div className="min-h-screen bg-background pb-8">
       {/* Success header */}
-      <div className="bg-gradient-to-br from-destructive/80 to-destructive/60 px-4 py-10 text-center">
+      <div className="bg-gradient-to-br from-whatsapp to-whatsapp-hover px-4 py-10 text-center">
         <div className="w-16 h-16 rounded-full bg-background/20 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-10 h-10 text-destructive-foreground" />
+          <CheckCircle className="w-10 h-10 text-whatsapp-foreground" />
         </div>
-        <h1 className="text-2xl font-bold text-destructive-foreground">OS Gerada com Sucesso!</h1>
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <span className="bg-background/20 text-destructive-foreground px-4 py-2 rounded-lg text-lg font-mono font-bold tracking-wider">
-            {os.osCode}
-          </span>
-          <button onClick={copyCode} className="p-2 rounded-lg bg-background/20 hover:bg-background/30 transition-colors">
-            <Copy className="w-5 h-5 text-destructive-foreground" />
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold text-whatsapp-foreground">Ordem de Serviço Gerada com Sucesso!</h1>
       </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
