@@ -127,7 +127,7 @@ export default function SelfLabelConfirm() {
             disabled={!agreed}
             onClick={handleGenerate}
           >
-            Gerar OS
+            Gerar Ordem de Serviço
           </Button>
         </div>
       </div>
