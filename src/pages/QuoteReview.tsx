@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
 import { setQuoteDraft } from "@/lib/storage";
 import { AlertCircle, ArrowRight, Pencil } from "lucide-react";
+import { GuaranteeTermsModal } from "@/components/GuaranteeTermsModal";
 
 interface QuoteState {
   brandId: string;
@@ -17,6 +19,7 @@ interface QuoteState {
 export default function QuoteReview() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [openTerms, setOpenTerms] = useState(false);
   const state = location.state as QuoteState | null;
 
   if (!state || !state.services?.length) {
@@ -39,6 +42,11 @@ export default function QuoteReview() {
   const { brandId, brandName, modelSlug, modelName, services, totalCents } = state;
 
   const handleContinue = () => {
+    setOpenTerms(true);
+  };
+
+  const handleAcceptTerms = () => {
+    setOpenTerms(false);
     setQuoteDraft({ brandId, brandName, modelSlug, modelName, services, totalCents });
     navigate("/envio");
   };
@@ -112,6 +120,11 @@ export default function QuoteReview() {
           </Button>
         </div>
       </div>
+      <GuaranteeTermsModal
+        open={openTerms}
+        onClose={() => setOpenTerms(false)}
+        onAccept={handleAcceptTerms}
+      />
     </div>
   );
 }
