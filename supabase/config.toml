@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.melhorenvio-label]
 verify_jwt = false
+
+[functions.melhorenvio-set-token]
+verify_jwt = false
+
+[functions.melhorenvio-get-token-status]
+verify_jwt = false

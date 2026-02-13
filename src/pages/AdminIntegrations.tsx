@@ -1,56 +1,87 @@
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Loader2, Plug, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Plug, RefreshCw, Save, Key } from "lucide-react";
 import { toast } from "sonner";
-import { useSearchParams } from "react-router-dom";
 
 export default function AdminIntegrations() {
-  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
-  const [meUser, setMeUser] = useState<{ name: string; email: string } | null>(null);
+  const [tokenPrefix, setTokenPrefix] = useState<string | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [tokenInput, setTokenInput] = useState("");
 
   useEffect(() => {
-    if (searchParams.get("connected") === "true") {
-      toast.success("Melhor Envio conectado com sucesso!");
-    }
-    checkConnection();
+    checkStatus();
   }, []);
 
-  const checkConnection = async () => {
+  const checkStatus = async () => {
     setTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("melhorenvio-ping");
+      const { data, error } = await supabase.functions.invoke("melhorenvio-get-token-status");
       if (error) throw error;
       if (data?.connected) {
         setStatus("connected");
-        setMeUser(data.user);
+        setTokenPrefix(data.tokenPrefix || null);
+        setUpdatedAt(data.updatedAt || null);
       } else {
         setStatus("disconnected");
-        setMeUser(null);
+        setTokenPrefix(null);
+        setUpdatedAt(null);
       }
     } catch {
       setStatus("disconnected");
-      setMeUser(null);
     } finally {
       setTesting(false);
     }
   };
 
-  const handleConnect = async () => {
+  const handleSaveToken = async () => {
+    if (!tokenInput.trim()) {
+      toast.error("Cole o token antes de salvar.");
+      return;
+    }
+    setSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke("melhorenvio-authorize");
+      const { data, error } = await supabase.functions.invoke("melhorenvio-set-token", {
+        body: { accessToken: tokenInput.trim() },
+      });
       if (error) throw error;
-      if (data?.authUrl) {
-        window.location.href = data.authUrl;
-      } else {
-        toast.error("Erro ao obter URL de autorização");
+      if (data?.error) {
+        toast.error(data.error);
+        return;
       }
+      toast.success("Token salvo com sucesso!");
+      setTokenInput("");
+      await checkStatus();
     } catch (err) {
-      toast.error("Erro ao conectar com Melhor Envio");
+      toast.error("Erro ao salvar token.");
       console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("melhorenvio-ping");
+      if (error) throw error;
+      if (data?.connected) {
+        toast.success(`Conexão OK — ${data.user?.name || "conectado"}`);
+        setStatus("connected");
+      } else {
+        toast.error(data?.error || "Não foi possível validar o token.");
+        setStatus("disconnected");
+      }
+    } catch {
+      toast.error("Erro ao testar conexão.");
+      setStatus("disconnected");
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -59,6 +90,7 @@ export default function AdminIntegrations() {
       <PageHeader title="Integrações" backTo="/" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
+        {/* Status Card */}
         <div className="rounded-xl border bg-card p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -70,20 +102,19 @@ export default function AdminIntegrations() {
             </div>
           </div>
 
-          {/* Status */}
           <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary">
             {status === "loading" || testing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Verificando conexão...</span>
+                <span className="text-sm text-muted-foreground">Verificando...</span>
               </>
             ) : status === "connected" ? (
               <>
                 <CheckCircle className="w-4 h-4 text-whatsapp" />
                 <span className="text-sm font-medium text-whatsapp">Conectado</span>
-                {meUser && (
+                {tokenPrefix && (
                   <span className="text-xs text-muted-foreground ml-auto">
-                    {meUser.name} ({meUser.email})
+                    Token: {tokenPrefix}
                   </span>
                 )}
               </>
@@ -95,34 +126,63 @@ export default function AdminIntegrations() {
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            {status !== "connected" ? (
-              <Button onClick={handleConnect} className="flex-1">
-                Conectar Melhor Envio
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={handleConnect} className="flex-1">
-                Reconectar
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={checkConnection}
-              disabled={testing}
-            >
-              <RefreshCw className={`w-4 h-4 ${testing ? "animate-spin" : ""}`} />
-            </Button>
-          </div>
+          {updatedAt && status === "connected" && (
+            <p className="text-xs text-muted-foreground">
+              Último update: {new Date(updatedAt).toLocaleString("pt-BR")}
+            </p>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTestConnection}
+            disabled={testing}
+            className="w-full"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${testing ? "animate-spin" : ""}`} />
+            Testar conexão
+          </Button>
         </div>
 
+        {/* Token Input Card */}
+        <div className="rounded-xl border bg-card p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Token de acesso manual</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Cole aqui o <strong>access_token</strong> do Melhor Envio (sandbox ou produção).
+            O token será salvo de forma segura no backend.
+          </p>
+          <Textarea
+            placeholder="Cole o access_token aqui..."
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            rows={4}
+            className="font-mono text-xs"
+          />
+          <Button
+            onClick={handleSaveToken}
+            disabled={saving || !tokenInput.trim()}
+            className="w-full"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            Salvar token
+          </Button>
+        </div>
+
+        {/* Info */}
         <div className="rounded-xl border bg-card p-5 space-y-3">
           <h3 className="font-semibold text-sm">📋 Informações</h3>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Os tokens OAuth são armazenados de forma segura no backend</li>
-            <li>• O refresh automático acontece quando o token expira</li>
-            <li>• Nenhuma credencial é exposta no frontend</li>
+            <li>• O token é armazenado no banco, nunca no frontend</li>
+            <li>• Apenas o prefixo do token é exibido por segurança</li>
+            <li>• Use "Testar conexão" para validar se o token está funcionando</li>
+            <li>• Após salvar, o cálculo de frete deve funcionar automaticamente</li>
           </ul>
         </div>
       </main>
