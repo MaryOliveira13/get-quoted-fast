@@ -7,6 +7,8 @@ serve(async (req) => {
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
 
+    console.log("callback: received code =", Boolean(code), "state =", state);
+
     if (!code) {
       return new Response("<h1>Erro: código de autorização ausente</h1>", {
         status: 400,
@@ -18,6 +20,9 @@ serve(async (req) => {
     const ME_CLIENT_ID = Deno.env.get("ME_CLIENT_ID")!;
     const ME_CLIENT_SECRET = Deno.env.get("ME_CLIENT_SECRET")!;
     const ME_REDIRECT_URI = Deno.env.get("ME_REDIRECT_URI")!;
+
+    console.log("callback: exchanging code for token at", ME_BASE_URL);
+    console.log("callback: redirect_uri =", ME_REDIRECT_URI);
 
     // Exchange code for tokens
     const tokenRes = await fetch(`${ME_BASE_URL}/oauth/token`, {
@@ -32,7 +37,19 @@ serve(async (req) => {
       }),
     });
 
-    const tokenData = await tokenRes.json();
+    const tokenText = await tokenRes.text();
+    console.log("callback: token response status =", tokenRes.status);
+    console.log("callback: token response body =", tokenText.slice(0, 300));
+
+    let tokenData: any;
+    try {
+      tokenData = JSON.parse(tokenText);
+    } catch {
+      return new Response(`<h1>Erro ao processar resposta do Melhor Envio</h1><pre>${tokenText.slice(0, 500)}</pre>`, {
+        status: 400,
+        headers: { "Content-Type": "text/html" },
+      });
+    }
 
     if (!tokenRes.ok || !tokenData.access_token) {
       console.error("Token exchange failed:", tokenData);
@@ -41,6 +58,8 @@ serve(async (req) => {
         headers: { "Content-Type": "text/html" },
       });
     }
+
+    console.log("callback: token obtained, saving to DB...");
 
     // Save tokens to DB using service_role
     const supabase = createClient(
@@ -67,10 +86,16 @@ serve(async (req) => {
       });
     }
 
-    // Redirect to admin page with success
+    console.log("callback: token saved successfully, redirecting...");
+
+    // Redirect to the published app's admin page
+    const appUrl = Deno.env.get("VITE_SUPABASE_URL")
+      ? "https://get-quoted-fast.lovable.app"
+      : "https://get-quoted-fast.lovable.app";
+
     return new Response(null, {
       status: 302,
-      headers: { Location: "/admin/integracoes?connected=true" },
+      headers: { Location: `${appUrl}/admin/integracoes?connected=true` },
     });
   } catch (error) {
     console.error("Callback error:", error);
