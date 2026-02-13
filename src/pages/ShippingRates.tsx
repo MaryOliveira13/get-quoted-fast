@@ -2,66 +2,49 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getShippingDraft, updateShippingDraft, getQuoteDraft } from "@/lib/storage";
 import { formatBRL } from "@/lib/money";
-import { AlertCircle, Package, Zap, Truck } from "lucide-react";
+import { AlertCircle, Package, Zap, Truck, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ShippingOption {
-  id: string;
-  name: string;
-  company: string;
+  serviceId: string;
+  serviceName: string;
+  companyName: string;
   priceCents: number;
-  deliveryMin: number;
-  deliveryMax: number;
+  deliveryMinDays: number;
+  deliveryMaxDays: number;
+  currency: string;
+}
+
+function maskCEP(v: string) {
+  return v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 }
 
 export default function ShippingRates() {
   const navigate = useNavigate();
   const quote = getQuoteDraft();
   const draft = getShippingDraft();
+
+  const [cep, setCep] = useState(draft.cep || "");
   const [options, setOptions] = useState<ShippingOption[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetched, setFetched] = useState(false);
 
   const deviceValue = draft.devices?.[0]?.valueCents || 0;
-  const clientCep = draft.cep || "";
 
+  // Auto-fetch if CEP already exists
   useEffect(() => {
-    if (quote && draft.shippingMethod !== "self_label") {
-      fetchQuotes();
-    } else {
-      setLoading(false);
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length === 8 && quote && draft.shippingMethod !== "self_label") {
+      fetchQuotes(cleanCep);
     }
   }, []);
-
-  const fetchQuotes = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
-        body: {
-          from: { postal_code: clientCep },
-          insurance_value: deviceValue / 100,
-          package: { weight: 0.4, width: 16, height: 8, length: 4 },
-        },
-      });
-      if (fnError) throw fnError;
-      if (data?.error) throw new Error(data.error);
-      if (Array.isArray(data) && data.length > 0) {
-        setOptions(data);
-      } else {
-        setError("Nenhuma opção de frete disponível para este CEP.");
-      }
-    } catch (err: any) {
-      console.error("Erro ao cotar frete:", err);
-      setError(err.message || "Erro ao cotar frete.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!quote) {
     return (
@@ -91,22 +74,65 @@ export default function ShippingRates() {
     );
   }
 
+  const fetchQuotes = async (postalCode?: string) => {
+    const cleanCep = (postalCode || cep).replace(/\D/g, "");
+    if (cleanCep.length !== 8) return;
+
+    setLoading(true);
+    setError(null);
+    setOptions([]);
+    setSelected(null);
+    setFetched(false);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
+        body: {
+          from: { postal_code: cleanCep },
+          insurance_value: deviceValue / 100,
+          package: { weight: 0.4, width: 16, height: 8, length: 4 },
+        },
+      });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      const opts: ShippingOption[] = data?.options || [];
+      if (opts.length > 0) {
+        setOptions(opts);
+      } else {
+        setError("Nenhuma opção de frete disponível para este CEP.");
+      }
+    } catch (err: any) {
+      console.error("Erro ao cotar frete:", err);
+      setError(err.message || "Não foi possível calcular o frete agora.");
+    } finally {
+      setLoading(false);
+      setFetched(true);
+    }
+  };
+
   const getIcon = (name: string) => {
-    if (name.toUpperCase().includes("SEDEX")) return <Zap className="w-5 h-5 text-muted-foreground" />;
-    if (name.toUpperCase().includes("PAC")) return <Package className="w-5 h-5 text-muted-foreground" />;
+    const upper = name.toUpperCase();
+    if (upper.includes("SEDEX")) return <Zap className="w-5 h-5 text-muted-foreground" />;
+    if (upper.includes("PAC")) return <Package className="w-5 h-5 text-muted-foreground" />;
     return <Truck className="w-5 h-5 text-muted-foreground" />;
   };
 
   const handleContinue = () => {
     if (!selected) return;
-    const opt = options.find((o) => o.id === selected);
+    const opt = options.find((o) => o.serviceId === selected);
     if (!opt) return;
+
     updateShippingDraft({
-      selectedShipping: opt.name.toUpperCase().includes("SEDEX") ? "SEDEX" : "PAC",
+      selectedShipping: opt.serviceName.toUpperCase().includes("SEDEX") ? "SEDEX" : "PAC",
       shippingPriceCents: opt.priceCents,
-      shippingOptionId: opt.id,
-      shippingOptionName: opt.name,
+      shippingOptionId: opt.serviceId,
+      shippingOptionName: opt.serviceName,
     });
+
+    // Also persist the full option in localStorage for later use
+    localStorage.setItem("shippingOption", JSON.stringify(opt));
+
     navigate("/envio/pagamento-pix");
   };
 
@@ -115,63 +141,116 @@ export default function ShippingRates() {
     navigate("/envio/etiqueta-propria/dados");
   };
 
+  const cepValid = cep.replace(/\D/g, "").length === 8;
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <PageHeader title="Escolha o frete" backTo="/envio/confirmacao" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
-        <div className="text-center space-y-1 mb-4">
-          <h2 className="text-xl font-bold">Escolha o tipo de envio</h2>
-          <p className="text-sm text-muted-foreground">Selecione a opção de frete</p>
+        <div className="text-center space-y-1 mb-2">
+          <h2 className="text-xl font-bold">Escolha a opção de envio</h2>
+          <p className="text-sm text-muted-foreground">
+            Escolha a opção de envio que melhor se encaixa para você.
+          </p>
+        </div>
+
+        {/* CEP input + Calculate button */}
+        <div className="rounded-xl border bg-card p-5 space-y-3">
+          <Label htmlFor="cep-frete">CEP de origem</Label>
+          <div className="flex gap-3">
+            <Input
+              id="cep-frete"
+              value={cep}
+              onChange={(e) => setCep(maskCEP(e.target.value))}
+              placeholder="00000-000"
+              className="flex-1"
+            />
+            <Button
+              onClick={() => fetchQuotes()}
+              disabled={!cepValid || loading}
+              className="gap-2"
+            >
+              <Search className="w-4 h-4" />
+              {loading ? "Calculando..." : "Calcular"}
+            </Button>
+          </div>
           {draft.city && draft.uf && (
-            <p className="text-xs text-muted-foreground">Envio de: {draft.city}, {draft.uf}</p>
+            <p className="text-xs text-muted-foreground">
+              Envio de: {draft.city}, {draft.uf}
+            </p>
           )}
         </div>
 
+        {/* Loading */}
         {loading && (
           <div className="space-y-3">
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
           </div>
         )}
 
-        {error && (
+        {/* Error */}
+        {error && !loading && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 space-y-3 text-center">
             <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
             <p className="text-sm text-destructive font-medium">{error}</p>
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" onClick={fetchQuotes} className="flex-1">Tentar novamente</Button>
-              <Button variant="outline" size="sm" onClick={goSelfLabel} className="flex-1">Gerar minha etiqueta</Button>
+              <Button variant="outline" size="sm" onClick={() => fetchQuotes()} className="flex-1">
+                Tentar novamente
+              </Button>
+              <Button variant="outline" size="sm" onClick={goSelfLabel} className="flex-1">
+                Gerar minha etiqueta
+              </Button>
             </div>
           </div>
         )}
 
-        {!loading && !error && options.map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => setSelected(opt.id)}
-            className={`w-full rounded-xl border p-5 text-left transition-all active:scale-[0.98] space-y-2 ${
-              selected === opt.id ? "border-whatsapp bg-whatsapp/5" : "border-border bg-card"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {getIcon(opt.name)}
-                <span className="font-semibold">{opt.name}</span>
-              </div>
-              <span className="text-lg font-bold">{formatBRL(opt.priceCents)}</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {opt.deliveryMin}–{opt.deliveryMax} dias úteis • {opt.company}
-              {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
-            </p>
-          </button>
-        ))}
+        {/* Shipping options list */}
+        {!loading && !error && options.length > 0 && (
+          <div className="space-y-3">
+            {options.map((opt) => (
+              <button
+                key={opt.serviceId}
+                onClick={() => setSelected(opt.serviceId)}
+                className={`w-full rounded-xl border p-4 text-left transition-all active:scale-[0.98] space-y-1.5 ${
+                  selected === opt.serviceId
+                    ? "border-whatsapp bg-whatsapp/5"
+                    : "border-border bg-card hover:border-foreground/20"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {getIcon(opt.serviceName)}
+                    <div>
+                      <span className="font-semibold text-sm">{opt.serviceName}</span>
+                      <span className="text-xs text-muted-foreground ml-2">({opt.companyName})</span>
+                    </div>
+                  </div>
+                  <span className="text-base font-bold">{formatBRL(opt.priceCents)}</span>
+                </div>
+                <p className="text-xs text-muted-foreground pl-8">
+                  {opt.deliveryMinDays}–{opt.deliveryMaxDays} dias úteis
+                  {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
+                </p>
+              </button>
+            ))}
 
-        {!loading && !error && (
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            O valor do frete inclui seguro e será pago via Pix na próxima etapa.
-          </p>
+            <p className="text-xs text-muted-foreground text-center pt-1">
+              Valores e prazos podem variar após validação da transportadora.
+            </p>
+          </div>
+        )}
+
+        {/* Empty state before search */}
+        {!loading && !error && !fetched && options.length === 0 && (
+          <div className="text-center py-8">
+            <Package className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">
+              Informe seu CEP e clique em "Calcular" para ver as opções de frete.
+            </p>
+          </div>
         )}
       </main>
 

@@ -96,7 +96,6 @@ serve(async (req) => {
         receipt: false,
         own_hand: false,
       },
-      services: "1,2", // 1 = PAC, 2 = SEDEX
     };
 
     const quoteRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/calculate`, {
@@ -120,24 +119,21 @@ serve(async (req) => {
       });
     }
 
-    // Normalize response - filter only services without errors
+    // Normalize response - filter only valid services, return ALL
     const options = (Array.isArray(quoteData) ? quoteData : [])
-      .filter((s: any) => !s.error && s.price)
+      .filter((s: any) => !s.error && s.price && parseFloat(s.price) > 0)
       .map((s: any) => ({
-        id: String(s.id),
-        name: s.name,
-        company: s.company?.name || "Correios",
+        serviceId: String(s.id),
+        serviceName: s.name,
+        companyName: s.company?.name || "Transportadora",
         priceCents: Math.round(parseFloat(s.price) * 100),
-        deliveryMin: s.delivery_range?.min || 0,
-        deliveryMax: s.delivery_range?.max || 0,
+        deliveryMinDays: s.delivery_range?.min || 0,
+        deliveryMaxDays: s.delivery_range?.max || 0,
         currency: s.currency || "BRL",
       }))
       .sort((a: any, b: any) => a.priceCents - b.priceCents);
 
-    // If PAC/SEDEX not available, return best 3
-    const result = options.length > 3 ? options.slice(0, 3) : options;
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({ options }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
