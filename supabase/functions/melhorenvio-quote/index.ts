@@ -3,8 +3,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 async function getValidAccessToken(supabase: any): Promise<string | null> {
   const ME_BASE_URL = Deno.env.get("ME_BASE_URL")!;
@@ -18,13 +26,17 @@ async function getValidAccessToken(supabase: any): Promise<string | null> {
     .limit(1)
     .single();
 
-  if (error || !tokens) return null;
+  if (error || !tokens) {
+    console.error("No token found:", error?.message);
+    return null;
+  }
 
   const expiresAt = new Date(tokens.expires_at).getTime();
   if (Date.now() < expiresAt - 5 * 60 * 1000) {
     return tokens.access_token;
   }
 
+  console.log("Token expired, refreshing...");
   const refreshRes = await fetch(`${ME_BASE_URL}/oauth/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -37,7 +49,10 @@ async function getValidAccessToken(supabase: any): Promise<string | null> {
   });
 
   const refreshData = await refreshRes.json();
-  if (!refreshRes.ok || !refreshData.access_token) return null;
+  if (!refreshRes.ok || !refreshData.access_token) {
+    console.error("Refresh failed:", refreshData);
+    return null;
+  }
 
   const newExpiresAt = new Date(Date.now() + refreshData.expires_in * 1000).toISOString();
   await supabase.from("melhor_envio_tokens").update({
@@ -55,16 +70,22 @@ serve(async (req) => {
   }
 
   try {
-    const { from, insurance_value, package: pkg } = await req.json();
+    const body = await req.json();
     const STORE_POSTAL_CODE = Deno.env.get("STORE_POSTAL_CODE");
     const ME_BASE_URL = Deno.env.get("ME_BASE_URL")!;
 
     if (!STORE_POSTAL_CODE) {
-      return new Response(JSON.stringify({ error: "CEP da loja não configurado" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "CEP da loja não configurado" }, 500);
     }
+
+    // Extract and validate customer CEP
+    const rawCep = String(body.from?.postal_code || body.customerPostalCode || "").replace(/\D/g, "");
+    if (rawCep.length !== 8) {
+      return json({ error: "CEP inválido. Informe 8 dígitos." }, 400);
+    }
+
+    const storeCep = STORE_POSTAL_CODE.replace(/\D/g, "");
+    const insuranceValue = body.insurance_value ?? body.insuranceValue ?? 1500;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -73,30 +94,31 @@ serve(async (req) => {
 
     const accessToken = await getValidAccessToken(supabase);
     if (!accessToken) {
-      return new Response(JSON.stringify({ error: "Melhor Envio não conectado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "Melhor Envio não conectado. Autorize em /admin/integracoes." }, 401);
     }
 
-    // Default package for cellphones
-    const shipmentPackage = {
-      weight: pkg?.weight || 0.4,
-      width: pkg?.width || 16,
-      height: pkg?.height || 8,
-      length: pkg?.length || 4,
-    };
-
-    const body = {
-      from: { postal_code: from?.postal_code?.replace(/\D/g, "") },
-      to: { postal_code: STORE_POSTAL_CODE.replace(/\D/g, "") },
-      package: shipmentPackage,
+    // Use "products" format as recommended
+    const meBody = {
+      from: { postal_code: rawCep },
+      to: { postal_code: storeCep },
+      products: [
+        {
+          id: "smartphone",
+          width: 11,
+          height: 4,
+          length: 18,
+          weight: 0.35,
+          insurance_value: insuranceValue,
+          quantity: 1,
+        },
+      ],
       options: {
-        insurance_value: insurance_value || 0,
         receipt: false,
         own_hand: false,
       },
     };
+
+    console.log("Calling ME calculate with body:", JSON.stringify(meBody));
 
     const quoteRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/calculate`, {
       method: "POST",
@@ -106,42 +128,56 @@ serve(async (req) => {
         Accept: "application/json",
         "User-Agent": "PowerCell (powercell@email.com)",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(meBody),
     });
 
-    const quoteData = await quoteRes.json();
-
-    if (!quoteRes.ok) {
-      console.error("Quote API error:", quoteData);
-      return new Response(JSON.stringify({ error: "Erro ao cotar frete", details: quoteData }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const quoteText = await quoteRes.text();
+    let quoteData: any;
+    try {
+      quoteData = JSON.parse(quoteText);
+    } catch {
+      console.error("ME non-JSON response:", quoteRes.status, quoteText.slice(0, 500));
+      return json({ error: "Falha ao cotar frete", details: quoteText.slice(0, 200) }, 502);
     }
 
-    // Normalize response - filter only valid services, return ALL
-    const options = (Array.isArray(quoteData) ? quoteData : [])
-      .filter((s: any) => !s.error && s.price && parseFloat(s.price) > 0)
-      .map((s: any) => ({
-        serviceId: String(s.id),
-        serviceName: s.name,
-        companyName: s.company?.name || "Transportadora",
-        priceCents: Math.round(parseFloat(s.price) * 100),
-        deliveryMinDays: s.delivery_range?.min || 0,
-        deliveryMaxDays: s.delivery_range?.max || 0,
-        currency: s.currency || "BRL",
-      }))
-      .sort((a: any, b: any) => a.priceCents - b.priceCents);
+    if (!quoteRes.ok) {
+      console.error("ME error:", quoteRes.status, quoteData);
+      return json({ error: "Falha ao cotar frete", details: quoteData }, quoteRes.status >= 500 ? 502 : 422);
+    }
 
-    return new Response(JSON.stringify({ options }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Normalize — return ALL services, marking unavailable ones
+    const allServices = Array.isArray(quoteData) ? quoteData : [];
+
+    const options = allServices
+      .map((s: any) => {
+        const hasError = !!s.error;
+        const price = s.custom_price ? parseFloat(s.custom_price) : parseFloat(s.price || "0");
+        const deliveryMin = s.custom_delivery_time ?? s.delivery_time ?? s.delivery_range?.min ?? 0;
+        const deliveryMax = s.delivery_range?.max ?? deliveryMin;
+
+        return {
+          serviceId: String(s.id),
+          serviceName: s.name || "Serviço",
+          companyName: s.company?.name || "Transportadora",
+          companyLogo: s.company?.picture || null,
+          priceCents: hasError ? 0 : Math.round(price * 100),
+          deliveryMinDays: hasError ? 0 : deliveryMin,
+          deliveryMaxDays: hasError ? 0 : deliveryMax,
+          currency: s.currency || "BRL",
+          unavailable: hasError,
+          unavailableReason: hasError ? s.error : null,
+        };
+      })
+      .sort((a: any, b: any) => {
+        // Available first, then by price
+        if (a.unavailable !== b.unavailable) return a.unavailable ? 1 : -1;
+        return a.priceCents - b.priceCents;
+      });
+
+    console.log(`Returning ${options.length} shipping options`);
+    return json({ options });
   } catch (error) {
     console.error("Quote error:", error);
-    return new Response(JSON.stringify({ error: String(error) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: String(error) }, 500);
   }
 });

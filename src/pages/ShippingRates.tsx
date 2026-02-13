@@ -14,10 +14,13 @@ interface ShippingOption {
   serviceId: string;
   serviceName: string;
   companyName: string;
+  companyLogo?: string | null;
   priceCents: number;
   deliveryMinDays: number;
   deliveryMaxDays: number;
   currency: string;
+  unavailable?: boolean;
+  unavailableReason?: string | null;
 }
 
 function maskCEP(v: string) {
@@ -88,23 +91,42 @@ export default function ShippingRates() {
       const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
         body: {
           from: { postal_code: cleanCep },
-          insurance_value: deviceValue / 100,
-          package: { weight: 0.4, width: 16, height: 8, length: 4 },
+          insurance_value: deviceValue > 0 ? deviceValue / 100 : 1500,
         },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        // Try to extract the real error from the response
+        const ctx = (fnError as any)?.context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const errBody = await ctx.json();
+            throw new Error(errBody?.error || "Erro ao conectar ao frete.");
+          } catch (parseErr: any) {
+            if (parseErr.message && parseErr.message !== "Erro ao conectar ao frete.") throw parseErr;
+          }
+        }
+        throw new Error("Erro ao conectar ao frete. Tente novamente.");
+      }
+
       if (data?.error) throw new Error(data.error);
 
       const opts: ShippingOption[] = data?.options || [];
-      if (opts.length > 0) {
+      if (opts.filter((o) => !o.unavailable).length > 0) {
         setOptions(opts);
       } else {
         setError("Nenhuma opção de frete disponível para este CEP.");
       }
     } catch (err: any) {
       console.error("Erro ao cotar frete:", err);
-      setError(err.message || "Não foi possível calcular o frete agora.");
+      const msg = err.message || "";
+      if (msg.includes("CEP inválido")) {
+        setError("Digite um CEP válido (8 dígitos).");
+      } else if (msg.includes("não conectado")) {
+        setError("Frete não configurado. Peça ao admin para conectar o Melhor Envio.");
+      } else {
+        setError(msg || "Não foi possível calcular o frete agora.");
+      }
     } finally {
       setLoading(false);
       setFetched(true);
@@ -210,14 +232,17 @@ export default function ShippingRates() {
         {/* Shipping options list */}
         {!loading && !error && options.length > 0 && (
           <div className="space-y-3">
-            {options.map((opt) => (
+        {options.map((opt) => (
               <button
                 key={opt.serviceId}
-                onClick={() => setSelected(opt.serviceId)}
-                className={`w-full rounded-xl border p-4 text-left transition-all active:scale-[0.98] space-y-1.5 ${
-                  selected === opt.serviceId
-                    ? "border-whatsapp bg-whatsapp/5"
-                    : "border-border bg-card hover:border-foreground/20"
+                onClick={() => !opt.unavailable && setSelected(opt.serviceId)}
+                disabled={opt.unavailable}
+                className={`w-full rounded-xl border p-4 text-left transition-all space-y-1.5 ${
+                  opt.unavailable
+                    ? "border-border bg-card/50 opacity-50 cursor-not-allowed"
+                    : selected === opt.serviceId
+                      ? "border-whatsapp bg-whatsapp/5 active:scale-[0.98]"
+                      : "border-border bg-card hover:border-foreground/20 active:scale-[0.98]"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -228,12 +253,22 @@ export default function ShippingRates() {
                       <span className="text-xs text-muted-foreground ml-2">({opt.companyName})</span>
                     </div>
                   </div>
-                  <span className="text-base font-bold">{formatBRL(opt.priceCents)}</span>
+                  {opt.unavailable ? (
+                    <span className="text-xs text-destructive font-medium">Indisponível</span>
+                  ) : (
+                    <span className="text-base font-bold">{formatBRL(opt.priceCents)}</span>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground pl-8">
-                  {opt.deliveryMinDays}–{opt.deliveryMaxDays} dias úteis
-                  {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
-                </p>
+                {opt.unavailable ? (
+                  <p className="text-xs text-destructive/70 pl-8">{opt.unavailableReason}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground pl-8">
+                    {opt.deliveryMinDays === opt.deliveryMaxDays
+                      ? `${opt.deliveryMinDays} dias úteis`
+                      : `${opt.deliveryMinDays}–${opt.deliveryMaxDays} dias úteis`}
+                    {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
+                  </p>
+                )}
               </button>
             ))}
 
