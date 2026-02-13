@@ -148,12 +148,16 @@ serve(async (req) => {
       quoteData = JSON.parse(quoteText);
     } catch {
       console.error("ME non-JSON response:", quoteRes.status, quoteText.slice(0, 500));
-      return json({ error: "Falha ao cotar frete", details: quoteText.slice(0, 200) }, 502);
+      const friendlyMsg = quoteRes.status === 403
+        ? "Acesso negado pelo Melhor Envio (403). Verifique se o token tem o escopo 'shipping-calculate' e se ME_BASE_URL corresponde ao ambiente do token (sandbox vs produção)."
+        : `Melhor Envio retornou status ${quoteRes.status} com resposta inesperada.`;
+      return json({ error: "Falha ao cotar frete", details: friendlyMsg }, 502);
     }
 
     if (!quoteRes.ok) {
       console.error("ME error:", quoteRes.status, quoteData);
-      return json({ error: "Falha ao cotar frete", details: quoteData }, quoteRes.status >= 500 ? 502 : 422);
+      const details = quoteData?.message || quoteData?.error || JSON.stringify(quoteData);
+      return json({ error: "Falha ao cotar frete", details }, quoteRes.status >= 500 ? 502 : 422);
     }
 
     const allServices = Array.isArray(quoteData) ? quoteData : [];

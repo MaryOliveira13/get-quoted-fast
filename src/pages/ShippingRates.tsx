@@ -109,7 +109,10 @@ export default function ShippingRates() {
         throw new Error("Erro ao conectar ao frete. Tente novamente.");
       }
 
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        const detail = data.details ? `: ${typeof data.details === 'string' ? data.details : JSON.stringify(data.details)}` : '';
+        throw new Error(`${data.error}${detail}`);
+      }
 
       const opts: ShippingOption[] = data?.options || [];
       if (opts.filter((o) => !o.unavailable).length > 0) {
