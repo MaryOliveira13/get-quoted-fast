@@ -74,12 +74,15 @@ serve(async (req) => {
     const STORE_POSTAL_CODE = Deno.env.get("STORE_POSTAL_CODE");
     const ME_BASE_URL = Deno.env.get("ME_BASE_URL")!;
 
+    console.log("quote: ME_BASE_URL =", ME_BASE_URL);
+    console.log("quote: STORE_POSTAL_CODE =", STORE_POSTAL_CODE);
+
     if (!STORE_POSTAL_CODE) {
       return json({ error: "CEP da loja não configurado" }, 500);
     }
 
-    // Extract and validate customer CEP
     const rawCep = String(body.from?.postal_code || body.customerPostalCode || "").replace(/\D/g, "");
+    console.log("quote: rawCep =", rawCep);
     if (rawCep.length !== 8) {
       return json({ error: "CEP inválido. Informe 8 dígitos." }, 400);
     }
@@ -93,11 +96,16 @@ serve(async (req) => {
     );
 
     const accessToken = await getValidAccessToken(supabase);
+    console.log("quote: tokenExists =", Boolean(accessToken));
+    if (accessToken) console.log("quote: tokenPrefix =", accessToken.slice(0, 10) + "...");
+
     if (!accessToken) {
-      return json({ error: "Melhor Envio não conectado. Autorize em /admin/integracoes." }, 401);
+      return json({
+        error: "Melhor Envio não conectado. Acesse /admin/integracoes e clique em Conectar Melhor Envio.",
+        action: "connect",
+      }, 401);
     }
 
-    // Use "products" format as recommended
     const meBody = {
       from: { postal_code: rawCep },
       to: { postal_code: storeCep },
@@ -118,7 +126,7 @@ serve(async (req) => {
       },
     };
 
-    console.log("Calling ME calculate with body:", JSON.stringify(meBody));
+    console.log("quote: calling ME calculate, body:", JSON.stringify(meBody));
 
     const quoteRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/calculate`, {
       method: "POST",
@@ -132,6 +140,9 @@ serve(async (req) => {
     });
 
     const quoteText = await quoteRes.text();
+    console.log("quote: ME response status =", quoteRes.status);
+    console.log("quote: ME response body =", quoteText.slice(0, 500));
+
     let quoteData: any;
     try {
       quoteData = JSON.parse(quoteText);
@@ -145,7 +156,6 @@ serve(async (req) => {
       return json({ error: "Falha ao cotar frete", details: quoteData }, quoteRes.status >= 500 ? 502 : 422);
     }
 
-    // Normalize — return ALL services, marking unavailable ones
     const allServices = Array.isArray(quoteData) ? quoteData : [];
 
     const options = allServices
@@ -169,12 +179,11 @@ serve(async (req) => {
         };
       })
       .sort((a: any, b: any) => {
-        // Available first, then by price
         if (a.unavailable !== b.unavailable) return a.unavailable ? 1 : -1;
         return a.priceCents - b.priceCents;
       });
 
-    console.log(`Returning ${options.length} shipping options`);
+    console.log(`quote: returning ${options.length} shipping options`);
     return json({ options });
   } catch (error) {
     console.error("Quote error:", error);
