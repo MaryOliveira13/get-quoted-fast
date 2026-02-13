@@ -23,6 +23,10 @@ export interface ShippingDraft {
   devices?: DeviceData[];
   selectedShipping?: "PAC" | "SEDEX";
   shippingPriceCents?: number;
+  shippingOptionId?: string;
+  shippingOptionName?: string;
+  cartItemId?: string;
+  printUrl?: string;
 }
 
 export interface DeviceData {
