@@ -21,6 +21,7 @@ import SelfLabelPersonal from "./pages/SelfLabelPersonal";
 import SelfLabelDevice from "./pages/SelfLabelDevice";
 import SelfLabelConfirm from "./pages/SelfLabelConfirm";
 import SelfLabelSuccess from "./pages/SelfLabelSuccess";
+import AdminIntegrations from "./pages/AdminIntegrations";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
           <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
           <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
+          <Route path="/admin/integracoes" element={<AdminIntegrations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
