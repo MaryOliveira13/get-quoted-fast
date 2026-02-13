@@ -1,1 +1,22 @@
 project_id = "sfddyljruhtqfwexyrra"
+
+[functions.melhorenvio-authorize]
+verify_jwt = false
+
+[functions.melhorenvio-callback]
+verify_jwt = false
+
+[functions.melhorenvio-ping]
+verify_jwt = false
+
+[functions.melhorenvio-quote]
+verify_jwt = false
+
+[functions.melhorenvio-cart]
+verify_jwt = false
+
+[functions.melhorenvio-checkout]
+verify_jwt = false
+
+[functions.melhorenvio-label]
+verify_jwt = false
