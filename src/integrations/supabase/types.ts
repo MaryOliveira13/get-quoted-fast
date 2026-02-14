@@ -41,6 +41,63 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          brand: string
+          cpf: string
+          created_at: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          model: string
+          mp_payment_id: string | null
+          mp_preference_id: string | null
+          payment_status: string
+          repair_total: number
+          services: Json
+          shipping_option: Json | null
+          shipping_total: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          brand: string
+          cpf: string
+          created_at?: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          model: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          payment_status?: string
+          repair_total?: number
+          services?: Json
+          shipping_option?: Json | null
+          shipping_total?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          brand?: string
+          cpf?: string
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          model?: string
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          payment_status?: string
+          repair_total?: number
+          services?: Json
+          shipping_option?: Json | null
+          shipping_total?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
