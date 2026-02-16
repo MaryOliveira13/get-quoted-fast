@@ -56,6 +56,7 @@ export type Database = {
           customer_phone: string
           customer_street: string | null
           customer_uf: string | null
+          freight_payment_status: string
           id: string
           issue_description: string | null
           label_status: string
@@ -65,11 +66,12 @@ export type Database = {
           model: string
           payment_id: string | null
           payment_provider: string | null
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
           repair_estimate_total: number
           services: Json
           shipping_amount: number
           shipping_option: Json | null
-          shipping_payment_status: string
           tracking_code: string | null
           updated_at: string
         }
@@ -87,6 +89,7 @@ export type Database = {
           customer_phone: string
           customer_street?: string | null
           customer_uf?: string | null
+          freight_payment_status?: string
           id?: string
           issue_description?: string | null
           label_status?: string
@@ -96,11 +99,12 @@ export type Database = {
           model: string
           payment_id?: string | null
           payment_provider?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
           repair_estimate_total?: number
           services?: Json
           shipping_amount?: number
           shipping_option?: Json | null
-          shipping_payment_status?: string
           tracking_code?: string | null
           updated_at?: string
         }
@@ -118,6 +122,7 @@ export type Database = {
           customer_phone?: string
           customer_street?: string | null
           customer_uf?: string | null
+          freight_payment_status?: string
           id?: string
           issue_description?: string | null
           label_status?: string
@@ -127,11 +132,12 @@ export type Database = {
           model?: string
           payment_id?: string | null
           payment_provider?: string | null
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
           repair_estimate_total?: number
           services?: Json
           shipping_amount?: number
           shipping_option?: Json | null
-          shipping_payment_status?: string
           tracking_code?: string | null
           updated_at?: string
         }
