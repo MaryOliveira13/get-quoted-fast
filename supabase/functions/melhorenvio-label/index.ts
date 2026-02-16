@@ -85,7 +85,7 @@ serve(async (req) => {
       });
     }
 
-    // Step 2: Print label (get PDF URL)
+    // Step 2: Print label PDF
     const printRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/print`, {
       method: "POST",
       headers: {
@@ -94,10 +94,32 @@ serve(async (req) => {
         Accept: "application/json",
         "User-Agent": "PowerCell (powercell@email.com)",
       },
-      body: JSON.stringify({ orders: [cartItemId] }),
+      body: JSON.stringify({ orders: [cartItemId], mode: "private" }),
     });
 
     const printData = await printRes.json();
+    const printUrlPdf = printData?.url || "";
+
+    // Step 2b: Try to get PNG preview (may not be available)
+    let printUrlPng = "";
+    try {
+      const previewRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/preview`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": "PowerCell (powercell@email.com)",
+        },
+        body: JSON.stringify({ orders: [cartItemId] }),
+      });
+      if (previewRes.ok) {
+        const previewData = await previewRes.json();
+        printUrlPng = previewData?.url || "";
+      }
+    } catch (e) {
+      console.log("PNG preview not available:", e);
+    }
 
     // Step 3: Get tracking
     const trackingRes = await fetch(`${ME_BASE_URL}/api/v2/me/shipment/tracking`, {
@@ -114,10 +136,22 @@ serve(async (req) => {
     const trackingData = await trackingRes.json();
 
     const tracking = trackingData?.[cartItemId]?.tracking || "";
-    const printUrl = printData?.url || "";
+
+    // Step 4: Save to database if orderId provided
+    const orderId = (await req.clone().json().catch(() => ({})))?.orderId;
+    if (orderId) {
+      await supabase.from("orders").update({
+        label_url_pdf: printUrlPdf,
+        label_url_png: printUrlPng || null,
+        tracking_code: tracking,
+        melhor_envio_shipment_id: cartItemId,
+        label_status: "generated",
+      }).eq("id", orderId);
+    }
 
     return new Response(JSON.stringify({
-      printUrl,
+      printUrlPdf,
+      printUrlPng,
       tracking,
       protocol: generateData?.[cartItemId]?.protocol || "",
     }), {

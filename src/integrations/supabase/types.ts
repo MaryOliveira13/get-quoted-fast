@@ -57,8 +57,10 @@ export type Database = {
           customer_street: string | null
           customer_uf: string | null
           id: string
+          issue_description: string | null
           label_status: string
-          label_url: string | null
+          label_url_pdf: string | null
+          label_url_png: string | null
           melhor_envio_shipment_id: string | null
           model: string
           payment_id: string | null
@@ -86,8 +88,10 @@ export type Database = {
           customer_street?: string | null
           customer_uf?: string | null
           id?: string
+          issue_description?: string | null
           label_status?: string
-          label_url?: string | null
+          label_url_pdf?: string | null
+          label_url_png?: string | null
           melhor_envio_shipment_id?: string | null
           model: string
           payment_id?: string | null
@@ -115,8 +119,10 @@ export type Database = {
           customer_street?: string | null
           customer_uf?: string | null
           id?: string
+          issue_description?: string | null
           label_status?: string
-          label_url?: string | null
+          label_url_pdf?: string | null
+          label_url_png?: string | null
           melhor_envio_shipment_id?: string | null
           model?: string
           payment_id?: string | null

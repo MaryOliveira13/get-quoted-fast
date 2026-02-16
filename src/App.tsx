@@ -22,6 +22,7 @@ import SelfLabelDevice from "./pages/SelfLabelDevice";
 import SelfLabelConfirm from "./pages/SelfLabelConfirm";
 import SelfLabelSuccess from "./pages/SelfLabelSuccess";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import FreightPaid from "./pages/FreightPaid";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
           <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
           <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
+          <Route path="/frete-pago" element={<FreightPaid />} />
           <Route path="/admin/integracoes" element={<AdminIntegrations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
