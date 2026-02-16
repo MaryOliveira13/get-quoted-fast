@@ -46,54 +46,87 @@ export type Database = {
           brand: string
           cpf: string
           created_at: string
+          customer_cep: string | null
+          customer_city: string | null
+          customer_complement: string | null
+          customer_district: string | null
+          customer_email: string | null
           customer_name: string
+          customer_number: string | null
           customer_phone: string
+          customer_street: string | null
+          customer_uf: string | null
           id: string
+          label_status: string
+          label_url: string | null
+          melhor_envio_shipment_id: string | null
           model: string
-          mp_payment_id: string | null
-          mp_preference_id: string | null
-          payment_status: string
-          repair_total: number
+          payment_id: string | null
+          payment_provider: string | null
+          repair_estimate_total: number
           services: Json
+          shipping_amount: number
           shipping_option: Json | null
-          shipping_total: number
-          total_amount: number
+          shipping_payment_status: string
+          tracking_code: string | null
           updated_at: string
         }
         Insert: {
           brand: string
           cpf: string
           created_at?: string
+          customer_cep?: string | null
+          customer_city?: string | null
+          customer_complement?: string | null
+          customer_district?: string | null
+          customer_email?: string | null
           customer_name: string
+          customer_number?: string | null
           customer_phone: string
+          customer_street?: string | null
+          customer_uf?: string | null
           id?: string
+          label_status?: string
+          label_url?: string | null
+          melhor_envio_shipment_id?: string | null
           model: string
-          mp_payment_id?: string | null
-          mp_preference_id?: string | null
-          payment_status?: string
-          repair_total?: number
+          payment_id?: string | null
+          payment_provider?: string | null
+          repair_estimate_total?: number
           services?: Json
+          shipping_amount?: number
           shipping_option?: Json | null
-          shipping_total?: number
-          total_amount?: number
+          shipping_payment_status?: string
+          tracking_code?: string | null
           updated_at?: string
         }
         Update: {
           brand?: string
           cpf?: string
           created_at?: string
+          customer_cep?: string | null
+          customer_city?: string | null
+          customer_complement?: string | null
+          customer_district?: string | null
+          customer_email?: string | null
           customer_name?: string
+          customer_number?: string | null
           customer_phone?: string
+          customer_street?: string | null
+          customer_uf?: string | null
           id?: string
+          label_status?: string
+          label_url?: string | null
+          melhor_envio_shipment_id?: string | null
           model?: string
-          mp_payment_id?: string | null
-          mp_preference_id?: string | null
-          payment_status?: string
-          repair_total?: number
+          payment_id?: string | null
+          payment_provider?: string | null
+          repair_estimate_total?: number
           services?: Json
+          shipping_amount?: number
           shipping_option?: Json | null
-          shipping_total?: number
-          total_amount?: number
+          shipping_payment_status?: string
+          tracking_code?: string | null
           updated_at?: string
         }
         Relationships: []
