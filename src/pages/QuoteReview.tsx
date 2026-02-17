@@ -48,7 +48,7 @@ export default function QuoteReview() {
   const handleAcceptTerms = () => {
     setOpenTerms(false);
     setQuoteDraft({ brandId, brandName, modelSlug, modelName, services, totalCents });
-    navigate("/envio");
+    navigate("/envio/dados-pessoais");
   };
 
   const handleEdit = () => {

@@ -11,19 +11,14 @@ import ModelSelection from "./pages/ModelSelection";
 import ServiceSelection from "./pages/ServiceSelection";
 import QuoteReview from "./pages/QuoteReview";
 import PersonalizedQuote from "./pages/PersonalizedQuote";
-import ShippingMethod from "./pages/ShippingMethod";
 import ShippingPersonal from "./pages/ShippingPersonal";
 import ShippingDevice from "./pages/ShippingDevice";
 import ShippingConfirm from "./pages/ShippingConfirm";
 import ShippingRates from "./pages/ShippingRates";
-import PixPayment from "./pages/PixPayment";
-import SelfLabelPersonal from "./pages/SelfLabelPersonal";
-import SelfLabelDevice from "./pages/SelfLabelDevice";
-import SelfLabelConfirm from "./pages/SelfLabelConfirm";
-import SelfLabelSuccess from "./pages/SelfLabelSuccess";
 import AdminIntegrations from "./pages/AdminIntegrations";
 import FreightPaid from "./pages/FreightPaid";
 import FreightCancelled from "./pages/FreightCancelled";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -41,16 +36,11 @@ const App = () => (
           <Route path="/orcamento/:brand/:model" element={<ServiceSelection />} />
           <Route path="/orcamento-revisao" element={<QuoteReview />} />
           <Route path="/orcamento-personalizado" element={<PersonalizedQuote />} />
-          <Route path="/envio" element={<ShippingMethod />} />
+          <Route path="/envio" element={<Navigate to="/envio/dados-pessoais" replace />} />
           <Route path="/envio/dados-pessoais" element={<ShippingPersonal />} />
           <Route path="/envio/aparelho" element={<ShippingDevice />} />
           <Route path="/envio/confirmacao" element={<ShippingConfirm />} />
           <Route path="/envio/frete" element={<ShippingRates />} />
-          <Route path="/envio/pagamento-pix" element={<PixPayment />} />
-          <Route path="/envio/etiqueta-propria/dados" element={<SelfLabelPersonal />} />
-          <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
-          <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
-          <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
           <Route path="/frete-pago" element={<FreightPaid />} />
           <Route path="/frete-cancelado" element={<FreightCancelled />} />
           <Route path="/admin/integracoes" element={<AdminIntegrations />} />

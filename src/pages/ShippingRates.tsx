@@ -47,7 +47,7 @@ export default function ShippingRates() {
 
   useEffect(() => {
     const cleanCep = cep.replace(/\D/g, "");
-    if (cleanCep.length === 8 && quote && draft.shippingMethod !== "self_label") {
+    if (cleanCep.length === 8 && quote) {
       fetchQuotes(cleanCep);
     }
   }, []);
@@ -65,20 +65,6 @@ export default function ShippingRates() {
     );
   }
 
-  if (draft.shippingMethod === "self_label") {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Envio" backTo="/envio/confirmacao" />
-        <main className="px-4 py-10 max-w-lg mx-auto text-center space-y-4">
-          <Package className="w-12 h-12 mx-auto text-muted-foreground" />
-          <h2 className="text-xl font-bold">Você vai gerar sua etiqueta</h2>
-          <p className="text-sm text-muted-foreground">
-            Como você escolheu gerar sua própria etiqueta, não há pagamento de frete aqui.
-          </p>
-        </main>
-      </div>
-    );
-  }
 
   const fetchQuotes = async (postalCode?: string) => {
     const cleanCep = (postalCode || cep).replace(/\D/g, "");
@@ -226,11 +212,6 @@ export default function ShippingRates() {
     }
   };
 
-  const goSelfLabel = () => {
-    updateShippingDraft({ shippingMethod: "self_label" });
-    navigate("/envio/etiqueta-propria/dados");
-  };
-
   const cepValid = cep.replace(/\D/g, "").length === 8;
 
   return (
@@ -286,14 +267,9 @@ export default function ShippingRates() {
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 space-y-3 text-center">
             <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
             <p className="text-sm text-destructive font-medium">{error}</p>
-            <div className="flex gap-3">
-              <Button variant="outline" size="sm" onClick={() => fetchQuotes()} className="flex-1">
-                Tentar novamente
-              </Button>
-              <Button variant="outline" size="sm" onClick={goSelfLabel} className="flex-1">
-                Gerar minha etiqueta
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={() => fetchQuotes()} className="w-full">
+              Tentar novamente
+            </Button>
           </div>
         )}
 
