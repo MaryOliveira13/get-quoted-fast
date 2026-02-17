@@ -26,3 +26,18 @@ verify_jwt = false
 
 [functions.melhorenvio-get-token-status]
 verify_jwt = false
+
+[functions.order-create]
+verify_jwt = false
+
+[functions.paypal-create-order]
+verify_jwt = false
+
+[functions.paypal-capture-order]
+verify_jwt = false
+
+[functions.paypal-webhook]
+verify_jwt = false
+
+[functions.generate-label]
+verify_jwt = false
