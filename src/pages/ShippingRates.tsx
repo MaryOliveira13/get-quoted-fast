@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getShippingDraft, updateShippingDraft, getQuoteDraft } from "@/lib/storage";
 import { formatBRL } from "@/lib/money";
-import { AlertCircle, Package, Zap, Truck, Search } from "lucide-react";
+import { AlertCircle, Package, Zap, Truck, Search, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { FreightTermsModal } from "@/components/FreightTermsModal";
+import { toast } from "sonner";
 
 interface ShippingOption {
   serviceId: string;
@@ -38,10 +40,11 @@ export default function ShippingRates() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   const deviceValue = draft.devices?.[0]?.valueCents || 0;
 
-  // Auto-fetch if CEP already exists
   useEffect(() => {
     const cleanCep = cep.replace(/\D/g, "");
     if (cleanCep.length === 8 && quote && draft.shippingMethod !== "self_label") {
@@ -96,7 +99,6 @@ export default function ShippingRates() {
       });
 
       if (fnError) {
-        // Try to extract the real error from the response
         const ctx = (fnError as any)?.context;
         if (ctx && typeof ctx.json === "function") {
           try {
@@ -154,11 +156,74 @@ export default function ShippingRates() {
       shippingOptionId: opt.serviceId,
       shippingOptionName: opt.serviceName,
     });
-
-    // Also persist the full option in localStorage for later use
     localStorage.setItem("shippingOption", JSON.stringify(opt));
 
-    navigate("/envio/pagamento-pix");
+    // Show terms modal instead of navigating to Pix
+    setShowTerms(true);
+  };
+
+  const handleAcceptTermsAndPay = async () => {
+    setShowTerms(false);
+    setPaying(true);
+
+    try {
+      const opt = options.find((o) => o.serviceId === selected);
+      if (!opt) throw new Error("Opção de frete não encontrada");
+
+      const device = draft.devices?.[0];
+
+      // 1. Create order
+      const { data: orderData, error: orderErr } = await supabase.functions.invoke("order-create", {
+        body: {
+          cpf: draft.cpf || "",
+          customer_name: draft.fullName || "",
+          customer_phone: draft.phone || "",
+          customer_email: draft.email || "",
+          customer_cep: draft.cep?.replace(/\D/g, "") || "",
+          customer_street: draft.street || "",
+          customer_number: draft.number || "",
+          customer_complement: draft.complement || "",
+          customer_district: draft.district || "",
+          customer_city: draft.city || "",
+          customer_uf: draft.uf || "",
+          brand: quote.brandName,
+          model: quote.modelName,
+          issue_description: device?.problem || "",
+          services: quote.services,
+          shipping_option: {
+            serviceId: opt.serviceId,
+            serviceName: opt.serviceName,
+            companyName: opt.companyName,
+            deliveryMinDays: opt.deliveryMinDays,
+            deliveryMaxDays: opt.deliveryMaxDays,
+            price: (opt.priceCents / 100).toFixed(2),
+          },
+          repair_estimate_total: quote.totalCents / 100,
+        },
+      });
+
+      if (orderErr || !orderData?.order_id) {
+        throw new Error(orderData?.error || "Erro ao criar pedido");
+      }
+
+      const orderId = orderData.order_id;
+
+      // 2. Create PayPal order
+      const { data: ppData, error: ppErr } = await supabase.functions.invoke("paypal-create-order", {
+        body: { order_id: orderId },
+      });
+
+      if (ppErr || !ppData?.approval_url) {
+        throw new Error(ppData?.error || "Erro ao criar pagamento PayPal");
+      }
+
+      // 3. Redirect to PayPal
+      window.location.href = ppData.approval_url;
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error(err.message || "Erro ao processar pagamento");
+      setPaying(false);
+    }
   };
 
   const goSelfLabel = () => {
@@ -176,11 +241,11 @@ export default function ShippingRates() {
         <div className="text-center space-y-1 mb-2">
           <h2 className="text-xl font-bold">Escolha a opção de envio</h2>
           <p className="text-sm text-muted-foreground">
-            Escolha a opção de envio que melhor se encaixa para você.
+            Nesta etapa você paga apenas o frete de envio do aparelho.
           </p>
         </div>
 
-        {/* CEP input + Calculate button */}
+        {/* CEP input */}
         <div className="rounded-xl border bg-card p-5 space-y-3">
           <Label htmlFor="cep-frete">CEP de origem</Label>
           <div className="flex gap-3">
@@ -232,10 +297,10 @@ export default function ShippingRates() {
           </div>
         )}
 
-        {/* Shipping options list */}
+        {/* Options */}
         {!loading && !error && options.length > 0 && (
           <div className="space-y-3">
-        {options.map((opt) => (
+            {options.map((opt) => (
               <button
                 key={opt.serviceId}
                 onClick={() => !opt.unavailable && setSelected(opt.serviceId)}
@@ -281,7 +346,7 @@ export default function ShippingRates() {
           </div>
         )}
 
-        {/* Empty state before search */}
+        {/* Empty state */}
         {!loading && !error && !fetched && options.length === 0 && (
           <div className="text-center py-8">
             <Package className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
@@ -296,14 +361,27 @@ export default function ShippingRates() {
         <div className="max-w-lg mx-auto">
           <Button
             size="lg"
-            className="w-full text-base"
-            disabled={!selected || loading}
+            className="w-full text-base gap-2"
+            disabled={!selected || loading || paying}
             onClick={handleContinue}
           >
-            Continuar para pagamento
+            {paying ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processando…
+              </>
+            ) : (
+              "Continuar para pagamento"
+            )}
           </Button>
         </div>
       </div>
+
+      <FreightTermsModal
+        open={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTermsAndPay}
+      />
     </div>
   );
 }

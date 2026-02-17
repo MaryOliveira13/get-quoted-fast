@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { formatBRL } from "@/lib/money";
 import { buildWaLink } from "@/lib/whatsapp";
 import {
   CheckCircle,
@@ -14,6 +13,7 @@ import {
   MessageCircle,
   Package,
   Copy,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,7 +37,7 @@ interface OrderData {
   services: any;
   shipping_option: any;
   shipping_amount: number;
-  shipping_payment_status: string;
+  freight_payment_status: string;
   label_status: string;
   label_url_pdf: string | null;
   label_url_png: string | null;
@@ -54,6 +54,8 @@ export default function FreightPaid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     if (!orderId) return;
@@ -73,25 +75,42 @@ export default function FreightPaid() {
     return data;
   }, [orderId]);
 
+  // On mount: capture payment then fetch order
   useEffect(() => {
-    fetchOrder();
-  }, [fetchOrder]);
+    if (!orderId) return;
 
-  // Polling when label not yet generated
+    const captureAndFetch = async () => {
+      setCapturing(true);
+      try {
+        const { data } = await supabase.functions.invoke("paypal-capture-order", {
+          body: { order_id: orderId },
+        });
+        console.log("Capture result:", data);
+      } catch (err) {
+        console.error("Capture error:", err);
+      }
+      setCapturing(false);
+      await fetchOrder();
+    };
+
+    captureAndFetch();
+  }, [orderId, fetchOrder]);
+
+  // Polling when payment confirmed but label not yet generated
   useEffect(() => {
     if (!order) return;
     if (order.label_status === "generated") return;
-    if (order.shipping_payment_status !== "paid") return;
+    if (order.freight_payment_status !== "paid") return;
 
     setPolling(true);
     let attempts = 0;
-    const maxAttempts = 20; // 60s
+    const maxAttempts = 20;
 
     const interval = setInterval(async () => {
       attempts++;
       const { data } = await supabase
         .from("orders")
-        .select("label_status, label_url_pdf, label_url_png, tracking_code")
+        .select("label_status, label_url_pdf, label_url_png, tracking_code, freight_payment_status")
         .eq("id", orderId!)
         .single();
 
@@ -111,6 +130,12 @@ export default function FreightPaid() {
         clearInterval(interval);
       }
 
+      if (data?.label_status === "failed") {
+        setOrder((prev) => prev ? { ...prev, label_status: "failed" } : prev);
+        setPolling(false);
+        clearInterval(interval);
+      }
+
       if (attempts >= maxAttempts) {
         setPolling(false);
         clearInterval(interval);
@@ -118,7 +143,66 @@ export default function FreightPaid() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [order?.label_status, order?.shipping_payment_status, orderId]);
+  }, [order?.label_status, order?.freight_payment_status, orderId]);
+
+  // Also poll for payment status if not paid yet
+  useEffect(() => {
+    if (!order) return;
+    if (order.freight_payment_status === "paid") return;
+
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    const interval = setInterval(async () => {
+      attempts++;
+      const { data } = await supabase
+        .from("orders")
+        .select("freight_payment_status, label_status, label_url_pdf, label_url_png, tracking_code")
+        .eq("id", orderId!)
+        .single();
+
+      if (data?.freight_payment_status === "paid") {
+        setOrder((prev) =>
+          prev
+            ? { ...prev, ...data }
+            : prev
+        );
+        clearInterval(interval);
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [order?.freight_payment_status, orderId]);
+
+  const handleRetryLabel = async () => {
+    if (!orderId) return;
+    setRetrying(true);
+    try {
+      const { data, error: err } = await supabase.functions.invoke("generate-label", {
+        body: { order_id: orderId },
+      });
+      if (err) throw err;
+      if (data?.label_url_pdf) {
+        setOrder((prev) => prev ? {
+          ...prev,
+          label_status: "generated",
+          label_url_pdf: data.label_url_pdf,
+          label_url_png: data.label_url_png || null,
+          tracking_code: data.tracking_code || null,
+        } : prev);
+        toast.success("Etiqueta gerada com sucesso!");
+      } else if (data?.error) {
+        toast.error(data.error);
+      }
+    } catch (err: any) {
+      toast.error("Falha ao gerar etiqueta — tente novamente");
+    }
+    setRetrying(false);
+  };
 
   if (!orderId) {
     return (
@@ -132,13 +216,15 @@ export default function FreightPaid() {
     );
   }
 
-  if (loading) {
+  if (loading || capturing) {
     return (
       <div className="min-h-screen bg-background">
         <PageHeader title="Etiqueta" backTo="/" />
         <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Carregando pedido…</p>
+          <p className="text-sm text-muted-foreground">
+            {capturing ? "Confirmando pagamento…" : "Carregando pedido…"}
+          </p>
         </div>
       </div>
     );
@@ -158,15 +244,15 @@ export default function FreightPaid() {
 
   const safe = (val: string | null | undefined) => val || "Não informado";
 
-  const servicesList =
-    Array.isArray(order.services)
-      ? order.services.map((s: any) => s.label || s.name || String(s)).join(", ")
-      : "Não informado";
-
   const servicesListFormatted =
     Array.isArray(order.services)
       ? order.services.map((s: any) => `- ${s.label || s.name || String(s)}`).join("\n")
       : "- Não informado";
+
+  const servicesList =
+    Array.isArray(order.services)
+      ? order.services.map((s: any) => s.label || s.name || String(s)).join(", ")
+      : "Não informado";
 
   const shippingOpt = order.shipping_option || ({} as any);
   const shippingServiceName = shippingOpt.serviceName || shippingOpt.service_name || "Não informado";
@@ -175,7 +261,7 @@ export default function FreightPaid() {
   const deliveryMax = shippingOpt.deliveryMaxDays || shippingOpt.delivery_max || "";
   const deliveryText = deliveryMin && deliveryMax ? `${deliveryMin}-${deliveryMax} dias úteis` : "";
 
-  const waMessage = `Olá! Já gerei minha etiqueta ✅
+  const waMessage = `Olá! Meu frete foi pago e a etiqueta foi gerada ✅
 
 👤 Nome: ${safe(order.customer_name)}
 📞 Telefone: ${safe(order.customer_phone)}
@@ -203,7 +289,7 @@ Valor pago do frete: R$ ${(order.shipping_amount || 0).toFixed(2).replace(".", "
 Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passos?`;
 
   const isLabelReady = order.label_status === "generated" && order.label_url_pdf;
-  const isPaid = order.shipping_payment_status === "paid";
+  const isPaid = order.freight_payment_status === "paid";
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -219,6 +305,24 @@ Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passo
               Frete pago e etiqueta gerada com sucesso.
             </p>
           </div>
+        ) : isPaid && order.label_status === "failed" ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-center space-y-3">
+            <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
+            <h2 className="text-lg font-bold">Falha ao gerar etiqueta</h2>
+            <p className="text-sm text-muted-foreground">
+              O pagamento foi confirmado mas houve erro na geração da etiqueta.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={handleRetryLabel}
+              disabled={retrying}
+            >
+              {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              Tentar gerar etiqueta novamente
+            </Button>
+          </div>
         ) : isPaid && polling ? (
           <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-5 text-center space-y-2">
             <Loader2 className="w-10 h-10 text-yellow-500 mx-auto animate-spin" />
@@ -227,18 +331,10 @@ Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passo
               O pagamento foi confirmado. Aguarde a geração da etiqueta.
             </p>
           </div>
-        ) : isPaid && order.label_status === "failed" ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-center space-y-2">
-            <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
-            <h2 className="text-lg font-bold">Falha ao gerar etiqueta</h2>
-            <p className="text-sm text-muted-foreground">
-              Tente novamente ou entre em contato pelo WhatsApp.
-            </p>
-          </div>
         ) : (
           <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-5 text-center space-y-2">
             <Loader2 className="w-10 h-10 text-yellow-500 mx-auto animate-spin" />
-            <h2 className="text-lg font-bold">Aguardando confirmação…</h2>
+            <h2 className="text-lg font-bold">Confirmando pagamento…</h2>
             <p className="text-sm text-muted-foreground">
               Aguardando confirmação do pagamento do frete.
             </p>
