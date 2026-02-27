@@ -64,6 +64,8 @@ export type Database = {
           label_url_png: string | null
           melhor_envio_shipment_id: string | null
           model: string
+          mp_external_reference: string | null
+          mp_payment_id: string | null
           payment_id: string | null
           payment_provider: string | null
           paypal_capture_id: string | null
@@ -97,6 +99,8 @@ export type Database = {
           label_url_png?: string | null
           melhor_envio_shipment_id?: string | null
           model: string
+          mp_external_reference?: string | null
+          mp_payment_id?: string | null
           payment_id?: string | null
           payment_provider?: string | null
           paypal_capture_id?: string | null
@@ -130,6 +134,8 @@ export type Database = {
           label_url_png?: string | null
           melhor_envio_shipment_id?: string | null
           model?: string
+          mp_external_reference?: string | null
+          mp_payment_id?: string | null
           payment_id?: string | null
           payment_provider?: string | null
           paypal_capture_id?: string | null
@@ -142,6 +148,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payment_logs: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          payload: Json
+          provider: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          payload?: Json
+          provider: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          payload?: Json
+          provider?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
