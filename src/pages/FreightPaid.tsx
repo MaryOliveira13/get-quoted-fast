@@ -85,7 +85,7 @@ export default function FreightPaid() {
   useEffect(() => {
     if (!order) return;
     if (order.label_status === "generated") return;
-    if (order.freight_payment_status !== "paid") return;
+    if (order.freight_payment_status !== "approved") return;
 
     setPolling(true);
     let attempts = 0;
