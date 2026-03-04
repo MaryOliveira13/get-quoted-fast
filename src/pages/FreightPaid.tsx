@@ -54,7 +54,7 @@ export default function FreightPaid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
-  const [capturing, setCapturing] = useState(false);
+  const capturing = false; // No longer needed, kept for template compat
   const [retrying, setRetrying] = useState(false);
 
   const fetchOrder = useCallback(async () => {
