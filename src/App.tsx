@@ -18,6 +18,7 @@ import ShippingRates from "./pages/ShippingRates";
 import AdminIntegrations from "./pages/AdminIntegrations";
 import FreightPaid from "./pages/FreightPaid";
 import FreightCancelled from "./pages/FreightCancelled";
+import FreightPayment from "./pages/FreightPayment";
 import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
