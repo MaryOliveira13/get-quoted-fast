@@ -54,7 +54,7 @@ export default function FreightPaid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
-  const [capturing, setCapturing] = useState(false);
+  const capturing = false; // No longer needed, kept for template compat
   const [retrying, setRetrying] = useState(false);
 
   const fetchOrder = useCallback(async () => {
@@ -75,32 +75,17 @@ export default function FreightPaid() {
     return data;
   }, [orderId]);
 
-  // On mount: capture payment then fetch order
+  // On mount: fetch order (no more PayPal capture needed — webhook handles it)
   useEffect(() => {
     if (!orderId) return;
-
-    const captureAndFetch = async () => {
-      setCapturing(true);
-      try {
-        const { data } = await supabase.functions.invoke("paypal-capture-order", {
-          body: { order_id: orderId },
-        });
-        console.log("Capture result:", data);
-      } catch (err) {
-        console.error("Capture error:", err);
-      }
-      setCapturing(false);
-      await fetchOrder();
-    };
-
-    captureAndFetch();
+    fetchOrder();
   }, [orderId, fetchOrder]);
 
   // Polling when payment confirmed but label not yet generated
   useEffect(() => {
     if (!order) return;
     if (order.label_status === "generated") return;
-    if (order.freight_payment_status !== "paid") return;
+    if (order.freight_payment_status !== "approved") return;
 
     setPolling(true);
     let attempts = 0;
@@ -148,7 +133,7 @@ export default function FreightPaid() {
   // Also poll for payment status if not paid yet
   useEffect(() => {
     if (!order) return;
-    if (order.freight_payment_status === "paid") return;
+    if (order.freight_payment_status === "approved") return;
 
     let attempts = 0;
     const maxAttempts = 20;
@@ -161,7 +146,7 @@ export default function FreightPaid() {
         .eq("id", orderId!)
         .single();
 
-      if (data?.freight_payment_status === "paid") {
+      if (data?.freight_payment_status === "approved") {
         setOrder((prev) =>
           prev
             ? { ...prev, ...data }
@@ -289,7 +274,7 @@ Valor pago do frete: R$ ${(order.shipping_amount || 0).toFixed(2).replace(".", "
 Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passos?`;
 
   const isLabelReady = order.label_status === "generated" && order.label_url_pdf;
-  const isPaid = order.freight_payment_status === "paid";
+  const isPaid = order.freight_payment_status === "approved";
 
   return (
     <div className="min-h-screen bg-background pb-8">

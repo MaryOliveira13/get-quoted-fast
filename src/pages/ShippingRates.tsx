@@ -192,19 +192,8 @@ export default function ShippingRates() {
         throw new Error(orderData?.error || "Erro ao criar pedido");
       }
 
-      const orderId = orderData.order_id;
-
-      // 2. Create PayPal order
-      const { data: ppData, error: ppErr } = await supabase.functions.invoke("paypal-create-order", {
-        body: { order_id: orderId },
-      });
-
-      if (ppErr || !ppData?.approval_url) {
-        throw new Error(ppData?.error || "Erro ao criar pagamento PayPal");
-      }
-
-      // 3. Redirect to PayPal
-      window.location.href = ppData.approval_url;
+      // 2. Navigate to payment page
+      navigate(`/envio/pagamento?order_id=${orderData.order_id}`);
     } catch (err: any) {
       console.error("Payment error:", err);
       toast.error(err.message || "Erro ao processar pagamento");

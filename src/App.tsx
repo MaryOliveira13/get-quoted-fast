@@ -18,6 +18,7 @@ import ShippingRates from "./pages/ShippingRates";
 import AdminIntegrations from "./pages/AdminIntegrations";
 import FreightPaid from "./pages/FreightPaid";
 import FreightCancelled from "./pages/FreightCancelled";
+import FreightPayment from "./pages/FreightPayment";
 import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/envio/aparelho" element={<ShippingDevice />} />
           <Route path="/envio/confirmacao" element={<ShippingConfirm />} />
           <Route path="/envio/frete" element={<ShippingRates />} />
+          <Route path="/envio/pagamento" element={<FreightPayment />} />
           <Route path="/frete-pago" element={<FreightPaid />} />
           <Route path="/frete-cancelado" element={<FreightCancelled />} />
           <Route path="/admin/integracoes" element={<AdminIntegrations />} />
