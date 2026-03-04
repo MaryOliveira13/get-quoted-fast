@@ -75,25 +75,10 @@ export default function FreightPaid() {
     return data;
   }, [orderId]);
 
-  // On mount: capture payment then fetch order
+  // On mount: fetch order (no more PayPal capture needed — webhook handles it)
   useEffect(() => {
     if (!orderId) return;
-
-    const captureAndFetch = async () => {
-      setCapturing(true);
-      try {
-        const { data } = await supabase.functions.invoke("paypal-capture-order", {
-          body: { order_id: orderId },
-        });
-        console.log("Capture result:", data);
-      } catch (err) {
-        console.error("Capture error:", err);
-      }
-      setCapturing(false);
-      await fetchOrder();
-    };
-
-    captureAndFetch();
+    fetchOrder();
   }, [orderId, fetchOrder]);
 
   // Polling when payment confirmed but label not yet generated
