@@ -133,7 +133,7 @@ export default function FreightPaid() {
   // Also poll for payment status if not paid yet
   useEffect(() => {
     if (!order) return;
-    if (order.freight_payment_status === "paid") return;
+    if (order.freight_payment_status === "approved") return;
 
     let attempts = 0;
     const maxAttempts = 20;
