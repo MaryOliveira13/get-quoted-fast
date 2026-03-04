@@ -146,7 +146,7 @@ export default function FreightPaid() {
         .eq("id", orderId!)
         .single();
 
-      if (data?.freight_payment_status === "paid") {
+      if (data?.freight_payment_status === "approved") {
         setOrder((prev) =>
           prev
             ? { ...prev, ...data }
