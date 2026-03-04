@@ -135,7 +135,7 @@ export function FreightTermsModal({ open, onClose, onAccept }: FreightTermsModal
                 : "bg-zinc-700 text-zinc-500 opacity-50 cursor-not-allowed"
             }`}
           >
-            Pagar frete no PayPal
+            Continuar para pagamento
           </Button>
         </div>
       </div>

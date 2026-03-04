@@ -42,6 +42,7 @@ const App = () => (
           <Route path="/envio/aparelho" element={<ShippingDevice />} />
           <Route path="/envio/confirmacao" element={<ShippingConfirm />} />
           <Route path="/envio/frete" element={<ShippingRates />} />
+          <Route path="/envio/pagamento" element={<FreightPayment />} />
           <Route path="/frete-pago" element={<FreightPaid />} />
           <Route path="/frete-cancelado" element={<FreightCancelled />} />
           <Route path="/admin/integracoes" element={<AdminIntegrations />} />

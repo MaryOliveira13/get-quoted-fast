@@ -56,7 +56,7 @@ serve(async (req) => {
       repair_estimate_total: repair_estimate_total || 0,
       freight_payment_status: "pending",
       label_status: "pending",
-      payment_provider: "paypal",
+      payment_provider: "mercadopago",
     }).select("id").single();
 
     if (error) {

@@ -274,7 +274,7 @@ Valor pago do frete: R$ ${(order.shipping_amount || 0).toFixed(2).replace(".", "
 Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passos?`;
 
   const isLabelReady = order.label_status === "generated" && order.label_url_pdf;
-  const isPaid = order.freight_payment_status === "paid";
+  const isPaid = order.freight_payment_status === "approved";
 
   return (
     <div className="min-h-screen bg-background pb-8">
