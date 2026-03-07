@@ -17,7 +17,7 @@ const BRAND_LOGO: Record<string, string> = {
   xiaomi: xiaomiLogo,
   motorola: motorolaLogo,
   lg: lgLogo,
-  realme: realmeLogo,
+  
   infinix: infinixLogo,
 };
 
