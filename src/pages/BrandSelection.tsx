@@ -29,7 +29,7 @@ const LOGO_SIZE: Record<string, string> = {
   
   motorola: "h-[104px]",
   lg: "h-12",
-  realme: "h-[104px]",
+  
   infinix: "h-[90px]",
 };
 
