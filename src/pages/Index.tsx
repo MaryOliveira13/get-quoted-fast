@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Search } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 
 const STEPS = [
   { title: "Escolha o aparelho", desc: "Selecione marca, modelo e o defeito a reparar." },
@@ -9,8 +11,47 @@ const STEPS = [
 
 const TRUST = ["Grátis para solicitar", "Sem cadastro obrigatório", "100% seguro"];
 
+interface ModelEntry {
+  brandId: string;
+  brandName: string;
+  model: string;
+}
+
+const ALL_MODELS: ModelEntry[] = BRANDS.flatMap((brand) =>
+  (MODELS_BY_BRAND[brand.id] ?? []).map((model) => ({
+    brandId: brand.id,
+    brandName: brand.name,
+    model,
+  }))
+);
+
 export default function Index() {
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const results = useMemo(() => {
+    if (query.length < 2) return [];
+    const q = query.toLowerCase();
+    return ALL_MODELS.filter((e) => e.model.toLowerCase().includes(q)).slice(0, 6);
+  }, [query]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelect = (entry: ModelEntry) => {
+    setQuery("");
+    setOpen(false);
+    navigate(`/orcamento/${entry.brandId}/${slugify(entry.model)}`);
+  };
 
   return (
     <div className="min-h-screen bg-[hsl(0,0%,4%)] relative overflow-hidden">
@@ -58,8 +99,59 @@ export default function Index() {
             Preencha uma vez, receba propostas de múltiplos fornecedores. Sem complicação.
           </p>
 
+          {/* Search bar */}
+          <div ref={wrapperRef} className="relative w-full max-w-xs mt-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setOpen(true);
+                }}
+                onFocus={() => setOpen(true)}
+                placeholder="Buscar modelo (ex: iPhone 14)"
+                className="w-full bg-card border border-primary/60 rounded-xl py-3 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+              />
+            </div>
+
+            {open && query.length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-lg">
+                {results.length > 0 ? (
+                  results.map((entry, i) => (
+                    <button
+                      key={`${entry.brandId}-${entry.model}-${i}`}
+                      onClick={() => handleSelect(entry)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border/50 last:border-b-0"
+                    >
+                      <span className="text-sm text-foreground">{entry.model}</span>
+                      <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        {entry.brandName}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-muted-foreground">
+                    Nenhum modelo encontrado
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setQuery("");
+                    setOpen(false);
+                    navigate("/orcamento-personalizado");
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-primary hover:bg-primary/10 transition-colors border-t border-border/50"
+                >
+                  Outra marca / modelo →
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* CTAs */}
-          <div className="flex gap-3 mt-8 w-full max-w-xs">
+          <div className="flex gap-3 mt-6 w-full max-w-xs">
             <button
               onClick={() => navigate("/orcamento")}
               className="flex-1 bg-primary text-primary-foreground rounded-full py-3 text-sm font-bold hover:brightness-110 transition-all active:scale-[0.97]"
