@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.png";
+import mascot from "@/assets/mascot.png";
 
 export function TechHeader() {
   return (
