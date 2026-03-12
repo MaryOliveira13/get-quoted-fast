@@ -147,9 +147,6 @@ export default function BrandSelection() {
                     borderBottom: i < results.length - 1 ? "0.5px solid rgba(255,255,255,0.07)" : "none",
                   }}
                 >
-                  {s.type === "model" && (
-                    <span className="text-primary text-sm shrink-0">⚡</span>
-                  )}
                   <div className="flex flex-col min-w-0">
                     {s.type === "model" ? (
                       <>
