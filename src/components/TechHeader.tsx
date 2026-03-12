@@ -12,8 +12,8 @@ export function TechHeader() {
         }}
       />
 
-      <div className="max-w-lg mx-auto flex items-center justify-center relative z-10">
-        <img src={brandLogo} alt="PowerCell" className="h-24 object-contain" />
+      <div className="max-w-lg mx-auto flex items-center justify-start relative z-10">
+        <img src={brandLogo} alt="PowerCell" className="h-20 object-contain" />
       </div>
     </header>
   );
