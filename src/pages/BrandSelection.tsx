@@ -54,22 +54,6 @@ export default function BrandSelection() {
           />
         </div>
 
-        {/* Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {PILLS.map((pill) => (
-            <button
-              key={pill}
-              onClick={() => setActivePill(pill)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                activePill === pill
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground border border-border hover:border-primary/40"
-              }`}
-            >
-              {pill}
-            </button>
-          ))}
-        </div>
 
         {/* Step indicator + title */}
         <div>
