@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.png";
+import mascot from "@/assets/mascot.png";
 
 export function TechHeader() {
   return (
@@ -14,8 +14,8 @@ export function TechHeader() {
 
       <div className="max-w-lg mx-auto flex items-center gap-3 relative z-10">
         {/* Icon wrapper */}
-        <div className="w-11 h-11 bg-secondary rounded-xl border border-primary/40 flex items-center justify-center text-2xl flex-shrink-0">
-          ⚡
+        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0">
+          <img src={mascot} alt="PowerCell mascot" className="w-full h-full object-cover" />
         </div>
 
         {/* Text */}
