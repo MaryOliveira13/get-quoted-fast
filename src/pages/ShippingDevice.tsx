@@ -197,13 +197,34 @@ export default function ShippingDevice() {
 
           <div>
             <label className={labelStyle}>Tipo do aparelho *</label>
-            <select
-              value={deviceType}
-              onChange={(e) => setDeviceType(e.target.value)}
-              className={inputStyle}
+            <div
+              className="flex items-center justify-between"
+              style={{
+                background: '#111',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '10px',
+                padding: '12px 14px',
+              }}
             >
-              {DEVICE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.85)' }} />
+                <span className="font-['Inter'] font-medium text-[14px]" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Celular
+                </span>
+              </div>
+              <span
+                className="font-['Inter'] font-semibold text-[10px]"
+                style={{
+                  background: 'rgba(255,107,0,0.1)',
+                  border: '1px solid rgba(255,107,0,0.25)',
+                  borderRadius: '99px',
+                  padding: '2px 8px',
+                  color: '#FF6B00',
+                }}
+              >
+                Padrão
+              </span>
+            </div>
           </div>
 
           <div>
