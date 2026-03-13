@@ -163,7 +163,7 @@ export default function ServiceSelection() {
                     <p className="text-[12px] text-foreground/35 font-normal font-[family-name:var(--font-body)] mt-0.5">Selecionar serviço</p>
                   </div>
                 </div>
-                <p className="text-[22px] text-primary tracking-[0.5px] font-bold font-[family-name:var(--font-display)]">
+                <p className="text-[18px] text-primary tracking-[0.5px] font-bold font-[family-name:var(--font-display)]">
                   {formatBRL(service.price * 100)}
                 </p>
               </button>
