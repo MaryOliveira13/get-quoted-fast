@@ -53,11 +53,16 @@ export default function ShippingDevice() {
     );
   }
 
-  const allAccessories = [...ACCESSORIES, ...customAccessories];
+  const ONLY_DEVICE = "Apenas o Aparelho";
+  const allAccessories = [ONLY_DEVICE, ...ACCESSORIES, ...customAccessories];
 
   const toggleAcc = (a: string) => {
     setAccessories((prev) => {
+      if (a === ONLY_DEVICE) {
+        return prev.has(ONLY_DEVICE) ? new Set() : new Set([ONLY_DEVICE]);
+      }
       const next = new Set(prev);
+      next.delete(ONLY_DEVICE);
       next.has(a) ? next.delete(a) : next.add(a);
       return next;
     });
