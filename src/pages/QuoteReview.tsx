@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
 import { setQuoteDraft } from "@/lib/storage";
-import { AlertCircle, ArrowLeft, ArrowRight, Info, Pencil, Smartphone } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Pencil, Smartphone } from "lucide-react";
 import { GuaranteeTermsModal } from "@/components/GuaranteeTermsModal";
+import { TechHeader } from "@/components/TechHeader";
 
 interface QuoteState {
   brandId: string;
@@ -25,7 +25,7 @@ export default function QuoteReview() {
   if (!state || !state.services?.length) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader title="Revisão" backTo="/orcamento" />
+        <TechHeader />
         <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
           <AlertCircle className="w-12 h-12 text-destructive" />
           <p className="text-lg font-semibold text-center">
@@ -58,23 +58,26 @@ export default function QuoteReview() {
   };
 
   return (
-    <div className="min-h-screen pb-40 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+    <div className="min-h-screen pb-40 relative overflow-hidden" style={{ background: '#0d0d0d' }}>
       {/* Orange glow */}
       <div
         className="absolute pointer-events-none"
         style={{
-          top: '-100px',
-          right: '-100px',
-          width: '350px',
-          height: '350px',
-          background: 'radial-gradient(circle, rgba(255,107,0,0.25) 0%, transparent 70%)',
+          top: '-80px',
+          right: '-80px',
+          width: '280px',
+          height: '280px',
+          background: 'radial-gradient(circle, rgba(255,107,0,0.18) 0%, transparent 70%)',
         }}
       />
 
-      {/* Header */}
-      <header
-        className="sticky top-0 z-10 backdrop-blur-sm px-4 py-3"
-        style={{ background: '#111111', borderBottom: '1px solid rgba(255,107,0,0.3)' }}
+      {/* Header with logo */}
+      <TechHeader />
+
+      {/* Subheader */}
+      <div
+        className="sticky top-[90px] z-10 px-4 py-3"
+        style={{ background: '#161616', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
       >
         <div className="flex items-center gap-3 max-w-lg mx-auto">
           <button
@@ -85,132 +88,153 @@ export default function QuoteReview() {
             <ArrowLeft className="w-5 h-5" style={{ color: '#FF6B00' }} />
           </button>
           <h1
-            className="truncate"
             style={{
               fontFamily: 'Montserrat, sans-serif',
               fontWeight: 800,
-              fontSize: '18px',
+              fontSize: '13px',
               textTransform: 'uppercase',
-              letterSpacing: '1px',
+              letterSpacing: '2px',
               color: 'white',
             }}
           >
             Revisão do orçamento
           </h1>
         </div>
-      </header>
+      </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto relative z-[1]">
-        {/* Main card */}
-        <div
-          className="p-6"
-          style={{
-            background: 'linear-gradient(135deg, #1a1a1a 0%, #141414 100%)',
-            border: '1px solid rgba(255,107,0,0.25)',
-            borderRadius: '20px',
-            boxShadow: '0 0 40px rgba(255,107,0,0.08)',
-          }}
-        >
-          {/* Device */}
-          <div className="flex items-center gap-2.5">
-            <Smartphone className="w-4 h-4 shrink-0" style={{ color: '#FF6B00' }} />
-            <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '17px', color: 'white' }}>
-              {modelName}
-            </span>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: '14px', color: '#FF6B00' }}>
-              ({brandName})
-            </span>
-          </div>
-
-          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', margin: '16px 0' }} />
-
-          {/* Services */}
-          <p
+        {/* Pill "PASSO FINAL" */}
+        <div className="flex justify-center mb-5">
+          <span
+            className="inline-flex items-center gap-1.5"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
+              background: 'rgba(255,107,0,0.12)',
+              border: '1px solid rgba(255,107,0,0.3)',
+              borderRadius: '99px',
+              padding: '4px 12px',
               fontSize: '10px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              color: 'rgba(255,255,255,0.3)',
-              marginBottom: '12px',
-            }}
-          >
-            Serviços selecionados
-          </p>
-
-          {services.map((s) => (
-            <div
-              key={s.id}
-              className="flex justify-between items-center"
-              style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-            >
-              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '14px', color: 'rgba(255,255,255,0.85)' }}>
-                {s.label}
-              </span>
-              <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '14px', color: 'white' }}>
-                {formatBRL(s.priceCents)}
-              </span>
-            </div>
-          ))}
-
-          <div style={{ borderTop: '1px solid rgba(255,107,0,0.2)', margin: '16px 0' }} />
-
-          {/* Total */}
-          <p
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              color: 'rgba(255,255,255,0.4)',
-              marginBottom: '4px',
-            }}
-          >
-            Total estimado
-          </p>
-          <p
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 900,
-              fontSize: '38px',
+              fontWeight: 700,
               color: '#FF6B00',
-              textShadow: '0 0 30px rgba(255,107,0,0.4)',
-              lineHeight: 1.1,
+              textTransform: 'uppercase',
+              letterSpacing: '1.5px',
             }}
           >
-            {formatBRL(totalCents)}
-          </p>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF6B00', display: 'inline-block' }} />
+            Passo final
+          </span>
+        </div>
 
-          <div className="mt-3">
-            <span
-              className="inline-flex items-center"
-              style={{
-                background: 'rgba(255,107,0,0.1)',
-                border: '1px solid rgba(255,107,0,0.25)',
-                borderRadius: '99px',
-                padding: '4px 12px',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '11px',
-                color: 'rgba(255,107,0,0.7)',
-              }}
-            >
-              Valores base • Sujeito a avaliação
-            </span>
+        {/* Device section */}
+        <div className="flex items-center gap-3 mb-5">
+          <div
+            className="flex items-center justify-center shrink-0"
+            style={{
+              width: 48,
+              height: 48,
+              background: 'rgba(255,107,0,0.1)',
+              border: '1px solid rgba(255,107,0,0.3)',
+              borderRadius: 12,
+            }}
+          >
+            <Smartphone className="w-5 h-5" style={{ color: '#FF6B00' }} />
+          </div>
+          <div>
+            <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '20px', color: 'white', lineHeight: 1.2 }}>
+              {modelName}
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '12px', color: '#FF6B00', textTransform: 'uppercase', letterSpacing: '1px', marginTop: 2 }}>
+              {brandName}
+            </p>
           </div>
         </div>
 
-        {/* Info line */}
-        <div className="flex items-center gap-2 mt-4 justify-center">
-          <Info className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }} />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
+        {/* Services label */}
+        <p
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+            fontSize: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            color: 'rgba(255,255,255,0.25)',
+            marginBottom: '10px',
+          }}
+        >
+          Serviços selecionados
+        </p>
+
+        {/* Service cards */}
+        {services.map((s) => (
+          <div
+            key={s.id}
+            className="flex justify-between items-center"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '0.5px solid rgba(255,255,255,0.06)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              marginBottom: '8px',
+            }}
+          >
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '14px', color: 'rgba(255,255,255,0.85)' }}>
+              {s.label}
+            </span>
+            <span style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '15px', color: 'white' }}>
+              {formatBRL(s.priceCents)}
+            </span>
+          </div>
+        ))}
+
+        {/* Gradient divider */}
+        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.3), transparent)', margin: '18px 0' }} />
+
+        {/* Total card */}
+        <div
+          className="flex justify-between items-center"
+          style={{
+            background: 'rgba(255,107,0,0.06)',
+            border: '1px solid rgba(255,107,0,0.2)',
+            borderRadius: '14px',
+            padding: '18px 16px',
+          }}
+        >
+          <div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>
+              Total estimado
+            </p>
+            <p style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: '40px', color: '#FF6B00', lineHeight: 1.1 }}>
+              {formatBRL(totalCents)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>
+              {services.length} {services.length === 1 ? 'serviço' : 'serviços'}
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,107,0,0.5)' }}>
+              Base estimada
+            </p>
+          </div>
+        </div>
+
+        {/* Notice */}
+        <div
+          className="flex items-center gap-1.5"
+          style={{
+            marginTop: 14,
+            padding: '10px 14px',
+            background: 'rgba(255,255,255,0.02)',
+            border: '0.5px solid rgba(255,255,255,0.05)',
+            borderRadius: 8,
+          }}
+        >
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'inline-block', flexShrink: 0 }} />
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.25)' }}>
             Confirmação final após avaliação presencial do aparelho
           </span>
         </div>
       </main>
 
-      {/* Fixed bottom bar */}
+      {/* Fixed bottom bar — kept exactly as before */}
       <div className="fixed bottom-0 left-0 right-0 px-4 py-4 z-10" style={{ background: '#0a0a0aee', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-lg mx-auto space-y-2">
           <button
@@ -252,6 +276,7 @@ export default function QuoteReview() {
           </button>
         </div>
       </div>
+
       <GuaranteeTermsModal
         open={openTerms}
         onClose={() => setOpenTerms(false)}
