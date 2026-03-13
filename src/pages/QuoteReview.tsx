@@ -74,33 +74,6 @@ export default function QuoteReview() {
       {/* Header with logo */}
       <TechHeader />
 
-      {/* Subheader */}
-      <div
-        className="sticky top-[90px] z-10 px-4 py-3"
-        style={{ background: '#161616', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-      >
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <button
-            onClick={() => navigate(`/orcamento/${brandId}/${modelSlug}`)}
-            className="p-2 -ml-2 rounded-full hover:bg-white/5 transition-colors"
-            aria-label="Voltar"
-          >
-            <ArrowLeft className="w-5 h-5" style={{ color: '#FF6B00' }} />
-          </button>
-          <h1
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 800,
-              fontSize: '13px',
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              color: 'white',
-            }}
-          >
-            Revisão do orçamento
-          </h1>
-        </div>
-      </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto relative z-[1]">
         {/* Pill "PASSO FINAL" */}
