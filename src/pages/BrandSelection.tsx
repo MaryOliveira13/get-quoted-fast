@@ -145,13 +145,16 @@ export default function BrandSelection() {
               </div>
 
               {/* Scrollable list */}
-              <div className="dropdown-scroll max-h-[380px] overflow-y-auto relative">
+              <div
+                className="dropdown-container max-h-[380px] overflow-y-scroll relative"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#FF6B00 transparent', scrollSnapType: 'y proximity' }}
+              >
                 {allModelSuggestions.map((entry, i) => (
                   <button
                     key={`${entry.brandId}-${entry.model}-${i}`}
                     onClick={() => handleSelect(entry)}
-                    className="dropdown-reveal-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
-                    style={{ "--index": i } as React.CSSProperties}
+                    className="dropdown-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 text-left border-b border-foreground/[0.05] last:border-b-0"
+                    style={{ "--i": i } as React.CSSProperties}
                   >
                     <span className="text-foreground font-semibold text-[14px] font-[family-name:var(--font-body)]">
                       {highlightMatch(entry.model, search)}
