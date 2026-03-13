@@ -324,7 +324,7 @@ export default function ShippingDevice() {
           </div>
         </div>
 
-        {/* Card 3 - Fotos */}
+        {/* Card 3 - Fotos ou Vídeos */}
         <div
           className="space-y-4"
           style={{
@@ -337,20 +337,24 @@ export default function ShippingDevice() {
           <div className="flex items-center gap-2">
             <div style={{ width: '3px', height: '14px', background: '#FF6B00', borderRadius: '99px' }} />
             <h3 className="font-['Montserrat'] font-extrabold text-[12px] uppercase tracking-[2px]" style={{ color: '#FF6B00' }}>
-              Fotos do Aparelho
+              Fotos ou Vídeos do Aparelho
             </h3>
           </div>
 
-          {errors.photos && (
-            <p className="text-sm text-destructive">Envie pelo menos 2 fotos.</p>
-          )}
+          <div className="flex items-center gap-1.5">
+            <TriangleAlert className="w-3.5 h-3.5 shrink-0" style={{ color: 'rgba(255,107,0,0.6)' }} />
+            <span className="font-['Inter'] font-medium text-[11px]" style={{ color: 'rgba(255,107,0,0.6)' }}>
+              Mínimo: 3 fotos ou 1 vídeo
+            </span>
+          </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="flex flex-wrap gap-2">
             {/* Slot de adicionar */}
-            {photos.length < 5 && (
+            {photos.length < 10 && (
               <label
                 className="flex flex-col items-center justify-center cursor-pointer transition-colors"
                 style={{
+                  width: 'calc(25% - 6px)',
                   aspectRatio: '1/1',
                   borderRadius: '10px',
                   border: '1.5px dashed rgba(255,107,0,0.3)',
@@ -361,37 +365,63 @@ export default function ShippingDevice() {
                 <span className="font-['Inter'] text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
                   Adicionar
                 </span>
-                <input type="file" accept="image/*" multiple onChange={handlePhotos} className="hidden" />
+                <input type="file" accept="image/*,video/*" multiple onChange={handlePhotos} className="hidden" />
               </label>
             )}
 
-            {/* Fotos adicionadas */}
-            {previews.map((src, i) => (
-              <div
-                key={i}
-                className="relative overflow-hidden"
-                style={{
-                  aspectRatio: '1/1',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-              >
-                <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
-                <button
-                  onClick={() => removePhoto(i)}
-                  className="absolute top-1 right-1 rounded-full p-0.5"
-                  style={{ background: 'rgba(0,0,0,0.7)' }}
+            {/* Arquivos adicionados */}
+            {previews.map((src, i) => {
+              const isVideo = photos[i]?.type.startsWith('video/');
+              return (
+                <div
+                  key={i}
+                  className="relative overflow-hidden"
+                  style={{
+                    width: 'calc(25% - 6px)',
+                    aspectRatio: '1/1',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
                 >
-                  <X className="w-3 h-3 text-white" />
-                </button>
-              </div>
-            ))}
+                  {isVideo ? (
+                    <video src={src} className="w-full h-full object-cover" muted />
+                  ) : (
+                    <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                  )}
+                  {isVideo && (
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div
+                        className="flex items-center justify-center"
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.5)',
+                        }}
+                      >
+                        <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 rounded-full p-0.5"
+                    style={{ background: 'rgba(0,0,0,0.7)' }}
+                  >
+                    <X className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              );
+            })}
 
             {/* Slots vazios */}
             {Array.from({ length: emptySlots }).map((_, i) => (
               <div
                 key={`empty-${i}`}
                 style={{
+                  width: 'calc(25% - 6px)',
                   aspectRatio: '1/1',
                   borderRadius: '10px',
                   border: '1.5px dashed rgba(255,255,255,0.07)',
@@ -401,8 +431,24 @@ export default function ShippingDevice() {
             ))}
           </div>
 
-          <p className={hintStyle}>
-            {photos.length} de 5 fotos adicionadas
+          {errors.photos && (
+            <div
+              className="flex items-center gap-2"
+              style={{
+                background: 'rgba(255,107,0,0.08)',
+                border: '1px solid rgba(255,107,0,0.25)',
+                borderRadius: '8px',
+                padding: '10px 14px',
+              }}
+            >
+              <span className="font-['Inter'] font-medium text-[12px]" style={{ color: '#FF6B00' }}>
+                Adicione pelo menos 3 fotos ou 1 vídeo para continuar
+              </span>
+            </div>
+          )}
+
+          <p className="font-['Inter'] font-normal text-[11px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            {currentPhotoCount} foto{currentPhotoCount !== 1 ? 's' : ''} e {currentVideoCount} vídeo{currentVideoCount !== 1 ? 's' : ''} adicionados
           </p>
         </div>
       </main>
