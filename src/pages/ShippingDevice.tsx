@@ -233,6 +233,11 @@ export default function ShippingDevice() {
           </div>
 
           <div>
+            <label className={labelStyle}>Modelo</label>
+            <input value={quote?.modelName || ""} readOnly className={inputStyle} style={{ cursor: 'default' }} />
+          </div>
+
+          <div>
             <label className={labelStyle}>Valor do aparelho (R$) *</label>
             <input
               value={valueCents}
