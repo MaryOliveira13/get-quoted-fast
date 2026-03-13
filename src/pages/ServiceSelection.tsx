@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { findBrand, findModel } from "@/data/catalog";
-import { SERVICES } from "@/data/services";
-import { formatBRL } from "@/lib/money";
+import { findBrand, findModel, findModelEntry } from "@/data/catalog";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Check, ArrowRight } from "lucide-react";
+import { AlertCircle, Check, ArrowRight, MessageCircle } from "lucide-react";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 export default function ServiceSelection() {
   const { brand: brandSlug, model: modelSlug } = useParams<{ brand: string; model: string }>();
@@ -17,7 +16,8 @@ export default function ServiceSelection() {
   );
 
   const brand = findBrand(brandSlug ?? "");
-  const model = brand ? findModel(brand.id, modelSlug ?? "") : undefined;
+  const modelName = brand ? findModel(brand.id, modelSlug ?? "") : undefined;
+  const modelEntry = brand ? findModelEntry(brand.id, modelSlug ?? "") : undefined;
 
   if (!brand) {
     return (
@@ -32,7 +32,7 @@ export default function ServiceSelection() {
     );
   }
 
-  if (!model) {
+  if (!modelName) {
     return (
       <div className="min-h-screen bg-background">
         <PageHeader title="Erro" backTo={`/orcamento/${brand.id}`} />
@@ -45,17 +45,72 @@ export default function ServiceSelection() {
     );
   }
 
-  const toggle = (id: string) => {
+  const services = modelEntry?.services ?? [];
+  const hasServices = services.length > 0;
+
+  // No services available - show contact message
+  if (!hasServices) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PageHeader
+          title={modelName}
+          subtitle={brand.name}
+          backTo={`/orcamento/${brand.id}`}
+        />
+        <main className="px-4 py-8 max-w-lg mx-auto">
+          <div className="rounded-2xl border border-border bg-card p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <MessageCircle className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">
+              Ainda não temos preço cadastrado para este modelo.
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Entre em contato para receber seu orçamento personalizado.
+            </p>
+            <Button
+              variant="whatsapp"
+              size="lg"
+              className="w-full text-base"
+              onClick={() =>
+                openWhatsApp(
+                  `Olá! Gostaria de um orçamento para o ${modelName} (${brand.name}).`
+                )
+              }
+            >
+              <MessageCircle className="w-5 h-5" />
+              Solicitar orçamento via WhatsApp
+            </Button>
+          </div>
+
+          {/* Outro Defeito */}
+          <button
+            onClick={() =>
+              navigate(
+                `/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(modelName)}`
+              )
+            }
+            className="mt-4 w-full flex items-center justify-between px-4 py-3.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all active:scale-[0.98]"
+          >
+            <span className="font-medium text-primary">Outro Defeito</span>
+            <span className="text-xs text-primary/80">Orçamento personalizado →</span>
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  const toggle = (name: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
   };
 
-  const selectedServices = SERVICES.filter((s) => selected.has(s.id));
-  const totalCents = selectedServices.reduce((sum, s) => sum + s.priceCents, 0);
+  const selectedServices = services.filter((s) => selected.has(s.name));
+  const totalCents = selectedServices.reduce((sum, s) => sum + s.price * 100, 0);
 
   const handleReview = () => {
     navigate("/orcamento-revisao", {
@@ -63,11 +118,11 @@ export default function ServiceSelection() {
         brandId: brand.id,
         brandName: brand.name,
         modelSlug: modelSlug,
-        modelName: model,
+        modelName: modelName,
         services: selectedServices.map((s) => ({
-          id: s.id,
-          label: s.label,
-          priceCents: s.priceCents,
+          id: s.name.toLowerCase().replace(/\s+/g, "_"),
+          label: s.name,
+          priceCents: s.price * 100,
         })),
         totalCents,
       },
@@ -77,7 +132,7 @@ export default function ServiceSelection() {
   return (
     <div className="min-h-screen bg-background pb-32">
       <PageHeader
-        title={model}
+        title={modelName}
         subtitle={brand.name}
         backTo={`/orcamento/${brand.id}`}
       />
@@ -88,12 +143,12 @@ export default function ServiceSelection() {
         </p>
 
         <div className="flex flex-col gap-2">
-          {SERVICES.map((service) => {
-            const isSelected = selected.has(service.id);
+          {services.map((service) => {
+            const isSelected = selected.has(service.name);
             return (
               <button
-                key={service.id}
-                onClick={() => toggle(service.id)}
+                key={service.name}
+                onClick={() => toggle(service.name)}
                 className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all active:scale-[0.98] ${
                   isSelected
                     ? "bg-whatsapp/10 border-whatsapp shadow-sm"
@@ -109,11 +164,11 @@ export default function ServiceSelection() {
                     {isSelected && <Check className="w-3 h-3 text-whatsapp-foreground" />}
                   </div>
                   <span className={`font-medium ${isSelected ? "text-foreground" : "text-card-foreground"}`}>
-                    {service.label}
+                    {service.name}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-muted-foreground">
-                  {formatBRL(service.priceCents)}
+                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(service.price)}
                 </span>
               </button>
             );
@@ -123,13 +178,13 @@ export default function ServiceSelection() {
           <button
             onClick={() =>
               navigate(
-                `/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`
+                `/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(modelName)}`
               )
             }
-            className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-[#ff812a]/40 bg-[#ff812a]/10 hover:bg-[#ff812a]/20 transition-all active:scale-[0.98]"
+            className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all active:scale-[0.98]"
           >
-            <span className="font-medium text-[#ff812a]">Outro Defeito</span>
-            <span className="text-xs text-[#ff812a]/80">Orçamento personalizado →</span>
+            <span className="font-medium text-primary">Outro Defeito</span>
+            <span className="text-xs text-primary/80">Orçamento personalizado →</span>
           </button>
         </div>
       </main>
@@ -142,7 +197,9 @@ export default function ServiceSelection() {
               <span className="text-sm text-muted-foreground">
                 {selected.size} serviço{selected.size !== 1 ? "s" : ""}
               </span>
-              <span className="text-lg font-bold">{formatBRL(totalCents)}</span>
+              <span className="text-lg font-bold">
+                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalCents / 100)}
+              </span>
             </div>
           )}
           <Button
