@@ -80,7 +80,7 @@ const Index = () => {
       <div
         className="absolute pointer-events-none select-none"
         style={{
-          bottom: -10,
+          bottom: -40,
           left: "50%",
           transform: "translateX(-50%)",
           fontFamily: "var(--font-display)",
