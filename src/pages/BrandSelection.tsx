@@ -219,21 +219,34 @@ export default function BrandSelection() {
               <span className="text-[14px] text-muted-foreground group-hover:text-foreground transition-colors font-[family-name:var(--font-body)]">Outra marca</span>
             </button>
           )}
-        </div>
 
-        {/* CTA - when brands are visible */}
-        {hasBrandMatches && (
-          <button
-            onClick={() => navigate("/orcamento-personalizado")}
-            className="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97] overflow-hidden"
-          >
-            <div className="w-full aspect-square rounded-xl bg-card flex flex-col items-center justify-center gap-2 px-3">
-              <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
-              <p className="text-[12px] text-foreground/40 font-normal font-[family-name:var(--font-body)] text-center leading-tight">Não encontrou sua marca?</p>
-            </div>
-            <span className="text-[14px] text-primary font-semibold font-[family-name:var(--font-body)] tracking-[0.3px]">Orçamento Personalizado</span>
-          </button>
-        )}
+          {/* CTA card - inside grid, when brands are visible */}
+          {hasBrandMatches && (
+            <button
+              onClick={() => navigate("/orcamento-personalizado")}
+              className="group relative flex flex-col items-center justify-center rounded-2xl transition-all active:scale-[0.97] overflow-hidden"
+              style={{
+                border: "1.5px dashed rgba(255,107,0,0.4)",
+                background: "rgba(255,107,0,0.04)",
+              }}
+            >
+              <div className="w-full aspect-square flex flex-col items-center justify-center gap-2 px-4">
+                <span style={{ fontSize: 28, color: "rgba(255,255,255,0.2)" }}>+</span>
+                <p
+                  className="text-center"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontWeight: 500,
+                    fontSize: 13,
+                    color: "rgba(255,255,255,0.35)",
+                  }}
+                >
+                  Não encontrou sua marca?
+                </p>
+              </div>
+            </button>
+          )}
+        </div>
       </main>
     </div>
   );
