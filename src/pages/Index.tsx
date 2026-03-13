@@ -95,37 +95,6 @@ const Index = () => {
 
       {/* Hero content */}
       <div className="relative z-10 flex flex-col items-center text-center px-5 pt-16 pb-10">
-        {/* Badge */}
-        <div
-          className="inline-flex items-center gap-[7px] mb-8"
-          style={{
-            background: "rgba(255,107,0,0.1)",
-            border: "1px solid rgba(255,107,0,0.25)",
-            borderRadius: 99,
-            padding: "7px 16px",
-          }}
-        >
-          <span
-            className="rounded-full"
-            style={{
-              width: 7,
-              height: 7,
-              background: "#FF6B00",
-              animation: "hero-pulse 2s ease-in-out infinite",
-            }}
-          />
-          <span
-            style={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 600,
-              fontSize: 12,
-              color: "rgba(255,255,255,0.7)",
-              letterSpacing: 0.5,
-            }}
-          >
-            Resposta em minutos
-          </span>
-        </div>
 
         {/* Title */}
         <div className="mb-0">
