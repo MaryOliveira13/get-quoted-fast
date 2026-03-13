@@ -410,7 +410,6 @@ export default function ShippingRates() {
                             {opt.deliveryMinDays === opt.deliveryMaxDays
                               ? `${opt.deliveryMinDays} dias úteis`
                               : `${opt.deliveryMinDays}–${opt.deliveryMaxDays} dias úteis`}
-                            {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
                           </p>
                         )}
                       </div>
