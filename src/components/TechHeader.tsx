@@ -1,4 +1,4 @@
-import powercellLogo from "@/assets/powercell-logo.png";
+import powercellBrand from "@/assets/powercell-brand.png";
 
 export function TechHeader() {
   return (
@@ -12,19 +12,7 @@ export function TechHeader() {
       />
 
       <div className="max-w-lg mx-auto flex items-center gap-3 relative">
-        {/* Icon wrapper */}
-        <div className="w-11 h-11 bg-secondary rounded-xl border border-primary/40 flex items-center justify-center text-2xl flex-shrink-0">
-          ⚡
-        </div>
-
-        <div className="flex flex-col">
-          <span className="font-['Bebas_Neue'] text-[26px] leading-none tracking-[2px] text-foreground">
-            P<span className="text-primary">O</span>WER <span className="text-primary">C</span>ELL
-          </span>
-          <span className="text-[10px] text-foreground/35 tracking-widest uppercase mt-0.5">
-            Assistência técnica
-          </span>
-        </div>
+        <img src={powercellBrand} alt="PowerCell" className="h-14 object-contain" />
       </div>
     </header>
   );
