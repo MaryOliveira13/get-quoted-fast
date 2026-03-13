@@ -185,8 +185,8 @@ export default function QuoteReview() {
           </div>
         ))}
 
-        {/* Gradient divider */}
-        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,107,0,0.3), transparent)', margin: '18px 0' }} />
+        {/* Spacer */}
+        <div style={{ height: 18 }} />
 
         {/* Total card */}
         <div
