@@ -1,20 +1,20 @@
 import { useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { findBrand, findModel } from "@/data/catalog";
-import { SERVICES } from "@/data/services";
+import { useParams, useNavigate } from "react-router-dom";
+import { findBrand, findModel, getModelServices } from "@/data/catalog";
 import { formatBRL } from "@/lib/money";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Check, ArrowRight } from "lucide-react";
+import { AlertCircle, Check, ArrowRight, MessageCircle } from "lucide-react";
+import { buildWaLink } from "@/lib/whatsapp";
+
+function serviceId(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, "_").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 
 export default function ServiceSelection() {
   const { brand: brandSlug, model: modelSlug } = useParams<{ brand: string; model: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const preSelected = (location.state as { preSelected?: string[] } | null)?.preSelected;
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(preSelected ?? [])
-  );
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const brand = findBrand(brandSlug ?? "");
   const model = brand ? findModel(brand.id, modelSlug ?? "") : undefined;
@@ -45,6 +45,9 @@ export default function ServiceSelection() {
     );
   }
 
+  const services = getModelServices(brand.name, model);
+  const hasServices = services.length > 0;
+
   const toggle = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -54,8 +57,8 @@ export default function ServiceSelection() {
     });
   };
 
-  const selectedServices = SERVICES.filter((s) => selected.has(s.id));
-  const totalCents = selectedServices.reduce((sum, s) => sum + s.priceCents, 0);
+  const selectedServices = services.filter((s) => selected.has(serviceId(s.name)));
+  const totalCents = selectedServices.reduce((sum, s) => sum + s.price * 100, 0);
 
   const handleReview = () => {
     navigate("/orcamento-revisao", {
@@ -65,14 +68,50 @@ export default function ServiceSelection() {
         modelSlug: modelSlug,
         modelName: model,
         services: selectedServices.map((s) => ({
-          id: s.id,
-          label: s.label,
-          priceCents: s.priceCents,
+          id: serviceId(s.name),
+          label: s.name,
+          priceCents: s.price * 100,
         })),
         totalCents,
       },
     });
   };
+
+  // No services — show contact fallback
+  if (!hasServices) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PageHeader title={model} subtitle={brand.name} backTo={`/orcamento/${brand.id}`} />
+        <main className="px-4 py-10 max-w-lg mx-auto flex flex-col items-center text-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground mb-2">Preço ainda não cadastrado</h2>
+            <p className="text-sm text-muted-foreground">
+              Ainda não temos preço cadastrado para o <strong>{model}</strong>. Entre em contato para receber seu orçamento.
+            </p>
+          </div>
+          <a
+            href={buildWaLink(`Olá! Gostaria de um orçamento para o ${brand.name} ${model}.`)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="whatsapp" size="lg" className="gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Solicitar orçamento via WhatsApp
+            </Button>
+          </a>
+          <button
+            onClick={() => navigate(`/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`)}
+            className="text-sm text-primary hover:underline"
+          >
+            Ou preencha o formulário de orçamento personalizado
+          </button>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -83,38 +122,50 @@ export default function ServiceSelection() {
       />
 
       <main className="px-4 py-4 max-w-lg mx-auto">
+        {/* Step indicator */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full">
+            Passo 3 de 3
+          </span>
+        </div>
+
+        <h2 className="font-['Bebas_Neue'] text-[24px] leading-none tracking-wide text-foreground mb-1">
+          Selecione o serviço
+        </h2>
         <p className="text-xs text-muted-foreground mb-4">
           Valores base. Confirmação final após avaliação do aparelho.
         </p>
 
         <div className="flex flex-col gap-2">
-          {SERVICES.map((service) => {
-            const isSelected = selected.has(service.id);
+          {services.map((service) => {
+            const id = serviceId(service.name);
+            const isSelected = selected.has(id);
             return (
               <button
-                key={service.id}
-                onClick={() => toggle(service.id)}
-                className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all active:scale-[0.98] ${
+                key={id}
+                onClick={() => toggle(id)}
+                className={`flex items-center justify-between px-4 py-4 rounded-2xl border transition-all active:scale-[0.98] ${
                   isSelected
-                    ? "bg-whatsapp/10 border-whatsapp shadow-sm"
-                    : "bg-card border-border hover:border-foreground/20"
+                    ? "bg-primary/10 border-primary shadow-sm"
+                    : "bg-card border-border hover:border-primary/40"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                      isSelected ? "bg-whatsapp border-whatsapp" : "border-muted-foreground/30"
+                      isSelected ? "bg-primary border-primary" : "border-muted-foreground/30"
                     }`}
                   >
-                    {isSelected && <Check className="w-3 h-3 text-whatsapp-foreground" />}
+                    {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
-                  <span className={`font-medium ${isSelected ? "text-foreground" : "text-card-foreground"}`}>
-                    {service.label}
-                  </span>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">{service.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Selecionar serviço</p>
+                  </div>
                 </div>
-                <span className="text-sm font-semibold text-muted-foreground">
-                  {formatBRL(service.priceCents)}
-                </span>
+                <p className="text-lg font-bold text-primary font-['Bebas_Neue']">
+                  {formatBRL(service.price * 100)}
+                </p>
               </button>
             );
           })}
@@ -126,16 +177,16 @@ export default function ServiceSelection() {
                 `/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`
               )
             }
-            className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-[#ff812a]/40 bg-[#ff812a]/10 hover:bg-[#ff812a]/20 transition-all active:scale-[0.98]"
+            className="flex items-center justify-between px-4 py-4 rounded-2xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all active:scale-[0.98]"
           >
-            <span className="font-medium text-[#ff812a]">Outro Defeito</span>
-            <span className="text-xs text-[#ff812a]/80">Orçamento personalizado →</span>
+            <span className="font-medium text-primary">Outro Defeito</span>
+            <span className="text-xs text-primary/80">Orçamento personalizado →</span>
           </button>
         </div>
       </main>
 
       {/* Fixed bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-4">
         <div className="max-w-lg mx-auto">
           {selected.size > 0 && (
             <div className="flex justify-between items-center mb-3 px-1">
