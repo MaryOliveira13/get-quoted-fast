@@ -150,7 +150,7 @@ export default function PersonalizedQuote() {
         </div>
       </div>
 
-      <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 100 }}>
+      <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 120 }}>
         {/* Card 1 — Dados Principais */}
         <div
           style={{
