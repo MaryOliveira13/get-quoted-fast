@@ -150,7 +150,7 @@ export default function PersonalizedQuote() {
         </div>
       </div>
 
-      <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 100 }}>
+      <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 120 }}>
         {/* Card 1 — Dados Principais */}
         <div
           style={{
@@ -334,7 +334,7 @@ export default function PersonalizedQuote() {
       </main>
 
       {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 z-50" style={{ padding: "16px 16px 32px", background: "linear-gradient(to top, #0d0d0d 60%, transparent)" }}>
         <div className="max-w-lg mx-auto">
           <Button
             variant="whatsapp"
