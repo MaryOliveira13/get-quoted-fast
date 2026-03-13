@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import appleLogo from "@/assets/brands/apple.svg";
 import samsungLogo from "@/assets/brands/samsung.svg";
@@ -79,12 +79,12 @@ export default function BrandSelection() {
   const q = search.toLowerCase().trim();
 
   // Model suggestions from dropdown
-  const modelSuggestions = useMemo(() => {
+  const allModelSuggestions = useMemo(() => {
     if (!q) return [];
     return ALL_MODEL_ENTRIES.filter((entry) => {
       const full = `${entry.brandName} ${entry.model}`.toLowerCase();
       return full.includes(q) || entry.model.toLowerCase().includes(q);
-    }).slice(0, 5);
+    });
   }, [q]);
 
   // Filtered brands for grid: match brand name OR if query matches models of that brand
@@ -123,24 +123,57 @@ export default function BrandSelection() {
               setShowDropdown(true);
             }}
             onFocus={() => search.trim() && setShowDropdown(true)}
-            className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+            className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
           />
 
+          {/* Clear button */}
+          <button
+            onClick={() => { setSearch(""); setShowDropdown(false); }}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 text-foreground/40 hover:text-foreground/80 transition-opacity ${
+              search ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            aria-label="Limpar busca"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
           {/* Dropdown - model suggestions */}
-          {showDropdown && modelSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] overflow-hidden z-20 shadow-xl">
-              {modelSuggestions.map((entry, i) => (
-                <button
-                  key={`${entry.brandId}-${entry.model}-${i}`}
-                  onClick={() => handleSelect(entry)}
-                  className="w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
-                >
-                  <span className="text-foreground font-semibold text-sm">
-                    {highlightMatch(entry.model, search)}
-                  </span>
-                  <span className="text-foreground/45 text-xs">{entry.brandName}</span>
-                </button>
-              ))}
+          {showDropdown && allModelSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] z-20 shadow-xl overflow-hidden">
+              {/* Results count */}
+              <div className="px-4 pt-2.5 pb-1 flex justify-end">
+                <span className="text-[11px] text-foreground/30">{allModelSuggestions.length} resultados</span>
+              </div>
+
+              {/* Scrollable list */}
+              <div
+                className="max-h-[380px] overflow-y-auto relative"
+                style={{ scrollbarWidth: "none" }}
+              >
+                <style>{`.search-dropdown::-webkit-scrollbar { display: none; }`}</style>
+                <div className="search-dropdown max-h-[380px] overflow-y-auto">
+                  {allModelSuggestions.map((entry, i) => (
+                    <button
+                      key={`${entry.brandId}-${entry.model}-${i}`}
+                      onClick={() => handleSelect(entry)}
+                      className="w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
+                    >
+                      <span className="text-foreground font-semibold text-sm">
+                        {highlightMatch(entry.model, search)}
+                      </span>
+                      <span className="text-foreground/45 text-xs">{entry.brandName}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fade gradient at bottom */}
+              {allModelSuggestions.length > 5 && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none rounded-b-[14px]"
+                  style={{ background: "linear-gradient(transparent, hsl(0 0% 10.2%))" }}
+                />
+              )}
             </div>
           )}
         </div>
