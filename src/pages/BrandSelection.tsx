@@ -87,32 +87,14 @@ export default function BrandSelection() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const q = search.trim().toLowerCase();
-
-  // Model suggestions (only models, shown in dropdown)
-  const modelResults = useMemo(() => {
+  const results = useMemo(() => {
+    const q = search.trim().toLowerCase();
     if (q.length < 2) return [];
-    return ALL_SUGGESTIONS
-      .filter((s) => {
-        if (s.type !== "model") return false;
-        const label = `${s.brandName} ${s.model}`;
-        return label.toLowerCase().includes(q);
-      })
-      .slice(0, 5);
-  }, [q]);
-
-  // Brand cards filtering: match brand name OR if models of that brand match the query
-  const filteredBrands = useMemo(() => {
-    if (q.length < 2) return BRANDS;
-    return BRANDS.filter((b) => {
-      if (b.name.toLowerCase().includes(q)) return true;
-      // Also show brand if any of its models match
-      const models = MODELS_BY_BRAND[b.id] ?? [];
-      return models.some((m) => m.toLowerCase().includes(q) || `${b.name} ${m}`.toLowerCase().includes(q));
-    });
-  }, [q]);
-
-  const hasModelResults = showDropdown && modelResults.length > 0;
+    return ALL_SUGGESTIONS.filter((s) => {
+      const label = s.type === "model" ? `${s.brandName} ${s.model}` : s.brandName;
+      return label.toLowerCase().includes(q);
+    }).slice(0, 5);
+  }, [search]);
 
   const handleSelect = (s: Suggestion) => {
     setShowDropdown(false);
@@ -123,6 +105,10 @@ export default function BrandSelection() {
       navigate(`/orcamento/${s.brandId}`);
     }
   };
+
+  const filtered = BRANDS.filter((b) =>
+    b.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,12 +124,12 @@ export default function BrandSelection() {
               setSearch(e.target.value);
               setShowDropdown(true);
             }}
-            onFocus={() => q.length >= 2 && setShowDropdown(true)}
+            onFocus={() => search.trim().length >= 2 && setShowDropdown(true)}
             className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
           />
 
           {/* Dropdown */}
-          {hasModelResults && (
+          {showDropdown && results.length > 0 && (
             <div
               className="absolute left-0 right-0 top-full mt-1.5 z-50 overflow-hidden"
               style={{
@@ -152,22 +138,30 @@ export default function BrandSelection() {
                 borderRadius: 14,
               }}
             >
-              {modelResults.map((s, i) => (
+              {results.map((s, i) => (
                 <button
-                  key={`${s.brandId}-${s.model}-${i}`}
+                  key={`${s.brandId}-${s.model ?? "brand"}-${i}`}
                   onClick={() => handleSelect(s)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
                   style={{
-                    borderBottom: i < modelResults.length - 1 ? "0.5px solid rgba(255,255,255,0.07)" : "none",
+                    borderBottom: i < results.length - 1 ? "0.5px solid rgba(255,255,255,0.07)" : "none",
                   }}
                 >
                   <div className="flex flex-col min-w-0">
-                    <span className="text-foreground font-semibold text-sm leading-tight">
-                      <HighlightMatch text={s.model!} query={search.trim()} />
-                    </span>
-                    <span className="text-foreground/45 text-xs mt-0.5">
-                      <HighlightMatch text={s.brandName} query={search.trim()} />
-                    </span>
+                    {s.type === "model" ? (
+                      <>
+                        <span className="text-foreground font-semibold text-sm leading-tight">
+                          <HighlightMatch text={s.model!} query={search.trim()} />
+                        </span>
+                        <span className="text-foreground/45 text-xs mt-0.5">
+                          <HighlightMatch text={s.brandName} query={search.trim()} />
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-foreground font-semibold text-sm">
+                        <HighlightMatch text={s.brandName} query={search.trim()} />
+                      </span>
+                    )}
                   </div>
                 </button>
               ))}
@@ -192,7 +186,7 @@ export default function BrandSelection() {
 
         {/* Brand grid */}
         <div className="grid grid-cols-2 gap-3">
-          {filteredBrands.map((brand) => (
+          {filtered.map((brand) => (
             <button
               key={brand.id}
               onClick={() => navigate(`/orcamento/${brand.id}`)}
@@ -215,18 +209,15 @@ export default function BrandSelection() {
             </button>
           ))}
 
-          {/* "Outra marca" only when no brands match */}
-          {filteredBrands.length === 0 && (
-            <button
-              onClick={() => navigate("/orcamento-personalizado")}
-              className="group flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97] min-h-[180px] col-span-2"
-            >
-              <span className="text-3xl text-primary">+</span>
-              <span className="text-sm text-muted-foreground font-medium">
-                Outra marca
-              </span>
-            </button>
-          )}
+          <button
+            onClick={() => navigate("/orcamento-personalizado")}
+            className="group flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97] min-h-[180px]"
+          >
+            <span className="text-3xl text-primary">+</span>
+            <span className="text-sm text-muted-foreground font-medium">
+              Outra marca
+            </span>
+          </button>
         </div>
       </main>
     </div>
