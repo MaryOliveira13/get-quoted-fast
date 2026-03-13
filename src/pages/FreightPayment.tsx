@@ -16,6 +16,35 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import appleLogo from "@/assets/brands/apple.svg";
+import samsungLogo from "@/assets/brands/samsung.svg";
+import xiaomiLogo from "@/assets/brands/xiaomi.svg";
+import motorolaLogo from "@/assets/brands/motorola.png";
+import lgLogo from "@/assets/brands/lg.svg";
+import infinixLogo from "@/assets/brands/infinix.png";
+import jadlogLogo from "@/assets/brands/jadlog.png";
+import correiosLogo from "@/assets/brands/correios.png";
+
+const BRAND_LOGO: Record<string, string> = {
+  apple: appleLogo,
+  samsung: samsungLogo,
+  xiaomi: xiaomiLogo,
+  motorola: motorolaLogo,
+  lg: lgLogo,
+  infinix: infinixLogo,
+};
+
+function getBrandLogo(brandName: string): string | undefined {
+  return BRAND_LOGO[brandName.toLowerCase()];
+}
+
+function getCarrierLogo(companyName: string): string | undefined {
+  const name = companyName.toLowerCase();
+  if (name.includes("jadlog")) return jadlogLogo;
+  if (name.includes("correios")) return correiosLogo;
+  return undefined;
+}
+
 const MP_PUBLIC_KEY = "APP_USR-e2e243db-9d24-4a51-9dff-4d71a199fa98";
 
 interface OrderData {
