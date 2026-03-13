@@ -193,7 +193,7 @@ export default function ServiceSelection() {
               <span className="text-[13px] text-foreground/40 font-[family-name:var(--font-body)]">
                 {selected.size} serviço{selected.size !== 1 ? "s" : ""}
               </span>
-              <span className="text-[22px] text-primary font-bold font-[family-name:var(--font-display)]">
+              <span className="text-[18px] text-primary font-bold font-[family-name:var(--font-display)]">
                 {formatBRL(totalCents)}
               </span>
             </div>
