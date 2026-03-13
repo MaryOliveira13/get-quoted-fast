@@ -345,7 +345,8 @@ export default function FreightPayment() {
             ) : null}
             <p className="text-sm text-muted-foreground">
               {serviceName}{companyName ? ` (${companyName})` : ""}
-          </p>
+            </p>
+          </div>
           <div className="border-t pt-3 flex justify-between items-center">
             <span className="text-sm font-semibold">Valor do frete:</span>
             <span className="text-xl font-bold">{formatBRL(amountCents)}</span>
