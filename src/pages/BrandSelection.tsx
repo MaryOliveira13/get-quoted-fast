@@ -28,17 +28,15 @@ const LOGO_SIZE: Record<string, string> = {
   infinix: "h-[90px]",
 };
 
-// Build flat list of all brand+model combos for search
 interface SearchEntry {
   brandId: string;
   brandName: string;
-  model?: string;
+  model: string;
 }
 
-function buildSearchEntries(): SearchEntry[] {
+function buildModelEntries(): SearchEntry[] {
   const entries: SearchEntry[] = [];
   for (const brand of BRANDS) {
-    entries.push({ brandId: brand.id, brandName: brand.name });
     const models = MODELS_BY_BRAND[brand.id] ?? [];
     for (const model of models) {
       entries.push({ brandId: brand.id, brandName: brand.name, model });
@@ -47,7 +45,7 @@ function buildSearchEntries(): SearchEntry[] {
   return entries;
 }
 
-const ALL_ENTRIES = buildSearchEntries();
+const ALL_MODEL_ENTRIES = buildModelEntries();
 
 function highlightMatch(text: string, query: string) {
   if (!query) return text;
@@ -68,7 +66,6 @@ export default function BrandSelection() {
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -79,55 +76,42 @@ export default function BrandSelection() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const suggestions = useMemo(() => {
-    if (!search.trim()) return [];
-    const q = search.toLowerCase().trim();
-    const results: SearchEntry[] = [];
+  const q = search.toLowerCase().trim();
 
-    for (const entry of ALL_ENTRIES) {
-      const searchText = entry.model
-        ? `${entry.brandName} ${entry.model}`
-        : entry.brandName;
-      if (searchText.toLowerCase().includes(q)) {
-        // Prioritize model matches over brand-only
-        results.push(entry);
-        if (results.length >= 5) break;
-      }
-    }
-
-    // Sort: model matches first, then brand-only
-    return results.sort((a, b) => {
-      if (a.model && !b.model) return -1;
-      if (!a.model && b.model) return 1;
-      return 0;
+  // Model suggestions from dropdown
+  const modelSuggestions = useMemo(() => {
+    if (!q) return [];
+    return ALL_MODEL_ENTRIES.filter((entry) => {
+      const full = `${entry.brandName} ${entry.model}`.toLowerCase();
+      return full.includes(q) || entry.model.toLowerCase().includes(q);
     }).slice(0, 5);
-  }, [search]);
+  }, [q]);
 
+  // Filtered brands for grid: match brand name OR if query matches models of that brand
   const filteredBrands = useMemo(() => {
-    if (!search.trim()) return BRANDS;
-    const q = search.toLowerCase().trim();
-    return BRANDS.filter((b) => b.name.toLowerCase().includes(q));
-  }, [search]);
+    if (!q) return BRANDS;
+    return BRANDS.filter((b) => {
+      // Direct brand name match
+      if (b.name.toLowerCase().includes(q)) return true;
+      // Check if any model of this brand matches the query
+      const models = MODELS_BY_BRAND[b.id] ?? [];
+      return models.some((m) => m.toLowerCase().includes(q));
+    });
+  }, [q]);
 
   const handleSelect = (entry: SearchEntry) => {
     setSearch("");
     setShowDropdown(false);
-    if (entry.model) {
-      // Skip to step 3
-      navigate(`/orcamento/${entry.brandId}/${slugify(entry.model)}`);
-    } else {
-      // Go to step 2
-      navigate(`/orcamento/${entry.brandId}`);
-    }
+    navigate(`/orcamento/${entry.brandId}/${slugify(entry.model)}`);
   };
 
-  // Show "Outra marca" card only when search has no brand matches
-  const showOutraCard = filteredBrands.length === 0;
+  const hasSearch = q.length > 0;
+  const hasBrandMatches = filteredBrands.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
       <main className="px-4 py-5 max-w-lg mx-auto">
-        {/* Search with dropdown */}
+        {/* Search */}
         <div ref={wrapperRef} className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <input
@@ -142,33 +126,21 @@ export default function BrandSelection() {
             className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
           />
 
-          {/* Dropdown */}
-          {showDropdown && suggestions.length > 0 && (
-            <div
-              className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] overflow-hidden z-20 shadow-xl"
-            >
-              {suggestions.map((entry, i) => (
+          {/* Dropdown - model suggestions */}
+          {showDropdown && modelSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] overflow-hidden z-20 shadow-xl">
+              {modelSuggestions.map((entry, i) => (
                 <button
-                  key={`${entry.brandId}-${entry.model ?? "brand"}-${i}`}
+                  key={`${entry.brandId}-${entry.model}-${i}`}
                   onClick={() => handleSelect(entry)}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
                 >
-                  {entry.model && (
-                    <span className="text-primary text-sm flex-shrink-0">⚡</span>
-                  )}
+                  <span className="text-primary text-sm flex-shrink-0">⚡</span>
                   <div className="min-w-0">
-                    {entry.model ? (
-                      <>
-                        <span className="text-foreground/45 text-xs">{entry.brandName} — </span>
-                        <span className="text-foreground font-semibold text-sm">
-                          {highlightMatch(entry.model, search)}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-foreground font-semibold text-sm">
-                        {highlightMatch(entry.brandName, search)}
-                      </span>
-                    )}
+                    <span className="text-foreground/45 text-xs">{entry.brandName} — </span>
+                    <span className="text-foreground font-semibold text-sm">
+                      {highlightMatch(entry.model, search)}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -195,15 +167,8 @@ export default function BrandSelection() {
               onClick={() => navigate(`/orcamento/${brand.id}`)}
               className="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all active:scale-[0.97] overflow-hidden"
             >
-              {/* Barra laranja topo - hover */}
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-
-              {/* Seta - hover */}
-              <span className="absolute top-2.5 right-3 text-primary/0 group-hover:text-primary/80 text-lg transition-colors">
-                ›
-              </span>
-
-              {/* Logo container */}
+              <span className="absolute top-2.5 right-3 text-primary/0 group-hover:text-primary/80 text-lg transition-colors">›</span>
               <div className="w-full aspect-square rounded-xl bg-white flex items-center justify-center p-4">
                 <img
                   src={BRAND_LOGO[brand.id]}
@@ -211,13 +176,12 @@ export default function BrandSelection() {
                   className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
                 />
               </div>
-
               <span className="font-semibold text-foreground text-sm">{brand.name}</span>
             </button>
           ))}
 
-          {/* Outra marca - only when no brands match */}
-          {showOutraCard && (
+          {/* Outra marca - only when NO brand matches */}
+          {hasSearch && !hasBrandMatches && (
             <button
               onClick={() => navigate("/orcamento-personalizado")}
               className="group flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97]"
@@ -230,8 +194,8 @@ export default function BrandSelection() {
           )}
         </div>
 
-        {/* CTA when brands are visible */}
-        {!showOutraCard && (
+        {/* CTA - when brands are visible */}
+        {hasBrandMatches && (
           <div className="mt-6 rounded-xl bg-card border border-border p-5 flex flex-col items-center gap-3">
             <p className="text-sm text-muted-foreground">Não encontrou sua marca?</p>
             <button
