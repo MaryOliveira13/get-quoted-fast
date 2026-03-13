@@ -223,15 +223,16 @@ export default function BrandSelection() {
 
         {/* CTA - when brands are visible */}
         {hasBrandMatches && (
-          <div className="mt-6 rounded-xl bg-card border border-border p-5 flex flex-col items-center gap-3">
-            <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)]">Não encontrou sua marca?</p>
-            <button
-              onClick={() => navigate("/orcamento-personalizado")}
-              className="px-6 py-2.5 rounded-full border border-primary text-primary text-[14px] font-semibold hover:bg-primary/5 transition-colors font-[family-name:var(--font-body)] tracking-[0.3px]"
-            >
-              Orçamento Personalizado
-            </button>
-          </div>
+          <button
+            onClick={() => navigate("/orcamento-personalizado")}
+            className="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97] overflow-hidden"
+          >
+            <div className="w-full aspect-square rounded-xl bg-card flex flex-col items-center justify-center gap-2 px-3">
+              <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
+              <p className="text-[12px] text-foreground/40 font-normal font-[family-name:var(--font-body)] text-center leading-tight">Não encontrou sua marca?</p>
+            </div>
+            <span className="text-[14px] text-primary font-semibold font-[family-name:var(--font-body)] tracking-[0.3px]">Orçamento Personalizado</span>
+          </button>
         )}
       </main>
     </div>
