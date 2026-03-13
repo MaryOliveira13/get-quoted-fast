@@ -144,24 +144,23 @@ export default function BrandSelection() {
 
               {/* Scrollable list */}
               <div
-                className="max-h-[380px] overflow-y-auto relative"
-                style={{ scrollbarWidth: "none" }}
+                ref={dropdownScrollRef}
+                className="dropdown-scroll max-h-[380px] overflow-y-auto relative"
               >
-                <style>{`.search-dropdown::-webkit-scrollbar { display: none; }`}</style>
-                <div className="search-dropdown max-h-[380px] overflow-y-auto">
-                  {allModelSuggestions.map((entry, i) => (
-                    <button
-                      key={`${entry.brandId}-${entry.model}-${i}`}
-                      onClick={() => handleSelect(entry)}
-                      className="w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
-                    >
-                      <span className="text-foreground font-semibold text-[14px] font-[family-name:var(--font-body)]">
-                        {highlightMatch(entry.model, search)}
-                      </span>
-                      <span className="text-foreground/45 text-[12px] font-normal font-[family-name:var(--font-body)]">{entry.brandName}</span>
-                    </button>
-                  ))}
-                </div>
+                {allModelSuggestions.map((entry, i) => (
+                  <button
+                    key={`${entry.brandId}-${entry.model}-${i}`}
+                    data-reveal-item
+                    onClick={() => handleSelect(entry)}
+                    className="reveal-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
+                    style={{ transitionDelay: `${Math.min(i * 30, 150)}ms` }}
+                  >
+                    <span className="text-foreground font-semibold text-[14px] font-[family-name:var(--font-body)]">
+                      {highlightMatch(entry.model, search)}
+                    </span>
+                    <span className="text-foreground/45 text-[12px] font-normal font-[family-name:var(--font-body)]">{entry.brandName}</span>
+                  </button>
+                ))}
               </div>
 
               {/* Fade gradient at bottom */}
