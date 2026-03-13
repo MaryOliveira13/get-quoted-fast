@@ -328,10 +328,23 @@ export default function FreightPayment() {
       <main className="px-4 py-6 max-w-lg mx-auto space-y-5">
         {/* Summary */}
         <div className="rounded-xl border bg-card p-5 space-y-3">
-          <h3 className="font-semibold text-sm text-muted-foreground">📋 Resumo</h3>
-          <p className="text-sm">📱 {order.brand} {order.model}</p>
-          <p className="text-sm text-muted-foreground">
-            🚚 {serviceName}{companyName ? ` (${companyName})` : ""}
+          <h3 className="font-semibold text-sm text-muted-foreground">Resumo do Pedido</h3>
+          <div className="flex items-center gap-3">
+            {getBrandLogo(order.brand) ? (
+              <div className="w-10 h-10 bg-white rounded-lg p-1 flex items-center justify-center flex-shrink-0">
+                <img src={getBrandLogo(order.brand)} alt={order.brand} className="w-full h-full object-contain" />
+              </div>
+            ) : null}
+            <p className="text-sm">{order.brand} {order.model}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {getCarrierLogo(companyName) ? (
+              <div className="w-10 h-10 bg-white rounded-lg p-1.5 flex items-center justify-center flex-shrink-0">
+                <img src={getCarrierLogo(companyName)!} alt={companyName} className="w-full h-full object-contain" />
+              </div>
+            ) : null}
+            <p className="text-sm text-muted-foreground">
+              {serviceName}{companyName ? ` (${companyName})` : ""}
           </p>
           <div className="border-t pt-3 flex justify-between items-center">
             <span className="text-sm font-semibold">Valor do frete:</span>
