@@ -33,7 +33,7 @@ export default function ShippingDevice() {
   const [brand, setBrand] = useState(quote?.brandName || "");
   const [valueCents, setValueCents] = useState("");
   const [problem, setProblem] = useState(defaultProblem);
-  const [accessories, setAccessories] = useState<Set<string>>(new Set());
+  const [accessories, setAccessories] = useState<Set<string>>(new Set(["Apenas o Aparelho"]));
   const [customAccessories, setCustomAccessories] = useState<string[]>([]);
   const [newAccessory, setNewAccessory] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
