@@ -123,11 +123,12 @@ export default function ShippingRates() {
     }
   };
 
-  const getIcon = (name: string) => {
-    const upper = name.toUpperCase();
-    if (upper.includes("SEDEX")) return <Zap className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
-    if (upper.includes("PAC")) return <Package className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
-    return <Truck className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
+  const getLogoInfo = (serviceName: string, companyName: string) => {
+    const upper = (companyName + " " + serviceName).toUpperCase();
+    if (upper.includes("JADLOG")) return { url: 'https://logo.clearbit.com/jadlog.com.br', fallback: 'JD' };
+    if (upper.includes("CORREIO") || upper.includes("PAC") || upper.includes("SEDEX") || upper.includes("MINI ENVIO"))
+      return { url: 'https://logo.clearbit.com/correios.com.br', fallback: 'EC' };
+    return { url: '', fallback: 'FR' };
   };
 
   const handleContinue = () => {
@@ -341,16 +342,44 @@ export default function ShippingRates() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Icon */}
-                      <div
-                        className="flex items-center justify-center shrink-0"
-                        style={{
-                          width: '36px', height: '36px',
-                          background: 'rgba(255,255,255,0.04)',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        {getIcon(opt.serviceName)}
-                      </div>
+                      {(() => {
+                        const logo = getLogoInfo(opt.serviceName, opt.companyName);
+                        return (
+                          <div
+                            className="flex items-center justify-center shrink-0"
+                            style={{
+                              width: '36px', height: '36px',
+                              background: 'rgba(255,255,255,0.04)',
+                              borderRadius: '8px',
+                            }}
+                          >
+                            {logo.url ? (
+                              <>
+                                <img
+                                  src={logo.url}
+                                  alt={opt.companyName}
+                                  style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }}
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    const next = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement;
+                                    if (next) next.style.display = 'flex';
+                                  }}
+                                />
+                                <span
+                                  className="font-['Montserrat'] font-extrabold text-[11px] items-center justify-center"
+                                  style={{ display: 'none', color: '#FF6B00' }}
+                                >
+                                  {logo.fallback}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-['Montserrat'] font-extrabold text-[11px]" style={{ color: '#FF6B00' }}>
+                                {logo.fallback}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       <div>
                         <div className="flex items-center gap-2">
