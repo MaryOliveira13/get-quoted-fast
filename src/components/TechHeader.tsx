@@ -12,7 +12,7 @@ export function TechHeader() {
       />
 
       <div className="max-w-lg mx-auto flex items-center gap-3 relative">
-        <img src={powercellBrand} alt="PowerCell" className="h-[62px] object-contain" />
+        <img src={powercellBrand} alt="PowerCell" className="h-[72px] object-contain" />
       </div>
     </header>
   );
