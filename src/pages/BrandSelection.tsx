@@ -78,7 +78,6 @@ export default function BrandSelection() {
 
   const q = search.toLowerCase().trim();
 
-  // Model suggestions from dropdown
   const allModelSuggestions = useMemo(() => {
     if (!q) return [];
     return ALL_MODEL_ENTRIES.filter((entry) => {
@@ -87,13 +86,10 @@ export default function BrandSelection() {
     });
   }, [q]);
 
-  // Filtered brands for grid: match brand name OR if query matches models of that brand
   const filteredBrands = useMemo(() => {
     if (!q) return BRANDS;
     return BRANDS.filter((b) => {
-      // Direct brand name match
       if (b.name.toLowerCase().includes(q)) return true;
-      // Check if any model of this brand matches the query
       const models = MODELS_BY_BRAND[b.id] ?? [];
       return models.some((m) => m.toLowerCase().includes(q));
     });
@@ -123,7 +119,7 @@ export default function BrandSelection() {
               setShowDropdown(true);
             }}
             onFocus={() => search.trim() && setShowDropdown(true)}
-            className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+            className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
           />
 
           {/* Clear button */}
@@ -158,10 +154,10 @@ export default function BrandSelection() {
                       onClick={() => handleSelect(entry)}
                       className="w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
                     >
-                      <span className="text-foreground font-semibold text-sm">
+                      <span className="text-foreground font-semibold text-[14px]">
                         {highlightMatch(entry.model, search)}
                       </span>
-                      <span className="text-foreground/45 text-xs">{entry.brandName}</span>
+                      <span className="text-foreground/45 text-[12px]">{entry.brandName}</span>
                     </button>
                   ))}
                 </div>
@@ -180,12 +176,12 @@ export default function BrandSelection() {
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full">
+          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[1px]">
             Passo 1 de 3
           </span>
         </div>
 
-        <h1 className="font-['Bebas_Neue'] text-[28px] leading-none tracking-wide text-foreground mb-5">
+        <h1 className="text-[36px] leading-none tracking-[1px] text-foreground mb-5" style={{ fontFamily: "var(--font-display)" }}>
           Qual a marca do aparelho?
         </h1>
 
@@ -206,7 +202,7 @@ export default function BrandSelection() {
                   className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
                 />
               </div>
-              <span className="font-semibold text-foreground text-sm">{brand.name}</span>
+              <span className="font-semibold text-foreground text-[14px]">{brand.name}</span>
             </button>
           ))}
 
@@ -219,7 +215,7 @@ export default function BrandSelection() {
               <div className="w-full aspect-square rounded-xl bg-card flex items-center justify-center">
                 <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
               </div>
-              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Outra marca</span>
+              <span className="text-[14px] text-muted-foreground group-hover:text-foreground transition-colors">Outra marca</span>
             </button>
           )}
         </div>
@@ -227,10 +223,10 @@ export default function BrandSelection() {
         {/* CTA - when brands are visible */}
         {hasBrandMatches && (
           <div className="mt-6 rounded-xl bg-card border border-border p-5 flex flex-col items-center gap-3">
-            <p className="text-sm text-muted-foreground">Não encontrou sua marca?</p>
+            <p className="text-[13px] text-foreground/40">Não encontrou sua marca?</p>
             <button
               onClick={() => navigate("/orcamento-personalizado")}
-              className="px-6 py-2.5 rounded-full border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
+              className="px-6 py-2.5 rounded-full border border-primary text-primary text-[14px] font-semibold hover:bg-primary/5 transition-colors"
             >
               Orçamento Personalizado
             </button>

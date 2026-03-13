@@ -87,9 +87,9 @@ export default function ServiceSelection() {
             <AlertCircle className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-foreground mb-2">Preço ainda não cadastrado</h2>
-            <p className="text-sm text-muted-foreground">
-              Ainda não temos preço cadastrado para o <strong>{model}</strong>. Entre em contato para receber seu orçamento.
+            <h2 className="text-[18px] font-bold text-foreground mb-2">Preço ainda não cadastrado</h2>
+            <p className="text-[13px] text-foreground/40">
+              Ainda não temos preço cadastrado para o <strong className="text-foreground">{model}</strong>. Entre em contato para receber seu orçamento.
             </p>
           </div>
           <a
@@ -104,7 +104,7 @@ export default function ServiceSelection() {
           </a>
           <button
             onClick={() => navigate(`/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`)}
-            className="text-sm text-primary hover:underline"
+            className="text-[13px] font-medium text-primary hover:underline"
           >
             Ou preencha o formulário de orçamento personalizado
           </button>
@@ -124,15 +124,15 @@ export default function ServiceSelection() {
       <main className="px-4 py-4 max-w-lg mx-auto">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full">
+          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[1px]">
             Passo 3 de 3
           </span>
         </div>
 
-        <h2 className="font-['Bebas_Neue'] text-[24px] leading-none tracking-wide text-foreground mb-1">
+        <h2 className="font-[var(--font-display)] text-[36px] leading-none tracking-[1px] text-foreground mb-1" style={{ fontFamily: "var(--font-display)" }}>
           Selecione o serviço
         </h2>
-        <p className="text-xs text-muted-foreground mb-4">
+        <p className="text-[13px] text-foreground/40 mb-4">
           Valores base. Confirmação final após avaliação do aparelho.
         </p>
 
@@ -159,11 +159,11 @@ export default function ServiceSelection() {
                     {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-foreground">{service.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Selecionar serviço</p>
+                    <p className="text-[15px] font-semibold text-foreground">{service.name}</p>
+                    <p className="text-[12px] text-foreground/35 mt-0.5">Selecionar serviço</p>
                   </div>
                 </div>
-                <p className="text-lg font-bold text-primary font-['Bebas_Neue']">
+                <p className="text-[22px] text-primary tracking-[0.5px]" style={{ fontFamily: "var(--font-display)" }}>
                   {formatBRL(service.price * 100)}
                 </p>
               </button>
@@ -179,8 +179,8 @@ export default function ServiceSelection() {
             }
             className="flex items-center justify-between px-4 py-4 rounded-2xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all active:scale-[0.98]"
           >
-            <span className="font-medium text-primary">Outro Defeito</span>
-            <span className="text-xs text-primary/80">Orçamento personalizado →</span>
+            <span className="text-[16px] font-bold text-primary">Outro Defeito</span>
+            <span className="text-[13px] font-medium text-primary">Orçamento personalizado →</span>
           </button>
         </div>
       </main>
@@ -190,10 +190,12 @@ export default function ServiceSelection() {
         <div className="max-w-lg mx-auto">
           {selected.size > 0 && (
             <div className="flex justify-between items-center mb-3 px-1">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-[13px] text-foreground/40">
                 {selected.size} serviço{selected.size !== 1 ? "s" : ""}
               </span>
-              <span className="text-lg font-bold">{formatBRL(totalCents)}</span>
+              <span className="text-[22px] text-primary" style={{ fontFamily: "var(--font-display)" }}>
+                {formatBRL(totalCents)}
+              </span>
             </div>
           )}
           <Button
