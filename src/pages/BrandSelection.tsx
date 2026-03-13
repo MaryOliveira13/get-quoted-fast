@@ -79,12 +79,12 @@ export default function BrandSelection() {
   const q = search.toLowerCase().trim();
 
   // Model suggestions from dropdown
-  const modelSuggestions = useMemo(() => {
+  const allModelSuggestions = useMemo(() => {
     if (!q) return [];
     return ALL_MODEL_ENTRIES.filter((entry) => {
       const full = `${entry.brandName} ${entry.model}`.toLowerCase();
       return full.includes(q) || entry.model.toLowerCase().includes(q);
-    }).slice(0, 5);
+    });
   }, [q]);
 
   // Filtered brands for grid: match brand name OR if query matches models of that brand
