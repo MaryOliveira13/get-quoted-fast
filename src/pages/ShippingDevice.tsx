@@ -91,7 +91,9 @@ export default function ShippingDevice() {
     const errs: Record<string, boolean> = {};
     if (!valueCents.trim()) errs.valueCents = true;
     if (!problem.trim()) errs.problem = true;
-    if (photos.length < 2) errs.photos = true;
+    const videoCount = photos.filter(f => f.type.startsWith('video/')).length;
+    const photoCount = photos.filter(f => f.type.startsWith('image/')).length;
+    if (photoCount < 3 && videoCount < 1) errs.photos = true;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
