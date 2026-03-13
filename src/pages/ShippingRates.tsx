@@ -123,11 +123,12 @@ export default function ShippingRates() {
     }
   };
 
-  const getIcon = (name: string) => {
-    const upper = name.toUpperCase();
-    if (upper.includes("SEDEX")) return <Zap className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
-    if (upper.includes("PAC")) return <Package className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
-    return <Truck className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
+  const getLogoInfo = (serviceName: string, companyName: string) => {
+    const upper = (companyName + " " + serviceName).toUpperCase();
+    if (upper.includes("JADLOG")) return { url: 'https://logo.clearbit.com/jadlog.com.br', fallback: 'JD' };
+    if (upper.includes("CORREIO") || upper.includes("PAC") || upper.includes("SEDEX") || upper.includes("MINI ENVIO"))
+      return { url: 'https://logo.clearbit.com/correios.com.br', fallback: 'EC' };
+    return { url: '', fallback: 'FR' };
   };
 
   const handleContinue = () => {
