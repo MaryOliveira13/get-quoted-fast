@@ -11,12 +11,12 @@ export function PageHeader({ title, subtitle, backTo }: PageHeaderProps) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
+    <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
       <div className="flex items-center gap-3 max-w-lg mx-auto">
         {backTo && (
           <button
             onClick={() => navigate(backTo)}
-            className="p-2 -ml-2 rounded-full hover:bg-secondary transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-card transition-colors"
             aria-label="Voltar"
           >
             <ArrowLeft className="w-5 h-5" />
