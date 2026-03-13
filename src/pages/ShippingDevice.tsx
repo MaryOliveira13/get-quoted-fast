@@ -112,7 +112,9 @@ export default function ShippingDevice() {
     navigate("/envio/confirmacao");
   };
 
-  const emptySlots = Math.max(0, 4 - previews.length - (photos.length < 5 ? 1 : 0));
+  const emptySlots = Math.max(0, 4 - previews.length - (photos.length < 10 ? 1 : 0));
+  const currentVideoCount = photos.filter(f => f.type.startsWith('video/')).length;
+  const currentPhotoCount = photos.filter(f => f.type.startsWith('image/')).length;
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: '#0d0d0d' }}>
