@@ -9,6 +9,7 @@ import { AlertCircle, Package, Zap, Truck, Search, Loader2 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { FreightTermsModal } from "@/components/FreightTermsModal";
 import { toast } from "sonner";
+import jadlogLogo from "@/assets/brands/jadlog.png";
 
 interface ShippingOption {
   serviceId: string;
