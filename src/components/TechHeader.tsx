@@ -1,19 +1,28 @@
-import brandLogo from "@/assets/powercell-brand.png";
+import { useEffect, useState } from "react";
+import logo from "@/assets/logo.png";
+import powercellLogo from "@/assets/powercell-logo.png";
 
 export function TechHeader() {
-  return (
-    <header className="sticky top-0 z-50 bg-card border-b-2 border-primary px-5 py-3 relative overflow-hidden">
-      {/* Glow decorativo */}
-      <div
-        className="absolute -top-[30px] -right-[30px] w-[120px] h-[120px] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, hsl(24 100% 50% / 0.2) 0%, transparent 70%)",
-        }}
-      />
+  const [isScrolled, setIsScrolled] = useState(false);
 
-      <div className="max-w-lg mx-auto flex items-center justify-start relative z-10">
-        <img src={brandLogo} alt="PowerCell" className="h-20 object-contain" />
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <header
+      className={`sticky top-0 z-50 transition-all duration-200 ${
+        isScrolled
+          ? "bg-white/70 backdrop-blur-md border-b border-black/5 shadow-sm"
+          : "bg-white border-b border-transparent"
+      }`}
+    >
+      <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-3">
+        <img src={logo} alt="TechFix" className="w-12 h-12 rounded-2xl object-cover" />
+        <img src={powercellLogo} alt="PowerCell" className="h-7 object-contain" />
       </div>
     </header>
   );
