@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FreightTermsModal } from "@/components/FreightTermsModal";
 import { toast } from "sonner";
 import jadlogLogo from "@/assets/brands/jadlog.png";
+import correiosLogo from "@/assets/brands/correios.png";
 
 interface ShippingOption {
   serviceId: string;
