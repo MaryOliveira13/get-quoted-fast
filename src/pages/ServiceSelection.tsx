@@ -124,15 +124,15 @@ export default function ServiceSelection() {
       <main className="px-4 py-4 max-w-lg mx-auto">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[1px]">
+          <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-[1px] font-[family-name:var(--font-body)]">
             Passo 3 de 3
           </span>
         </div>
 
-        <h2 className="font-[var(--font-display)] text-[36px] leading-none tracking-[1px] text-foreground mb-1" style={{ fontFamily: "var(--font-display)" }}>
+        <h1 className="text-[42px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-1">
           Selecione o serviço
-        </h2>
-        <p className="text-[13px] text-foreground/40 mb-4">
+        </h1>
+        <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)] mb-4">
           Valores base. Confirmação final após avaliação do aparelho.
         </p>
 
@@ -159,11 +159,11 @@ export default function ServiceSelection() {
                     {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
                   <div className="text-left">
-                    <p className="text-[15px] font-semibold text-foreground">{service.name}</p>
-                    <p className="text-[12px] text-foreground/35 mt-0.5">Selecionar serviço</p>
+                    <p className="text-[15px] font-semibold text-foreground font-[family-name:var(--font-body)]">{service.name}</p>
+                    <p className="text-[12px] text-foreground/35 font-normal font-[family-name:var(--font-body)] mt-0.5">Selecionar serviço</p>
                   </div>
                 </div>
-                <p className="text-[22px] text-primary tracking-[0.5px]" style={{ fontFamily: "var(--font-display)" }}>
+                <p className="text-[22px] text-primary tracking-[0.5px] font-bold font-[family-name:var(--font-display)]">
                   {formatBRL(service.price * 100)}
                 </p>
               </button>
@@ -179,8 +179,8 @@ export default function ServiceSelection() {
             }
             className="flex items-center justify-between px-4 py-4 rounded-2xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-all active:scale-[0.98]"
           >
-            <span className="text-[16px] font-bold text-primary">Outro Defeito</span>
-            <span className="text-[13px] font-medium text-primary">Orçamento personalizado →</span>
+            <span className="text-[16px] font-bold text-primary font-[family-name:var(--font-body)]">Outro Defeito</span>
+            <span className="text-[13px] font-medium text-primary font-[family-name:var(--font-body)]">Orçamento personalizado →</span>
           </button>
         </div>
       </main>
@@ -190,10 +190,10 @@ export default function ServiceSelection() {
         <div className="max-w-lg mx-auto">
           {selected.size > 0 && (
             <div className="flex justify-between items-center mb-3 px-1">
-              <span className="text-[13px] text-foreground/40">
+              <span className="text-[13px] text-foreground/40 font-[family-name:var(--font-body)]">
                 {selected.size} serviço{selected.size !== 1 ? "s" : ""}
               </span>
-              <span className="text-[22px] text-primary" style={{ fontFamily: "var(--font-display)" }}>
+              <span className="text-[22px] text-primary font-bold font-[family-name:var(--font-display)]">
                 {formatBRL(totalCents)}
               </span>
             </div>
@@ -201,7 +201,7 @@ export default function ServiceSelection() {
           <Button
             variant="whatsapp"
             size="lg"
-            className="w-full text-base"
+            className="w-full text-base font-semibold tracking-[0.3px] font-[family-name:var(--font-body)]"
             disabled={selected.size === 0}
             onClick={handleReview}
           >
