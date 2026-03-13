@@ -129,7 +129,7 @@ export default function ServiceSelection() {
           </span>
         </div>
 
-        <h1 className="text-[42px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-1">
+        <h1 className="text-[32px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-1">
           Selecione o serviço
         </h1>
         <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)] mb-4">
