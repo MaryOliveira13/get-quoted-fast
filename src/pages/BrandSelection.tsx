@@ -181,7 +181,7 @@ export default function BrandSelection() {
           </span>
         </div>
 
-        <h1 className="text-[32px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-5">
+        <h1 className="text-[26px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-5">
           Qual a marca do aparelho?
         </h1>
 
