@@ -87,7 +87,7 @@ export default function BrandSelection() {
     });
   }, [q]);
 
-  const dropdownScrollRef = useScrollReveal(showDropdown && allModelSuggestions.length > 0);
+  
 
   const filteredBrands = useMemo(() => {
     if (!q) return BRANDS;
