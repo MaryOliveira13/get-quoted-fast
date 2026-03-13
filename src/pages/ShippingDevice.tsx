@@ -308,6 +308,7 @@ export default function ShippingDevice() {
                   >
                     {selected && <Check className="w-3 h-3 text-white" />}
                   </div>
+                  {a === ONLY_DEVICE && <Smartphone className="w-3.5 h-3.5 shrink-0" style={{ color: selected ? 'white' : 'rgba(255,255,255,0.5)' }} />}
                   <span
                     className="font-['Inter'] font-medium text-[12px] text-left"
                     style={{ color: selected ? 'white' : 'rgba(255,255,255,0.7)' }}
