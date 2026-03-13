@@ -8,7 +8,7 @@ import { AlertCircle, Camera, X, Check, Play, TriangleAlert, Smartphone } from "
 
 const STEPS = ["Dados Pessoais", "Aparelho", "Confirmação"];
 
-const DEVICE_TYPES = ["Celular", "Tablet", "Notebook", "Smartwatch", "Outro"];
+
 
 const ACCESSORIES = [
   "Carregador", "Cabo USB", "Fone de ouvido", "Capa protetora",
