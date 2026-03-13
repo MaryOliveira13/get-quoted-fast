@@ -125,9 +125,9 @@ export default function ShippingRates() {
 
   const getLogoInfo = (serviceName: string, companyName: string) => {
     const upper = (companyName + " " + serviceName).toUpperCase();
-    if (upper.includes("JADLOG")) return { url: 'https://logo.clearbit.com/jadlog.com.br', fallback: 'JD' };
+    if (upper.includes("JADLOG")) return { url: 'https://www.jadlog.com.br/jadlog/assets/images/logo_jadlog.png', fallback: 'JD' };
     if (upper.includes("CORREIO") || upper.includes("PAC") || upper.includes("SEDEX") || upper.includes("MINI ENVIO"))
-      return { url: 'https://logo.clearbit.com/correios.com.br', fallback: 'EC' };
+      return { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Correios_logo.svg/320px-Correios_logo.svg.png', fallback: 'EC' };
     return { url: '', fallback: 'FR' };
   };
 
@@ -348,9 +348,10 @@ export default function ShippingRates() {
                           <div
                             className="flex items-center justify-center shrink-0"
                             style={{
-                              width: '36px', height: '36px',
-                              background: 'rgba(255,255,255,0.04)',
+                              width: '56px', height: '36px',
+                              background: 'rgba(255,255,255,0.06)',
                               borderRadius: '8px',
+                              padding: '4px',
                             }}
                           >
                             {logo.url ? (
@@ -358,7 +359,7 @@ export default function ShippingRates() {
                                 <img
                                   src={logo.url}
                                   alt={opt.companyName}
-                                  style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }}
+                                  style={{ width: '52px', height: '20px', objectFit: 'contain' }}
                                   onError={(e) => {
                                     (e.currentTarget as HTMLImageElement).style.display = 'none';
                                     const next = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement;
