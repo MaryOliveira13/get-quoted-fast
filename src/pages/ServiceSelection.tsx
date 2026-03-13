@@ -5,7 +5,7 @@ import { formatBRL } from "@/lib/money";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Check, ArrowRight, MessageCircle } from "lucide-react";
-import { buildWhatsAppURL } from "@/lib/whatsapp";
+import { buildWaLink } from "@/lib/whatsapp";
 
 function serviceId(name: string): string {
   return name.toLowerCase().replace(/\s+/g, "_").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
