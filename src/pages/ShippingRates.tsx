@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FreightTermsModal } from "@/components/FreightTermsModal";
 import { toast } from "sonner";
 import jadlogLogo from "@/assets/brands/jadlog.png";
+import correiosLogo from "@/assets/brands/correios.png";
 
 interface ShippingOption {
   serviceId: string;
@@ -128,7 +129,7 @@ export default function ShippingRates() {
     const upper = (companyName + " " + serviceName).toUpperCase();
     if (upper.includes("JADLOG")) return { url: jadlogLogo, fallback: 'JD' };
     if (upper.includes("CORREIO") || upper.includes("PAC") || upper.includes("SEDEX") || upper.includes("MINI ENVIO"))
-      return { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Correios_logo.svg/320px-Correios_logo.svg.png', fallback: 'EC' };
+      return { url: correiosLogo, fallback: 'EC' };
     return { url: '', fallback: 'FR' };
   };
 
