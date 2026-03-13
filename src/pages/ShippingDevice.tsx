@@ -72,7 +72,7 @@ export default function ShippingDevice() {
 
   const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const remaining = 5 - photos.length;
+    const remaining = 10 - photos.length;
     const toAdd = files.slice(0, remaining);
     const newPhotos = [...photos, ...toAdd];
     setPhotos(newPhotos);
