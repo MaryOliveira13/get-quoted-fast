@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getShippingDraft, updateShippingDraft, getQuoteDraft } from "@/lib/storage";
 import { formatBRL } from "@/lib/money";
@@ -28,6 +26,8 @@ interface ShippingOption {
 function maskCEP(v: string) {
   return v.replace(/\D/g, "").slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 }
+
+const inputStyle = "w-full rounded-[10px] border border-[rgba(255,255,255,0.08)] bg-[#111111] px-[14px] py-[12px] text-[14px] font-medium text-[rgba(255,255,255,0.85)] font-['Inter'] placeholder:text-[rgba(255,255,255,0.25)] focus:outline-none focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)] transition-colors";
 
 export default function ShippingRates() {
   const navigate = useNavigate();
@@ -64,7 +64,6 @@ export default function ShippingRates() {
       </div>
     );
   }
-
 
   const fetchQuotes = async (postalCode?: string) => {
     const cleanCep = (postalCode || cep).replace(/\D/g, "");
@@ -126,9 +125,9 @@ export default function ShippingRates() {
 
   const getIcon = (name: string) => {
     const upper = name.toUpperCase();
-    if (upper.includes("SEDEX")) return <Zap className="w-5 h-5 text-muted-foreground" />;
-    if (upper.includes("PAC")) return <Package className="w-5 h-5 text-muted-foreground" />;
-    return <Truck className="w-5 h-5 text-muted-foreground" />;
+    if (upper.includes("SEDEX")) return <Zap className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
+    if (upper.includes("PAC")) return <Package className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
+    return <Truck className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.5)' }} />;
   };
 
   const handleContinue = () => {
@@ -143,8 +142,6 @@ export default function ShippingRates() {
       shippingOptionName: opt.serviceName,
     });
     localStorage.setItem("shippingOption", JSON.stringify(opt));
-
-    // Show terms modal instead of navigating to Pix
     setShowTerms(true);
   };
 
@@ -158,7 +155,6 @@ export default function ShippingRates() {
 
       const device = draft.devices?.[0];
 
-      // 1. Create order
       const { data: orderData, error: orderErr } = await supabase.functions.invoke("order-create", {
         body: {
           cpf: draft.cpf || "",
@@ -192,7 +188,6 @@ export default function ShippingRates() {
         throw new Error(orderData?.error || "Erro ao criar pedido");
       }
 
-      // 2. Navigate to payment page
       navigate(`/envio/pagamento?order_id=${orderData.order_id}`);
     } catch (err: any) {
       console.error("Payment error:", err);
@@ -204,39 +199,68 @@ export default function ShippingRates() {
   const cepValid = cep.replace(/\D/g, "").length === 8;
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen relative overflow-hidden" style={{ background: '#0d0d0d' }}>
+      {/* Glow */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: '-60px', right: '-60px', width: '240px', height: '240px',
+          background: 'radial-gradient(circle, rgba(255,107,0,0.15) 0%, transparent 70%)',
+        }}
+      />
+
       <PageHeader title="Escolha o frete" backTo="/envio/confirmacao" />
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
-        <div className="text-center space-y-1 mb-2">
-          <h2 className="text-xl font-bold">Escolha a opção de envio</h2>
-          <p className="text-sm text-muted-foreground">
+      <main className="px-4 py-6 max-w-lg mx-auto space-y-5 relative z-10" style={{ paddingBottom: '100px' }}>
+        {/* Título */}
+        <div className="text-center space-y-2 mb-2">
+          <h2 className="font-['Montserrat'] font-extrabold text-[20px] text-white">
+            Escolha a opção de envio
+          </h2>
+          <p className="font-['Inter'] text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
             Nesta etapa você paga apenas o frete de envio do aparelho.
           </p>
         </div>
 
-        {/* CEP input */}
-        <div className="rounded-xl border bg-card p-5 space-y-3">
-          <Label htmlFor="cep-frete">CEP de origem</Label>
-          <div className="flex gap-3">
-            <Input
-              id="cep-frete"
+        {/* CEP */}
+        <div
+          className="space-y-3"
+          style={{
+            background: 'rgba(255,255,255,0.02)',
+            border: '0.5px solid rgba(255,255,255,0.07)',
+            borderRadius: '16px',
+            padding: '18px 16px',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <div style={{ width: '3px', height: '14px', background: '#FF6B00', borderRadius: '99px' }} />
+            <span className="font-['Montserrat'] font-extrabold text-[12px] uppercase tracking-[2px]" style={{ color: '#FF6B00' }}>
+              CEP de Origem
+            </span>
+          </div>
+          <div className="flex gap-[10px]">
+            <input
               value={cep}
               onChange={(e) => setCep(maskCEP(e.target.value))}
               placeholder="00000-000"
-              className="flex-1"
+              className={`${inputStyle} flex-1`}
             />
-            <Button
+            <button
               onClick={() => fetchQuotes()}
               disabled={!cepValid || loading}
-              className="gap-2"
+              className="font-['Montserrat'] font-extrabold text-[13px] uppercase text-white shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+              style={{
+                background: '#FF6B00',
+                borderRadius: '10px',
+                padding: '12px 20px',
+                border: 'none',
+              }}
             >
-              <Search className="w-4 h-4" />
               {loading ? "Calculando..." : "Calcular"}
-            </Button>
+            </button>
           </div>
           {draft.city && draft.uf && (
-            <p className="text-xs text-muted-foreground">
+            <p className="font-['Inter'] text-[12px]" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
               Envio de: {draft.city}, {draft.uf}
             </p>
           )}
@@ -245,67 +269,152 @@ export default function ShippingRates() {
         {/* Loading */}
         {loading && (
           <div className="space-y-3">
-            <Skeleton className="h-20 w-full rounded-xl" />
-            <Skeleton className="h-20 w-full rounded-xl" />
-            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-[14px]" style={{ background: 'rgba(255,255,255,0.04)' }} />
+            <Skeleton className="h-20 w-full rounded-[14px]" style={{ background: 'rgba(255,255,255,0.04)' }} />
+            <Skeleton className="h-20 w-full rounded-[14px]" style={{ background: 'rgba(255,255,255,0.04)' }} />
           </div>
         )}
 
         {/* Error */}
         {error && !loading && (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 space-y-3 text-center">
-            <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
-            <p className="text-sm text-destructive font-medium">{error}</p>
-            <Button variant="outline" size="sm" onClick={() => fetchQuotes()} className="w-full">
+          <div
+            className="space-y-3 text-center"
+            style={{
+              borderRadius: '14px',
+              border: '1px solid rgba(255,107,0,0.25)',
+              background: 'rgba(255,107,0,0.06)',
+              padding: '20px 16px',
+            }}
+          >
+            <AlertCircle className="w-8 h-8 mx-auto" style={{ color: '#FF6B00' }} />
+            <p className="font-['Inter'] font-medium text-[13px]" style={{ color: '#FF6B00' }}>{error}</p>
+            <button
+              onClick={() => fetchQuotes()}
+              className="font-['Inter'] font-semibold text-[12px] mx-auto block"
+              style={{
+                background: 'rgba(255,107,0,0.15)',
+                border: '1px solid rgba(255,107,0,0.35)',
+                borderRadius: '10px',
+                padding: '8px 20px',
+                color: '#FF6B00',
+              }}
+            >
               Tentar novamente
-            </Button>
+            </button>
           </div>
         )}
 
         {/* Options */}
         {!loading && !error && options.length > 0 && (
           <div className="space-y-3">
-            {options.map((opt) => (
-              <button
-                key={opt.serviceId}
-                onClick={() => !opt.unavailable && setSelected(opt.serviceId)}
-                disabled={opt.unavailable}
-                className={`w-full rounded-xl border p-4 text-left transition-all space-y-1.5 ${
-                  opt.unavailable
-                    ? "border-border bg-card/50 opacity-50 cursor-not-allowed"
-                    : selected === opt.serviceId
-                      ? "border-whatsapp bg-whatsapp/5 active:scale-[0.98]"
-                      : "border-border bg-card hover:border-foreground/20 active:scale-[0.98]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getIcon(opt.serviceName)}
-                    <div>
-                      <span className="font-semibold text-sm">{opt.serviceName}</span>
-                      <span className="text-xs text-muted-foreground ml-2">({opt.companyName})</span>
+            {options.map((opt) => {
+              const isSelected = selected === opt.serviceId;
+              return (
+                <button
+                  key={opt.serviceId}
+                  onClick={() => !opt.unavailable && setSelected(opt.serviceId)}
+                  disabled={opt.unavailable}
+                  className="w-full text-left relative overflow-hidden transition-all"
+                  style={{
+                    background: opt.unavailable
+                      ? '#1a1a1a'
+                      : isSelected
+                        ? 'rgba(255,107,0,0.06)'
+                        : '#1a1a1a',
+                    border: isSelected
+                      ? '1px solid rgba(255,107,0,0.5)'
+                      : '0.5px solid rgba(255,255,255,0.07)',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    opacity: opt.unavailable ? 0.4 : 1,
+                    cursor: opt.unavailable ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {/* Top bar when selected */}
+                  {isSelected && (
+                    <div
+                      className="absolute top-0 left-0 right-0"
+                      style={{ height: '2px', background: '#FF6B00' }}
+                    />
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Icon */}
+                      <div
+                        className="flex items-center justify-center shrink-0"
+                        style={{
+                          width: '36px', height: '36px',
+                          background: 'rgba(255,255,255,0.04)',
+                          borderRadius: '8px',
+                        }}
+                      >
+                        {getIcon(opt.serviceName)}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-['Montserrat'] font-bold text-[15px] text-white">
+                            {opt.serviceName}
+                          </span>
+                          <span className="font-['Inter'] text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            ({opt.companyName})
+                          </span>
+                        </div>
+
+                        {opt.unavailable ? (
+                          <div className="mt-1">
+                            <span className="font-['Inter'] font-semibold text-[12px]" style={{ color: 'rgba(255,107,0,0.6)' }}>
+                              Indisponível
+                            </span>
+                            {opt.unavailableReason && (
+                              <p className="font-['Inter'] text-[11px]" style={{ color: 'rgba(255,107,0,0.5)' }}>
+                                {opt.unavailableReason}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="font-['Inter'] text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            {opt.deliveryMinDays === opt.deliveryMaxDays
+                              ? `${opt.deliveryMinDays} dias úteis`
+                              : `${opt.deliveryMinDays}–${opt.deliveryMaxDays} dias úteis`}
+                            {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {!opt.unavailable && (
+                        <span
+                          className="font-['Montserrat'] font-extrabold text-[18px]"
+                          style={{ color: isSelected ? '#FF6B00' : 'white' }}
+                        >
+                          {formatBRL(opt.priceCents)}
+                        </span>
+                      )}
+                      {/* Radio */}
+                      {!opt.unavailable && (
+                        <div
+                          className="flex items-center justify-center shrink-0"
+                          style={{
+                            width: '18px', height: '18px', borderRadius: '50%',
+                            background: isSelected ? '#FF6B00' : 'transparent',
+                            border: isSelected ? '1.5px solid #FF6B00' : '1.5px solid rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'white' }} />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {opt.unavailable ? (
-                    <span className="text-xs text-destructive font-medium">Indisponível</span>
-                  ) : (
-                    <span className="text-base font-bold">{formatBRL(opt.priceCents)}</span>
-                  )}
-                </div>
-                {opt.unavailable ? (
-                  <p className="text-xs text-destructive/70 pl-8">{opt.unavailableReason}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground pl-8">
-                    {opt.deliveryMinDays === opt.deliveryMaxDays
-                      ? `${opt.deliveryMinDays} dias úteis`
-                      : `${opt.deliveryMinDays}–${opt.deliveryMaxDays} dias úteis`}
-                    {deviceValue > 0 && ` • Seguro até ${formatBRL(deviceValue)}`}
-                  </p>
-                )}
-              </button>
-            ))}
+                </button>
+              );
+            })}
 
-            <p className="text-xs text-muted-foreground text-center pt-1">
+            <p className="font-['Inter'] text-[11px] text-center pt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
               Valores e prazos podem variar após validação da transportadora.
             </p>
           </div>
@@ -314,15 +423,22 @@ export default function ShippingRates() {
         {/* Empty state */}
         {!loading && !error && !fetched && options.length === 0 && (
           <div className="text-center py-8">
-            <Package className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">
+            <Package className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+            <p className="font-['Inter'] text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Informe seu CEP e clique em "Calcular" para ver as opções de frete.
             </p>
           </div>
         )}
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t px-4 py-4">
+      {/* Botão Continuar */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50"
+        style={{
+          padding: '16px 16px 32px',
+          background: 'linear-gradient(to top, #0d0d0d 60%, transparent)',
+        }}
+      >
         <div className="max-w-lg mx-auto">
           <Button
             size="lg"
