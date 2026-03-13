@@ -126,7 +126,7 @@ export default function ShippingRates() {
 
   const getLogoInfo = (serviceName: string, companyName: string) => {
     const upper = (companyName + " " + serviceName).toUpperCase();
-    if (upper.includes("JADLOG")) return { url: 'https://www.jadlog.com.br/jadlog/assets/images/logo_jadlog.png', fallback: 'JD' };
+    if (upper.includes("JADLOG")) return { url: jadlogLogo, fallback: 'JD' };
     if (upper.includes("CORREIO") || upper.includes("PAC") || upper.includes("SEDEX") || upper.includes("MINI ENVIO"))
       return { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Correios_logo.svg/320px-Correios_logo.svg.png', fallback: 'EC' };
     return { url: '', fallback: 'FR' };
