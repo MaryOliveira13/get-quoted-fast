@@ -71,8 +71,14 @@ export default function QuoteReview() {
         }}
       />
 
-      {/* Header with logo */}
+      {/* Header with logo — rendered once via TechHeader */}
       <TechHeader />
+
+      {/* Subheader with back arrow + title */}
+      <div
+        className="px-4 py-3"
+        style={{ background: '#161616', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+      >
 
       {/* Subheader */}
       <div
