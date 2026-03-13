@@ -462,19 +462,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trust bar */}
-      <footer className="relative z-10 max-w-lg mx-auto px-5 pb-8">
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <div className="flex flex-wrap justify-center gap-4 text-[12px] text-foreground/40 font-normal font-[family-name:var(--font-body)]">
-            {["Grátis para solicitar", "Sem cadastro obrigatório", "100% seguro"].map((item) => (
-              <span key={item} className="flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-primary" />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </footer>
 
       {/* Animations */}
       <style>{`
