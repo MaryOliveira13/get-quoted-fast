@@ -66,6 +66,7 @@ export default function BrandSelection() {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const dropdownScrollRef = useScrollReveal(showDropdown && allModelSuggestions.length > 0);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
