@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { BRANDS } from "@/data/catalog";
+import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Search } from "lucide-react";
 
 import appleLogo from "@/assets/brands/apple.svg";
@@ -28,27 +28,152 @@ const LOGO_SIZE: Record<string, string> = {
   infinix: "h-[90px]",
 };
 
+// Build flat list of all brand+model combos for search
+interface SearchEntry {
+  brandId: string;
+  brandName: string;
+  model?: string;
+}
+
+function buildSearchEntries(): SearchEntry[] {
+  const entries: SearchEntry[] = [];
+  for (const brand of BRANDS) {
+    entries.push({ brandId: brand.id, brandName: brand.name });
+    const models = MODELS_BY_BRAND[brand.id] ?? [];
+    for (const model of models) {
+      entries.push({ brandId: brand.id, brandName: brand.name, model });
+    }
+  }
+  return entries;
+}
+
+const ALL_ENTRIES = buildSearchEntries();
+
+function highlightMatch(text: string, query: string) {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="text-primary">{text.slice(idx, idx + query.length)}</span>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
 export default function BrandSelection() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const filtered = BRANDS.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase().trim();
+    const results: SearchEntry[] = [];
+
+    for (const entry of ALL_ENTRIES) {
+      const searchText = entry.model
+        ? `${entry.brandName} ${entry.model}`
+        : entry.brandName;
+      if (searchText.toLowerCase().includes(q)) {
+        // Prioritize model matches over brand-only
+        results.push(entry);
+        if (results.length >= 5) break;
+      }
+    }
+
+    // Sort: model matches first, then brand-only
+    return results.sort((a, b) => {
+      if (a.model && !b.model) return -1;
+      if (!a.model && b.model) return 1;
+      return 0;
+    }).slice(0, 5);
+  }, [search]);
+
+  const filteredBrands = useMemo(() => {
+    if (!search.trim()) return BRANDS;
+    const q = search.toLowerCase().trim();
+    return BRANDS.filter((b) => b.name.toLowerCase().includes(q));
+  }, [search]);
+
+  const handleSelect = (entry: SearchEntry) => {
+    setSearch("");
+    setShowDropdown(false);
+    if (entry.model) {
+      // Skip to step 3
+      navigate(`/orcamento/${entry.brandId}/${slugify(entry.model)}`);
+    } else {
+      // Go to step 2
+      navigate(`/orcamento/${entry.brandId}`);
+    }
+  };
+
+  // Show "Outra marca" card only when search has no brand matches
+  const showOutraCard = filteredBrands.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
       <main className="px-4 py-5 max-w-lg mx-auto">
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* Search with dropdown */}
+        <div ref={wrapperRef} className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <input
             type="text"
             placeholder="Buscar marca ou modelo..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setShowDropdown(true);
+            }}
+            onFocus={() => search.trim() && setShowDropdown(true)}
             className="w-full bg-card border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
           />
+
+          {/* Dropdown */}
+          {showDropdown && suggestions.length > 0 && (
+            <div
+              className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] overflow-hidden z-20 shadow-xl"
+            >
+              {suggestions.map((entry, i) => (
+                <button
+                  key={`${entry.brandId}-${entry.model ?? "brand"}-${i}`}
+                  onClick={() => handleSelect(entry)}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
+                >
+                  {entry.model && (
+                    <span className="text-primary text-sm flex-shrink-0">⚡</span>
+                  )}
+                  <div className="min-w-0">
+                    {entry.model ? (
+                      <>
+                        <span className="text-foreground/45 text-xs">{entry.brandName} — </span>
+                        <span className="text-foreground font-semibold text-sm">
+                          {highlightMatch(entry.model, search)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-foreground font-semibold text-sm">
+                        {highlightMatch(entry.brandName, search)}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Step indicator */}
@@ -64,7 +189,7 @@ export default function BrandSelection() {
 
         {/* Brand grid */}
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((brand) => (
+          {filteredBrands.map((brand) => (
             <button
               key={brand.id}
               onClick={() => navigate(`/orcamento/${brand.id}`)}
@@ -91,17 +216,32 @@ export default function BrandSelection() {
             </button>
           ))}
 
-          {/* Outra marca */}
-          <button
-            onClick={() => navigate("/orcamento-personalizado")}
-            className="group flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97]"
-          >
-            <div className="w-full aspect-square rounded-xl bg-card flex items-center justify-center">
-              <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
-            </div>
-            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Outra marca</span>
-          </button>
+          {/* Outra marca - only when no brands match */}
+          {showOutraCard && (
+            <button
+              onClick={() => navigate("/orcamento-personalizado")}
+              className="group flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-border hover:border-primary/40 transition-all active:scale-[0.97]"
+            >
+              <div className="w-full aspect-square rounded-xl bg-card flex items-center justify-center">
+                <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
+              </div>
+              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Outra marca</span>
+            </button>
+          )}
         </div>
+
+        {/* CTA when brands are visible */}
+        {!showOutraCard && (
+          <div className="mt-6 rounded-xl bg-card border border-border p-5 flex flex-col items-center gap-3">
+            <p className="text-sm text-muted-foreground">Não encontrou sua marca?</p>
+            <button
+              onClick={() => navigate("/orcamento-personalizado")}
+              className="px-6 py-2.5 rounded-full border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
+            >
+              Orçamento Personalizado
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
