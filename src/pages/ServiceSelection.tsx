@@ -93,7 +93,7 @@ export default function ServiceSelection() {
             </p>
           </div>
           <a
-            href={buildWhatsAppURL(`Olá! Gostaria de um orçamento para o ${brand.name} ${model}.`)}
+            href={buildWaLink(`Olá! Gostaria de um orçamento para o ${brand.name} ${model}.`)}
             target="_blank"
             rel="noopener noreferrer"
           >
