@@ -66,7 +66,7 @@ export default function ModelSelection() {
           </div>
         </div>
 
-        <div className="px-5 pb-2">
+        <div className="px-5 pb-5">
           <h1 className="text-[26px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)]">
             Escolha o modelo
           </h1>
