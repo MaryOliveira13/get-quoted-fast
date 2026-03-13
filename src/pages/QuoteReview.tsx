@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
 import { setQuoteDraft } from "@/lib/storage";
-import { AlertCircle, ArrowRight, Pencil } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Info, Pencil, Smartphone } from "lucide-react";
 import { GuaranteeTermsModal } from "@/components/GuaranteeTermsModal";
 
 interface QuoteState {
