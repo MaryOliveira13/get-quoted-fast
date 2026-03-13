@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Search, X } from "lucide-react";
+import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 import appleLogo from "@/assets/brands/apple.svg";
 import samsungLogo from "@/assets/brands/samsung.svg";
