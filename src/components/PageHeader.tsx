@@ -23,9 +23,9 @@ export function PageHeader({ title, subtitle, backTo }: PageHeaderProps) {
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-lg font-bold truncate">{title}</h1>
+          <h1 className="text-[18px] font-bold text-foreground truncate">{title}</h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+            <p className="text-[13px] text-foreground/40 truncate">{subtitle}</p>
           )}
         </div>
       </div>
