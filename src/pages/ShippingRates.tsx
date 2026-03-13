@@ -348,9 +348,10 @@ export default function ShippingRates() {
                           <div
                             className="flex items-center justify-center shrink-0"
                             style={{
-                              width: '36px', height: '36px',
-                              background: 'rgba(255,255,255,0.04)',
+                              width: '56px', height: '36px',
+                              background: 'rgba(255,255,255,0.06)',
                               borderRadius: '8px',
+                              padding: '4px',
                             }}
                           >
                             {logo.url ? (
@@ -358,7 +359,7 @@ export default function ShippingRates() {
                                 <img
                                   src={logo.url}
                                   alt={opt.companyName}
-                                  style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }}
+                                  style={{ width: '52px', height: '20px', objectFit: 'contain' }}
                                   onError={(e) => {
                                     (e.currentTarget as HTMLImageElement).style.display = 'none';
                                     const next = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement;
