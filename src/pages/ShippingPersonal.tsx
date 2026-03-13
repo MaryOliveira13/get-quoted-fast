@@ -157,7 +157,7 @@ export default function ShippingPersonal() {
         })}
       </div>
 
-      <main className="px-4 py-2 max-w-lg mx-auto space-y-5 relative z-10">
+      <main className="px-4 py-2 max-w-lg mx-auto space-y-5 relative z-10" style={{ paddingBottom: '100px' }}>
         {/* Card 1 - Dados Pessoais */}
         <div
           className="space-y-4"
