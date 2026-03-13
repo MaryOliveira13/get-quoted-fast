@@ -60,14 +60,14 @@ export default function ModelSelection() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div>
-            <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[1px]">
+            <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-[1px] font-[family-name:var(--font-body)]">
               Passo 2 de 3
             </span>
           </div>
         </div>
 
         <div className="px-5 pb-2">
-          <h1 className="text-[28px] leading-none tracking-[1px] text-foreground" style={{ fontFamily: "var(--font-display)" }}>
+          <h1 className="text-[42px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)]">
             Escolha o modelo
           </h1>
         </div>
@@ -78,14 +78,14 @@ export default function ModelSelection() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar modelo…"
+              placeholder="Buscar modelo..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors font-[family-name:var(--font-body)]"
               autoFocus
             />
           </div>
-          <p className="text-[12px] text-foreground/30 mt-2">
+          <p className="text-[12px] text-foreground/30 mt-2 font-normal font-[family-name:var(--font-body)]">
             Exibindo {filtered.length} de {models.length} modelos
           </p>
         </div>
@@ -98,12 +98,12 @@ export default function ModelSelection() {
               onClick={() => navigate(`/orcamento/${brand.id}/${slugify(model)}`)}
               className="w-full text-left px-4 py-3 rounded-xl bg-background border border-transparent hover:border-primary/40 hover:bg-muted/40 transition-all active:scale-[0.98]"
             >
-              <span className="font-medium text-foreground text-[14px]">{model}</span>
+              <span className="font-medium text-foreground text-[14px] font-[family-name:var(--font-body)]">{model}</span>
             </button>
           ))}
           {filtered.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-foreground/40 text-[13px] mb-3">Nenhum modelo encontrado</p>
+              <p className="text-foreground/40 text-[13px] mb-3 font-normal font-[family-name:var(--font-body)]">Nenhum modelo encontrado</p>
               <Button
                 variant="outline"
                 size="sm"

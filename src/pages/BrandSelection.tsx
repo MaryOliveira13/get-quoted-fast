@@ -119,7 +119,7 @@ export default function BrandSelection() {
               setShowDropdown(true);
             }}
             onFocus={() => search.trim() && setShowDropdown(true)}
-            className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+            className="w-full bg-card border border-border rounded-xl pl-10 pr-10 py-3 text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors font-[family-name:var(--font-body)]"
           />
 
           {/* Clear button */}
@@ -138,7 +138,7 @@ export default function BrandSelection() {
             <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-foreground/10 rounded-[14px] z-20 shadow-xl overflow-hidden">
               {/* Results count */}
               <div className="px-4 pt-2.5 pb-1 flex justify-end">
-                <span className="text-[11px] text-foreground/30">{allModelSuggestions.length} resultados</span>
+                <span className="text-[11px] text-foreground/30 font-[family-name:var(--font-body)]">{allModelSuggestions.length} resultados</span>
               </div>
 
               {/* Scrollable list */}
@@ -154,10 +154,10 @@ export default function BrandSelection() {
                       onClick={() => handleSelect(entry)}
                       className="w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
                     >
-                      <span className="text-foreground font-semibold text-[14px]">
+                      <span className="text-foreground font-semibold text-[14px] font-[family-name:var(--font-body)]">
                         {highlightMatch(entry.model, search)}
                       </span>
-                      <span className="text-foreground/45 text-[12px]">{entry.brandName}</span>
+                      <span className="text-foreground/45 text-[12px] font-normal font-[family-name:var(--font-body)]">{entry.brandName}</span>
                     </button>
                   ))}
                 </div>
@@ -176,12 +176,12 @@ export default function BrandSelection() {
 
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[1px]">
+          <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-[1px] font-[family-name:var(--font-body)]">
             Passo 1 de 3
           </span>
         </div>
 
-        <h1 className="text-[36px] leading-none tracking-[1px] text-foreground mb-5" style={{ fontFamily: "var(--font-display)" }}>
+        <h1 className="text-[42px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-5">
           Qual a marca do aparelho?
         </h1>
 
@@ -202,7 +202,7 @@ export default function BrandSelection() {
                   className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
                 />
               </div>
-              <span className="font-semibold text-foreground text-[14px]">{brand.name}</span>
+              <span className="font-semibold text-foreground text-[14px] font-[family-name:var(--font-body)]">{brand.name}</span>
             </button>
           ))}
 
@@ -215,7 +215,7 @@ export default function BrandSelection() {
               <div className="w-full aspect-square rounded-xl bg-card flex items-center justify-center">
                 <span className="text-3xl text-muted-foreground group-hover:text-primary transition-colors">+</span>
               </div>
-              <span className="text-[14px] text-muted-foreground group-hover:text-foreground transition-colors">Outra marca</span>
+              <span className="text-[14px] text-muted-foreground group-hover:text-foreground transition-colors font-[family-name:var(--font-body)]">Outra marca</span>
             </button>
           )}
         </div>
@@ -223,10 +223,10 @@ export default function BrandSelection() {
         {/* CTA - when brands are visible */}
         {hasBrandMatches && (
           <div className="mt-6 rounded-xl bg-card border border-border p-5 flex flex-col items-center gap-3">
-            <p className="text-[13px] text-foreground/40">Não encontrou sua marca?</p>
+            <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)]">Não encontrou sua marca?</p>
             <button
               onClick={() => navigate("/orcamento-personalizado")}
-              className="px-6 py-2.5 rounded-full border border-primary text-primary text-[14px] font-semibold hover:bg-primary/5 transition-colors"
+              className="px-6 py-2.5 rounded-full border border-primary text-primary text-[14px] font-semibold hover:bg-primary/5 transition-colors font-[family-name:var(--font-body)] tracking-[0.3px]"
             >
               Orçamento Personalizado
             </button>
