@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Search, X } from "lucide-react";
-import { useScrollReveal } from "@/hooks/use-scroll-reveal";
 
 import appleLogo from "@/assets/brands/apple.svg";
 import samsungLogo from "@/assets/brands/samsung.svg";
@@ -88,7 +87,7 @@ export default function BrandSelection() {
     });
   }, [q]);
 
-  const dropdownScrollRef = useScrollReveal(showDropdown && allModelSuggestions.length > 0);
+  
 
   const filteredBrands = useMemo(() => {
     if (!q) return BRANDS;
@@ -146,17 +145,13 @@ export default function BrandSelection() {
               </div>
 
               {/* Scrollable list */}
-              <div
-                ref={dropdownScrollRef}
-                className="dropdown-scroll max-h-[380px] overflow-y-auto relative"
-              >
+              <div className="dropdown-scroll max-h-[380px] overflow-y-auto relative">
                 {allModelSuggestions.map((entry, i) => (
                   <button
                     key={`${entry.brandId}-${entry.model}-${i}`}
-                    data-reveal-item
                     onClick={() => handleSelect(entry)}
-                    className="reveal-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
-                    style={{ transitionDelay: `${Math.min(i * 30, 150)}ms` }}
+                    className="dropdown-reveal-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 transition-colors text-left border-b border-foreground/[0.05] last:border-b-0"
+                    style={{ "--index": i } as React.CSSProperties}
                   >
                     <span className="text-foreground font-semibold text-[14px] font-[family-name:var(--font-body)]">
                       {highlightMatch(entry.model, search)}
