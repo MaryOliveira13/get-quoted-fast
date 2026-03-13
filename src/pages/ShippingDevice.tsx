@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { getQuoteDraft, getShippingDraft, updateShippingDraft } from "@/lib/storage";
 import { formatBRL } from "@/lib/money";
-import { AlertCircle, Camera, X, Check } from "lucide-react";
+import { AlertCircle, Camera, X, Check, Play, TriangleAlert } from "lucide-react";
 
 const STEPS = ["Dados Pessoais", "Aparelho", "Confirmação"];
 
