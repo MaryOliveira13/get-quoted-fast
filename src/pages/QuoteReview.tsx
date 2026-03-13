@@ -71,10 +71,6 @@ export default function QuoteReview() {
         }}
       />
 
-      {/* Header with logo */}
-      <TechHeader />
-
-
       <main className="px-4 py-6 max-w-lg mx-auto relative z-[1]">
         {/* Pill "PASSO FINAL" */}
         <div className="flex justify-center mb-5">
