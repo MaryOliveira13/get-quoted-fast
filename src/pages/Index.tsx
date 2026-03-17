@@ -460,6 +460,14 @@ const Index = () => {
           0% { left: -100%; }
           50%, 100% { left: 150%; }
         }
+        @media (max-width: 768px) {
+          .hero-watermark {
+            font-size: 56px !important;
+            letter-spacing: -1px;
+            width: 100%;
+            text-align: center;
+          }
+        }
       `}</style>
     </div>
   );
