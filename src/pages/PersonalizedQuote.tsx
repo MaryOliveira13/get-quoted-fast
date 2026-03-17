@@ -131,7 +131,7 @@ _Mensagem enviada pelo app Power Cell_`;
 
       {/* Subheader */}
       <div
-        className="sticky top-[90px] z-20"
+        className="sticky top-0 z-10"
         style={{
           background: "#161616",
           borderBottom: "1px solid rgba(255,255,255,0.05)",
