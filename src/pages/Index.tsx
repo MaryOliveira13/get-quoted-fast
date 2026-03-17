@@ -122,7 +122,7 @@ const Index = () => {
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 900,
-              fontSize: "clamp(38px, 9vw, 96px)",
+              fontSize: "min(13vw, 96px)",
               color: "white",
               textTransform: "uppercase",
               letterSpacing: -2,
