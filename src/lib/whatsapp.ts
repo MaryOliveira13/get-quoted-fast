@@ -7,7 +7,7 @@ export function buildWaLink(message: string): string {
 }
 
 export function openWhatsApp(message: string): void {
-  window.open(buildWaLink(message), "_blank");
+  window.location.href = buildWaLink(message);
 }
 
 export interface QuickQuoteItem {

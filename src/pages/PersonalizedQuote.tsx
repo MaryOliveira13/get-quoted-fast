@@ -89,7 +89,7 @@ export default function PersonalizedQuote() {
 _Mensagem enviada pelo app Power Cell_`;
 
     const url = `https://wa.me/553198562010?text=${encodeURIComponent(mensagem)}`;
-    window.open(url, '_blank');
+    window.location.href = url;
   };
 
   const errorBorder = "1px solid rgba(255,80,80,0.5)";
