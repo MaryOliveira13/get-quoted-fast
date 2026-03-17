@@ -56,23 +56,43 @@ export default function PersonalizedQuote() {
   const [agua, setAgua] = useState("");
   const [liga, setLiga] = useState("");
 
-  const isValid = nome.trim() && modelo.trim() && problema.trim();
+  const [errors, setErrors] = useState<{ nome?: boolean; modelo?: boolean; problema?: boolean }>({});
 
   const handleSend = () => {
-    const msg = msgOrcamentoPersonalizado({
-      nome: nome.trim(),
-      modelo: modelo.trim(),
-      marca: prefillBrand,
-      problema: problema.trim(),
-      cidade: cidade.trim() || undefined,
-      uf: uf || undefined,
-      cep: cep.trim() || undefined,
-      urgencia: urgencia || undefined,
-      agua: agua || undefined,
-      liga: liga || undefined,
-    });
-    openWhatsApp(msg);
+    const newErrors = {
+      nome: !nome.trim(),
+      modelo: !modelo.trim(),
+      problema: !problema.trim(),
+    };
+    setErrors(newErrors);
+
+    if (newErrors.nome || newErrors.modelo || newErrors.problema) {
+      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
+      return;
+    }
+
+    const mensagem = `🔧 *ORÇAMENTO PERSONALIZADO — POWER CELL*
+
+👤 *Cliente:* ${nome.trim()}
+📱 *Aparelho/Modelo:* ${modelo.trim()}
+🔍 *Problema relatado:* ${problema.trim()}
+
+📍 *Localização:*
+- Cidade: ${cidade.trim() || 'Não informado'}
+- UF: ${uf || 'Não informado'}
+- CEP: ${cep.trim() || 'Não informado'}
+
+⚡ *Urgência:* ${urgencia || 'Não informado'}
+💧 *Caiu na água?* ${agua || 'Não informado'}
+🔌 *Liga?* ${liga || 'Não informado'}
+
+_Mensagem enviada pelo app Power Cell_`;
+
+    const url = `https://wa.me/553198562010?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   };
+
+  const errorBorder = "1px solid rgba(255,80,80,0.5)";
 
   const toggleBtn = (current: string, value: string, setter: (v: string) => void) => {
     const active = current === value;
