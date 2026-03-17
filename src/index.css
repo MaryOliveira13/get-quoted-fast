@@ -83,3 +83,14 @@
   animation-delay: calc(var(--i) * 35ms);
   scroll-snap-align: start;
 }
+
+/* Hide Lovable badge */
+#lovable-badge,
+[data-lovable-badge],
+.lovable-feedback-button,
+iframe[src*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
