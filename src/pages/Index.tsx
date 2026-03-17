@@ -97,7 +97,7 @@ const Index = () => {
       <div className="relative z-10 flex flex-col items-center text-center px-5 pt-16 pb-10">
 
         {/* Title */}
-        <div className="mb-0">
+        <div className="mb-0" style={{ padding: "0 16px", maxWidth: "100%", overflow: "hidden" }}>
           {/* Linha 1 — "Seu" */}
           <div className="flex items-center justify-center gap-4 mb-1">
             <div style={{ width: 60, height: 1, background: "rgba(255,255,255,0.12)" }} />
@@ -105,7 +105,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 400,
-                fontSize: 18,
+                fontSize: "clamp(12px, 3vw, 18px)",
                 textTransform: "uppercase",
                 letterSpacing: 6,
                 color: "rgba(255,255,255,0.4)",
@@ -118,27 +118,31 @@ const Index = () => {
 
           {/* Linha 2 — "ORÇAMENTO" */}
           <span
-            className="block text-center"
+            className="block"
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 900,
-              fontSize: "clamp(64px, 12vw, 96px)",
+              fontSize: "clamp(36px, 8vw, 96px)",
               color: "white",
               textTransform: "uppercase",
               letterSpacing: -3,
               lineHeight: 0.9,
+              width: "100%",
+              textAlign: "center",
+              overflow: "hidden",
+              wordBreak: "break-word",
             }}
           >
             ORÇAMENTO
           </span>
 
           {/* Linha 3 — "em INSTANTES." */}
-          <div className="flex items-baseline justify-center mt-1">
+          <div className="flex items-baseline justify-center mt-1" style={{ flexWrap: "wrap" }}>
             <span
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 900,
-                fontSize: "clamp(28px, 5vw, 42px)",
+                fontSize: "clamp(20px, 4vw, 42px)",
                 color: "rgba(255,255,255,0.25)",
                 textTransform: "uppercase",
                 letterSpacing: 2,
@@ -151,7 +155,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 900,
-                fontSize: "clamp(36px, 7vw, 58px)",
+                fontSize: "clamp(28px, 6vw, 58px)",
                 color: "#FF6B00",
                 textTransform: "uppercase",
                 letterSpacing: -1,
