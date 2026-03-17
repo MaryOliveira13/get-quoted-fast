@@ -394,7 +394,7 @@ Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passo
             variant="whatsapp"
             size="lg"
             className="w-full text-base gap-2"
-            onClick={() => { window.location.href = buildWaLink(waMessage); }}
+            onClick={() => { openWhatsApp(waMessage); }}
           >
             <MessageCircle className="w-5 h-5" />
             Enviar no WhatsApp
