@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { buildWaLink } from "@/lib/whatsapp";
+import { openWhatsApp } from "@/lib/whatsapp";
 import {
   CheckCircle,
   Download,

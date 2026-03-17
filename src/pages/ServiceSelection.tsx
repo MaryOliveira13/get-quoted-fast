@@ -92,16 +92,15 @@ export default function ServiceSelection() {
               Ainda não temos preço cadastrado para o <strong className="text-foreground">{model}</strong>. Entre em contato para receber seu orçamento.
             </p>
           </div>
-          <a
-            href={buildWaLink(`Olá! Gostaria de um orçamento para o ${brand.name} ${model}.`)}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Button
+            variant="whatsapp"
+            size="lg"
+            className="gap-2"
+            onClick={() => openWhatsApp(`Olá! Gostaria de um orçamento para o ${brand.name} ${model}.`)}
           >
-            <Button variant="whatsapp" size="lg" className="gap-2">
-              <MessageCircle className="w-5 h-5" />
-              Solicitar orçamento via WhatsApp
-            </Button>
-          </a>
+            <MessageCircle className="w-5 h-5" />
+            Solicitar orçamento via WhatsApp
+          </Button>
           <button
             onClick={() => navigate(`/orcamento-personalizado?brand=${encodeURIComponent(brand.name)}&model=${encodeURIComponent(model)}`)}
             className="text-[13px] font-medium text-primary hover:underline"
