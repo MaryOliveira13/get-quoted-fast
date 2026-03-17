@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { openWhatsApp, msgOrcamentoPersonalizado } from "@/lib/whatsapp";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 
 const UF_LIST = [
@@ -56,23 +56,43 @@ export default function PersonalizedQuote() {
   const [agua, setAgua] = useState("");
   const [liga, setLiga] = useState("");
 
-  const isValid = nome.trim() && modelo.trim() && problema.trim();
+  const [errors, setErrors] = useState<{ nome?: boolean; modelo?: boolean; problema?: boolean }>({});
 
   const handleSend = () => {
-    const msg = msgOrcamentoPersonalizado({
-      nome: nome.trim(),
-      modelo: modelo.trim(),
-      marca: prefillBrand,
-      problema: problema.trim(),
-      cidade: cidade.trim() || undefined,
-      uf: uf || undefined,
-      cep: cep.trim() || undefined,
-      urgencia: urgencia || undefined,
-      agua: agua || undefined,
-      liga: liga || undefined,
-    });
-    openWhatsApp(msg);
+    const newErrors = {
+      nome: !nome.trim(),
+      modelo: !modelo.trim(),
+      problema: !problema.trim(),
+    };
+    setErrors(newErrors);
+
+    if (newErrors.nome || newErrors.modelo || newErrors.problema) {
+      toast({ title: "Preencha os campos obrigatórios", variant: "destructive" });
+      return;
+    }
+
+    const mensagem = `🔧 *ORÇAMENTO PERSONALIZADO — POWER CELL*
+
+👤 *Cliente:* ${nome.trim()}
+📱 *Aparelho/Modelo:* ${modelo.trim()}
+🔍 *Problema relatado:* ${problema.trim()}
+
+📍 *Localização:*
+- Cidade: ${cidade.trim() || 'Não informado'}
+- UF: ${uf || 'Não informado'}
+- CEP: ${cep.trim() || 'Não informado'}
+
+⚡ *Urgência:* ${urgencia || 'Não informado'}
+💧 *Caiu na água?* ${agua || 'Não informado'}
+🔌 *Liga?* ${liga || 'Não informado'}
+
+_Mensagem enviada pelo app Power Cell_`;
+
+    const url = `https://wa.me/553198562010?text=${encodeURIComponent(mensagem)}`;
+    window.open(url, '_blank');
   };
+
+  const errorBorder = "1px solid rgba(255,80,80,0.5)";
 
   const toggleBtn = (current: string, value: string, setter: (v: string) => void) => {
     const active = current === value;
@@ -186,7 +206,7 @@ export default function PersonalizedQuote() {
                 placeholder="Seu nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, ...(errors.nome ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
@@ -200,7 +220,7 @@ export default function PersonalizedQuote() {
                 placeholder="Ex: iPhone 15 Pro"
                 value={modelo}
                 onChange={(e) => setModelo(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, ...(errors.modelo ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
@@ -214,7 +234,7 @@ export default function PersonalizedQuote() {
                 value={problema}
                 onChange={(e) => setProblema(e.target.value)}
                 rows={3}
-                style={{ ...inputStyle, resize: "none" }}
+                style={{ ...inputStyle, resize: "none" as const, ...(errors.problema ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
@@ -340,7 +360,7 @@ export default function PersonalizedQuote() {
             variant="whatsapp"
             size="lg"
             className="w-full text-base"
-            disabled={!isValid}
+            
             onClick={handleSend}
           >
             <MessageCircle className="w-5 h-5" />
