@@ -78,7 +78,7 @@ const Index = () => {
 
       {/* Watermark */}
       <div
-        className="absolute pointer-events-none select-none"
+        className="absolute pointer-events-none select-none hero-watermark"
         style={{
           bottom: -40,
           left: "50%",
