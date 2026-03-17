@@ -94,3 +94,6 @@ iframe[src*="lovable"] {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+#lovable-badge {
+display: none !important;
+}
