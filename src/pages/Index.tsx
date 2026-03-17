@@ -155,7 +155,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 900,
-                fontSize: "clamp(28px, 6vw, 58px)",
+                fontSize: "clamp(38px, 8vw, 58px)",
                 color: "#FF6B00",
                 textTransform: "uppercase",
                 letterSpacing: -1,
