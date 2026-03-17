@@ -72,20 +72,20 @@ export default function PersonalizedQuote() {
       return;
     }
 
-    const mensagem = `🔧 *ORÇAMENTO PERSONALIZADO — POWER CELL*
+    const mensagem = `*ORCAMENTO PERSONALIZADO - POWER CELL*
+--------------------------------
+*Cliente:* ${nome.trim()}
+*Aparelho/Modelo:* ${modelo.trim()}
+*Problema relatado:* ${problema.trim()}
 
-👤 *Cliente:* ${nome.trim()}
-📱 *Aparelho/Modelo:* ${modelo.trim()}
-🔍 *Problema relatado:* ${problema.trim()}
+*LOCALIZACAO:*
+- Cidade: ${cidade.trim() || 'Nao informado'}
+- UF: ${uf || 'Nao informado'}
+- CEP: ${cep.trim() || 'Nao informado'}
 
-📍 *Localização:*
-- Cidade: ${cidade.trim() || 'Não informado'}
-- UF: ${uf || 'Não informado'}
-- CEP: ${cep.trim() || 'Não informado'}
-
-⚡ *Urgência:* ${urgencia || 'Não informado'}
-💧 *Caiu na água?* ${agua || 'Não informado'}
-🔌 *Liga?* ${liga || 'Não informado'}
+*Urgencia:* ${urgencia || 'Nao informado'}
+*Caiu na agua?* ${agua || 'Nao informado'}
+*Liga?* ${liga || 'Nao informado'}
 
 _Mensagem enviada pelo app Power Cell_`;
 
