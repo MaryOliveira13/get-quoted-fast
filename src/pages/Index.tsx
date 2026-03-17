@@ -122,14 +122,16 @@ const Index = () => {
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 900,
-              fontSize: "min(13vw, 96px)",
+              fontSize: "min(11.5vw, 96px)",
               color: "white",
               textTransform: "uppercase",
               letterSpacing: -2,
               lineHeight: 0.9,
-              width: "100%",
-              textAlign: "center",
               whiteSpace: "nowrap",
+              textAlign: "center",
+              padding: "0 12px",
+              boxSizing: "border-box",
+              maxWidth: "100%",
             }}
           >
             ORÇAMENTO
