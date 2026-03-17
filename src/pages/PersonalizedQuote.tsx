@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { openWhatsApp, msgOrcamentoPersonalizado } from "@/lib/whatsapp";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 
 const UF_LIST = [
