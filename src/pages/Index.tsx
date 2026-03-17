@@ -41,7 +41,7 @@ const Index = () => {
   };
 
   return (
-    <div style={{ background: "#080808" }} className="min-h-screen relative overflow-hidden">
+    <div style={{ background: "#080808", maxWidth: "100vw" }} className="min-h-screen relative overflow-hidden">
       {/* Top line gradient */}
       <div
         className="absolute top-0 left-0 right-0 pointer-events-none"
