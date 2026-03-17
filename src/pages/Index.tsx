@@ -379,57 +379,30 @@ const Index = () => {
                   style={{ objectFit: "cover" }}
                 />
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
-                  <div
-                    className="flex items-center justify-center"
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
+                  <span style={{ fontSize: 36, color: "rgba(255,255,255,0.1)", lineHeight: 1 }}>🎬</span>
+                  <span
                     style={{
-                      width: 64,
-                      height: 64,
-                      background: "rgba(255,107,0,0.15)",
-                      border: "2px solid rgba(255,107,0,0.4)",
-                      borderRadius: "50%",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      color: "rgba(255,255,255,0.25)",
+                      marginTop: 10,
                     }}
                   >
-                    <Play className="w-6 h-6" style={{ color: "#FF6B00" }} />
-                  </div>
-                  <p
+                    Vídeo em breve
+                  </span>
+                  <span
                     style={{
                       fontFamily: "var(--font-body)",
                       fontWeight: 400,
-                      fontSize: 13,
-                      color: "rgba(255,255,255,0.3)",
-                      textAlign: "center",
-                    }}
-                  >
-                    Adicione um vídeo de tutorial para os seus clientes
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    className="hidden"
-                    onChange={handleVideoUpload}
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 transition-all hover:brightness-110"
-                    style={{
-                      background: "rgba(255,107,0,0.08)",
-                      border: "1px dashed rgba(255,107,0,0.3)",
-                      borderRadius: 10,
-                      padding: "10px 18px",
-                      fontFamily: "var(--font-display)",
-                      fontWeight: 800,
                       fontSize: 12,
-                      textTransform: "uppercase",
-                      color: "rgba(255,107,0,0.7)",
-                      letterSpacing: 1,
-                      cursor: "pointer",
+                      color: "rgba(255,255,255,0.15)",
+                      marginTop: 6,
                     }}
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    Upload vídeo
-                  </button>
+                    O tutorial estará disponível em breve
+                  </span>
                 </div>
               )}
             </div>
