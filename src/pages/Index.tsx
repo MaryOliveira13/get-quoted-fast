@@ -41,7 +41,7 @@ const Index = () => {
   };
 
   return (
-    <div style={{ background: "#080808" }} className="min-h-screen relative overflow-hidden">
+    <div style={{ background: "#080808", maxWidth: "100vw" }} className="min-h-screen relative overflow-hidden">
       {/* Top line gradient */}
       <div
         className="absolute top-0 left-0 right-0 pointer-events-none"
@@ -97,7 +97,7 @@ const Index = () => {
       <div className="relative z-10 flex flex-col items-center text-center px-5 pt-16 pb-10">
 
         {/* Title */}
-        <div className="mb-0" style={{ padding: "0 16px", maxWidth: "100%", overflow: "hidden" }}>
+        <div className="mb-0" style={{ padding: "0 16px", width: "100%", maxWidth: "100%", overflow: "hidden", boxSizing: "border-box" }}>
           {/* Linha 1 — "Seu" */}
           <div className="flex items-center justify-center gap-4 mb-1">
             <div style={{ width: 60, height: 1, background: "rgba(255,255,255,0.12)" }} />
@@ -122,14 +122,16 @@ const Index = () => {
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 900,
-              fontSize: "min(13vw, 96px)",
+              fontSize: "min(11.5vw, 96px)",
               color: "white",
               textTransform: "uppercase",
               letterSpacing: -2,
               lineHeight: 0.9,
-              width: "100%",
-              textAlign: "center",
               whiteSpace: "nowrap",
+              textAlign: "center",
+              padding: "0 12px",
+              boxSizing: "border-box",
+              maxWidth: "100%",
             }}
           >
             ORÇAMENTO
