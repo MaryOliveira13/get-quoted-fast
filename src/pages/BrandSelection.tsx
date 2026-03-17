@@ -195,7 +195,7 @@ export default function BrandSelection() {
               className="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all active:scale-[0.97] overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-              <span className="absolute top-2.5 right-3 text-primary/0 group-hover:text-primary/80 text-lg transition-colors">›</span>
+              
               <div className="w-full aspect-square rounded-xl bg-white flex items-center justify-center p-4">
                 <img
                   src={BRAND_LOGO[brand.id]}
