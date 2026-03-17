@@ -78,7 +78,7 @@ const Index = () => {
 
       {/* Watermark */}
       <div
-        className="absolute pointer-events-none select-none"
+        className="absolute pointer-events-none select-none hero-watermark"
         style={{
           bottom: -40,
           left: "50%",
@@ -459,6 +459,14 @@ const Index = () => {
         @keyframes hero-shine {
           0% { left: -100%; }
           50%, 100% { left: 150%; }
+        }
+        @media (max-width: 768px) {
+          .hero-watermark {
+            font-size: 56px !important;
+            letter-spacing: -1px;
+            width: 100%;
+            text-align: center;
+          }
         }
       `}</style>
     </div>
