@@ -105,7 +105,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 400,
-                fontSize: "clamp(12px, 3vw, 18px)",
+                fontSize: "clamp(14px, 3.5vw, 18px)",
                 textTransform: "uppercase",
                 letterSpacing: 6,
                 color: "rgba(255,255,255,0.4)",
@@ -122,7 +122,7 @@ const Index = () => {
             style={{
               fontFamily: "var(--font-display)",
               fontWeight: 900,
-              fontSize: "clamp(36px, 8vw, 96px)",
+              fontSize: "clamp(48px, 10vw, 96px)",
               color: "white",
               textTransform: "uppercase",
               letterSpacing: -3,
@@ -142,7 +142,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 900,
-                fontSize: "clamp(20px, 4vw, 42px)",
+                fontSize: "clamp(24px, 5vw, 42px)",
                 color: "rgba(255,255,255,0.25)",
                 textTransform: "uppercase",
                 letterSpacing: 2,
@@ -155,7 +155,7 @@ const Index = () => {
               style={{
                 fontFamily: "var(--font-display)",
                 fontWeight: 900,
-                fontSize: "clamp(28px, 6vw, 58px)",
+                fontSize: "clamp(38px, 8vw, 58px)",
                 color: "#FF6B00",
                 textTransform: "uppercase",
                 letterSpacing: -1,
