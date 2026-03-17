@@ -220,7 +220,7 @@ _Mensagem enviada pelo app Power Cell_`;
                 placeholder="Ex: iPhone 15 Pro"
                 value={modelo}
                 onChange={(e) => setModelo(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, ...(errors.modelo ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
