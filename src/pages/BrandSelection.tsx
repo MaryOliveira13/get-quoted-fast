@@ -226,22 +226,31 @@ export default function BrandSelection() {
               onClick={() => navigate("/orcamento-personalizado")}
               className="group relative flex flex-col items-center justify-center rounded-2xl transition-all active:scale-[0.97] overflow-hidden"
               style={{
-                border: "1.5px dashed rgba(255,107,0,0.4)",
+                border: "1.5px dashed rgba(255,107,0,0.35)",
                 background: "rgba(255,107,0,0.04)",
               }}
             >
-              <div className="w-full aspect-square flex flex-col items-center justify-center gap-2 px-4">
-                <span style={{ fontSize: 28, color: "rgba(255,255,255,0.2)" }}>+</span>
-                <p
-                  className="text-center"
+              <div className="w-full aspect-square flex flex-col items-center justify-center gap-1 px-4">
+                <div
+                  className="flex items-center justify-center"
                   style={{
-                    fontFamily: "var(--font-body)",
-                    fontWeight: 500,
-                    fontSize: 13,
-                    color: "rgba(255,255,255,0.35)",
+                    width: 40,
+                    height: 40,
+                    background: "rgba(255,107,0,0.1)",
+                    border: "1px solid rgba(255,107,0,0.25)",
+                    borderRadius: "50%",
+                    color: "#FF6B00",
+                    fontSize: 20,
+                    marginBottom: 10,
                   }}
                 >
-                  Não encontrou sua marca?
+                  +
+                </div>
+                <p className="text-center" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, color: "white", lineHeight: 1.3 }}>
+                  Não encontrou<br /><span style={{ color: "#FF6B00" }}>sua marca?</span>
+                </p>
+                <p style={{ fontFamily: "var(--font-body)", fontWeight: 400, fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6, textAlign: "center" }}>
+                  Solicite um orçamento personalizado
                 </p>
               </div>
             </button>
