@@ -206,7 +206,7 @@ _Mensagem enviada pelo app Power Cell_`;
                 placeholder="Seu nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, ...(errors.nome ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
