@@ -360,7 +360,7 @@ _Mensagem enviada pelo app Power Cell_`;
             variant="whatsapp"
             size="lg"
             className="w-full text-base"
-            disabled={!isValid}
+            
             onClick={handleSend}
           >
             <MessageCircle className="w-5 h-5" />
