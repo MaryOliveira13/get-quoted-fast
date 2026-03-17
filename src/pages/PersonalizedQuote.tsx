@@ -234,7 +234,7 @@ _Mensagem enviada pelo app Power Cell_`;
                 value={problema}
                 onChange={(e) => setProblema(e.target.value)}
                 rows={3}
-                style={{ ...inputStyle, resize: "none" }}
+                style={{ ...inputStyle, resize: "none" as const, ...(errors.problema ? { border: errorBorder } : {}) }}
                 className="focus:border-[rgba(255,107,0,0.5)] focus:bg-[rgba(255,107,0,0.04)]"
               />
             </div>
