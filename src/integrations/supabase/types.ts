@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      fotos_pedido: {
+        Row: {
+          created_at: string | null
+          id: string
+          pedido_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pedido_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pedido_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fotos_pedido_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       melhor_envio_tokens: {
         Row: {
           access_token: string
@@ -183,6 +212,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pedidos: {
+        Row: {
+          acessorios: string | null
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          codigo: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          frete_nome: string | null
+          frete_valor: number | null
+          id: string
+          marca: string | null
+          modelo: string | null
+          nome: string | null
+          problema: string | null
+          rua: string | null
+          servico: string | null
+          status: string | null
+          telefone: string | null
+          uf: string | null
+          valor: number | null
+        }
+        Insert: {
+          acessorios?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          codigo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          frete_nome?: string | null
+          frete_valor?: number | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          nome?: string | null
+          problema?: string | null
+          rua?: string | null
+          servico?: string | null
+          status?: string | null
+          telefone?: string | null
+          uf?: string | null
+          valor?: number | null
+        }
+        Update: {
+          acessorios?: string | null
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          codigo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          frete_nome?: string | null
+          frete_valor?: number | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          nome?: string | null
+          problema?: string | null
+          rua?: string | null
+          servico?: string | null
+          status?: string | null
+          telefone?: string | null
+          uf?: string | null
+          valor?: number | null
+        }
+        Relationships: []
       }
     }
     Views: {
