@@ -39,6 +39,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/orcamento" element={<BrandSelection />} />
           <Route path="/orcamento/:brand" element={<ModelSelection />} />
           <Route path="/orcamento/:brand/:model" element={<ServiceSelection />} />

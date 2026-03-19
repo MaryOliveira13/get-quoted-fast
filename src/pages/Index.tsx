@@ -202,7 +202,7 @@ const Index = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-10">
           {/* Solicitar agora */}
           <button
-            onClick={() => navigate("/orcamento")}
+            onClick={() => navigate("/auth")}
             className="flex items-center gap-3 transition-all active:scale-[0.97] hover:brightness-110"
             style={{
               background: "#FF6B00",
