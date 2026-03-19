@@ -91,7 +91,6 @@ const Auth = () => {
   const tabStyle = (active: boolean): React.CSSProperties => ({
     flex: 1,
     padding: "10px 0",
-    border: "none",
     borderRadius: 10,
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 700,
