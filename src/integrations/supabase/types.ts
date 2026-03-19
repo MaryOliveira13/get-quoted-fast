@@ -290,7 +290,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_pedido_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

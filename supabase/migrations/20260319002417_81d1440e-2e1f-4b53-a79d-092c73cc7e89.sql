@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can update pedidos status" ON public.pedidos FOR UPDATE TO public USING (true) WITH CHECK (true);

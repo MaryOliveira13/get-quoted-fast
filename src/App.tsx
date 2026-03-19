@@ -16,6 +16,11 @@ import ShippingDevice from "./pages/ShippingDevice";
 import ShippingConfirm from "./pages/ShippingConfirm";
 import ShippingRates from "./pages/ShippingRates";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import AdminOrders from "./pages/AdminOrders";
+import SelfLabelPersonal from "./pages/SelfLabelPersonal";
+import SelfLabelDevice from "./pages/SelfLabelDevice";
+import SelfLabelConfirm from "./pages/SelfLabelConfirm";
+import SelfLabelSuccess from "./pages/SelfLabelSuccess";
 import FreightPaid from "./pages/FreightPaid";
 import FreightCancelled from "./pages/FreightCancelled";
 import FreightPayment from "./pages/FreightPayment";
@@ -46,7 +51,12 @@ const App = () => (
           <Route path="/envio/pagamento" element={<FreightPayment />} />
           <Route path="/frete-pago" element={<FreightPaid />} />
           <Route path="/frete-cancelado" element={<FreightCancelled />} />
+          <Route path="/envio/etiqueta-propria/dados" element={<SelfLabelPersonal />} />
+          <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
+          <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
+          <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
           <Route path="/admin/integracoes" element={<AdminIntegrations />} />
+          <Route path="/admin/pedidos" element={<AdminOrders />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

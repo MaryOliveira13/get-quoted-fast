@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getQuoteDraft, updateOsDraft } from "@/lib/storage";
+import { setPhotos as storePhotos, getPhotos } from "@/lib/photoStore";
 import { formatBRL } from "@/lib/money";
 import { AlertCircle, Camera, X } from "lucide-react";
 
@@ -24,13 +25,15 @@ export default function SelfLabelDevice() {
     ? quote.services.map((s) => `${s.label} — ${formatBRL(s.priceCents)}`).join("; ")
     : "";
 
+  const existingPhotos = getPhotos();
+
   const [deviceType, setDeviceType] = useState("Celular");
   const [brand, setBrand] = useState(quote?.brandName || "");
   const [valueCents, setValueCents] = useState("");
   const [problem, setProblem] = useState(defaultProblem);
   const [accessories, setAccessories] = useState<Set<string>>(new Set());
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<File[]>(existingPhotos);
+  const [previews, setPreviews] = useState<string[]>(existingPhotos.map((f) => URL.createObjectURL(f)));
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   if (!quote) {
@@ -80,6 +83,8 @@ export default function SelfLabelDevice() {
 
   const handleContinue = () => {
     if (!validate()) return;
+    // Store photos in memory for upload at confirmation
+    storePhotos(photos);
     updateOsDraft({
       deviceType,
       deviceBrand: brand,
