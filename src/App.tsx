@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TechHeader } from "./components/TechHeader";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import BrandSelection from "./pages/BrandSelection";
 import ModelSelection from "./pages/ModelSelection";
