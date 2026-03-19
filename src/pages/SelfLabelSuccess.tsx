@@ -1,26 +1,51 @@
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { getOsRecord, getQuoteDraft, clearOsData } from "@/lib/storage";
+import { AlertCircle, CheckCircle, Download, MessageSquare } from "lucide-react";
 import { formatBRL } from "@/lib/money";
-import { openWhatsApp, msgEtiquetaPropria } from "@/lib/whatsapp";
 import { STORE_SHIPPING_ADDRESS } from "@/config/store";
-import { AlertCircle, CheckCircle, Copy, Download, MessageSquare, Plus } from "lucide-react";
-import { toast } from "sonner";
 import jsPDF from "jspdf";
+import QRCode from "react-qr-code";
+import { createRoot } from "react-dom/client";
+
+interface LastPedido {
+  id: string;
+  codigo: string;
+  nome: string;
+  cpf: string;
+  telefone: string;
+  email: string;
+  cep: string;
+  rua: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  marca: string;
+  modelo: string;
+  servico: string;
+  valor: number;
+  acessorios: string;
+  problema: string;
+}
 
 export default function SelfLabelSuccess() {
   const navigate = useNavigate();
-  const os = getOsRecord();
-  const quote = getQuoteDraft();
 
-  if (!os || !quote) {
+  let pedido: LastPedido | null = null;
+  try {
+    const raw = localStorage.getItem("lastPedido");
+    pedido = raw ? JSON.parse(raw) : null;
+  } catch {
+    pedido = null;
+  }
+
+  if (!pedido) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader title="OS" backTo="/envio" />
         <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
           <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">Nenhuma OS encontrada.</p>
+          <p className="text-lg font-semibold text-center">Nenhum pedido encontrado.</p>
           <Button variant="outline" onClick={() => navigate("/orcamento")}>Voltar</Button>
         </div>
       </div>
@@ -28,39 +53,43 @@ export default function SelfLabelSuccess() {
   }
 
   const addr = STORE_SHIPPING_ADDRESS;
-  const addrText = `${addr.street}, ${addr.number} - ${addr.district}, ${addr.city} - ${addr.state}, ${addr.zip}`;
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(os.osCode);
-    toast.success("Código copiado!");
-  };
 
   const handleWhatsApp = () => {
-    openWhatsApp(
-      msgEtiquetaPropria({
-        osCode: os.osCode,
-        fullName: os.client.fullName || "",
-        phone: os.client.phone || "",
-        email: os.client.email || "",
-        street: os.client.street || "",
-        number: os.client.number || "",
-        district: os.client.district || "",
-        city: os.client.city || "",
-        uf: os.client.uf || "",
-        cep: os.client.cep || "",
-        modelName: os.modelName,
-        brandName: os.brandName,
-        services: os.services,
-        totalCents: os.totalCents,
-        accessories: os.client.accessories || [],
-      })
-    );
-  };
+    const mensagem = `*NOVO PEDIDO - POWER CELL*
+*Codigo:* ${pedido!.codigo}
+--------------------------------
+*CLIENTE:*
+- Nome: ${pedido!.nome}
+- CPF: ${pedido!.cpf}
+- Telefone: ${pedido!.telefone}
+- Email: ${pedido!.email}
 
-  const handleNewOS = () => {
-    clearOsData();
-    localStorage.removeItem("quoteDraft");
-    navigate("/orcamento");
+*ENDERECO:*
+- ${pedido!.rua}, ${pedido!.numero}
+- ${pedido!.bairro} - ${pedido!.cidade}/${pedido!.uf}
+- CEP: ${pedido!.cep}
+
+*APARELHO:*
+- Marca: ${pedido!.marca}
+- Modelo: ${pedido!.modelo}
+- Servico: ${pedido!.servico}
+- Valor do servico: R$ ${pedido!.valor.toFixed(2).replace(".", ",")}
+- Acessorios: ${pedido!.acessorios || "Nenhum"}
+- Problema: ${pedido!.problema}
+
+*FRETE:*
+- A definir
+
+*STATUS:* Pendente
+
+_Pedido enviado pelo app Power Cell_`.trim();
+
+    const url = `https://wa.me/553198562010?text=${encodeURIComponent(mensagem)}`;
+    try {
+      window.top!.location.href = url;
+    } catch {
+      window.open(url, "_blank");
+    }
   };
 
   const handleDownloadPDF = () => {
@@ -68,116 +97,196 @@ export default function SelfLabelSuccess() {
     const m = 20;
     let y = m;
 
-    doc.setFontSize(18);
-    doc.text("Ordem de Serviço", m, y);
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(255, 107, 0);
+    doc.text("POWER CELL", m, y);
+    y += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text("ETIQUETA DE ENVIO", m, y);
     y += 10;
 
-    doc.setFontSize(12);
-    doc.text(`Código: ${os.osCode}`, m, y); y += 7;
-    doc.text(`Data: ${new Date(os.createdAt).toLocaleDateString("pt-BR")}`, m, y); y += 10;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Codigo: ${pedido!.codigo}`, m, y);
+    y += 12;
 
+    // Line
+    doc.setDrawColor(255, 107, 0);
+    doc.setLineWidth(0.5);
+    doc.line(m, y, 190, y);
+    y += 10;
+
+    // Remetente
     doc.setFontSize(14);
-    doc.text("Cliente", m, y); y += 7;
+    doc.setTextColor(255, 107, 0);
+    doc.text("REMETENTE (Cliente)", m, y);
+    y += 8;
     doc.setFontSize(11);
-    doc.text(`Nome: ${os.client.fullName}`, m, y); y += 6;
-    doc.text(`CPF: ${os.client.cpf}`, m, y); y += 6;
-    doc.text(`Telefone: ${os.client.phone}`, m, y); y += 6;
-    doc.text(`E-mail: ${os.client.email}`, m, y); y += 6;
-    doc.text(`Endereço: ${os.client.street}, ${os.client.number} - ${os.client.district}`, m, y); y += 6;
-    doc.text(`${os.client.city}/${os.client.uf} - CEP: ${os.client.cep}`, m, y); y += 10;
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Nome: ${pedido!.nome}`, m, y); y += 6;
+    doc.text(`Endereco: ${pedido!.rua}, ${pedido!.numero}`, m, y); y += 6;
+    doc.text(`${pedido!.bairro} - ${pedido!.cidade}/${pedido!.uf}`, m, y); y += 6;
+    doc.text(`CEP: ${pedido!.cep}`, m, y); y += 10;
 
+    // Destinatario
     doc.setFontSize(14);
-    doc.text("Aparelho", m, y); y += 7;
+    doc.setTextColor(255, 107, 0);
+    doc.text("DESTINATARIO (Power Cell)", m, y);
+    y += 8;
     doc.setFontSize(11);
-    doc.text(`Modelo: ${os.modelName} (${os.brandName})`, m, y); y += 6;
-    doc.text(`Tipo: ${os.client.deviceType || "Celular"}`, m, y); y += 6;
-    doc.text(`Valor declarado: ${formatBRL(os.client.deviceValueCents || 0)}`, m, y); y += 10;
+    doc.setTextColor(0, 0, 0);
+    doc.text("Power Cell Assistencia Tecnica", m, y); y += 6;
+    doc.text(`${addr.street}, ${addr.number} - ${addr.district}`, m, y); y += 6;
+    doc.text(`${addr.city} - ${addr.state}`, m, y); y += 6;
+    doc.text(`CEP: ${addr.zip}`, m, y); y += 10;
 
+    // Line
+    doc.line(m, y, 190, y);
+    y += 10;
+
+    // Servico
     doc.setFontSize(14);
-    doc.text("Serviços", m, y); y += 7;
+    doc.setTextColor(255, 107, 0);
+    doc.text("SERVICO", m, y);
+    y += 8;
     doc.setFontSize(11);
-    os.services.forEach((s) => {
-      doc.text(`• ${s.label} — ${formatBRL(s.priceCents)}`, m, y); y += 6;
-    });
-    doc.setFontSize(12);
-    doc.text(`Total: ${formatBRL(os.totalCents)}`, m, y); y += 10;
-
-    if (os.client.accessories && os.client.accessories.length > 0) {
-      doc.setFontSize(14);
-      doc.text("Acessórios", m, y); y += 7;
-      doc.setFontSize(11);
-      doc.text(os.client.accessories.join(", "), m, y); y += 10;
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Aparelho: ${pedido!.modelo} (${pedido!.marca})`, m, y); y += 6;
+    doc.text(`Servico: ${pedido!.servico}`, m, y); y += 6;
+    doc.text(`Valor: R$ ${pedido!.valor.toFixed(2).replace(".", ",")}`, m, y); y += 6;
+    if (pedido!.acessorios) {
+      doc.text(`Acessorios: ${pedido!.acessorios}`, m, y); y += 6;
     }
+    doc.text(`Problema: ${pedido!.problema}`, m, y, { maxWidth: 170 }); y += 12;
 
-    doc.setFontSize(14);
-    doc.text("Endereço de Envio", m, y); y += 7;
-    doc.setFontSize(11);
-    doc.text(addrText, m, y, { maxWidth: 170 });
+    // Footer
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} as ${new Date().toLocaleTimeString("pt-BR")}`, m, 275);
 
-    doc.save(`OS-${os.osCode}.pdf`);
+    // QR Code - render to canvas
+    const canvas = document.createElement("canvas");
+    const size = 80;
+    canvas.width = size;
+    canvas.height = size;
+
+    // Use a temp div to render QR
+    const tempDiv = document.createElement("div");
+    tempDiv.style.position = "absolute";
+    tempDiv.style.left = "-9999px";
+    document.body.appendChild(tempDiv);
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const qrContainer = document.createElement("div");
+    tempDiv.appendChild(qrContainer);
+
+    // Simple QR as text fallback
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`ID: ${pedido!.id}`, 140, 275);
+
+    document.body.removeChild(tempDiv);
+
+    doc.save(`Etiqueta-${pedido!.codigo}.pdf`);
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      {/* Success header */}
-      <div className="bg-gradient-to-br from-whatsapp to-whatsapp-hover px-4 py-10 text-center">
-        <div className="w-16 h-16 rounded-full bg-background/20 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-10 h-10 text-whatsapp-foreground" />
-        </div>
-        <h1 className="text-2xl font-bold text-whatsapp-foreground">Ordem de Serviço Gerada com Sucesso!</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10"
+      style={{ background: "linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)" }}
+    >
+      {/* Check icon */}
+      <div
+        className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+        style={{ background: "rgba(255,107,0,0.15)", border: "2px solid rgba(255,107,0,0.4)" }}
+      >
+        <CheckCircle className="w-10 h-10" style={{ color: "#FF6B00" }} />
       </div>
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-4">
-        {/* Device summary */}
-        <div className="rounded-xl border bg-card p-5 space-y-2">
-          <h3 className="font-semibold text-sm text-muted-foreground">📱 Resumo do aparelho</h3>
-          <p className="text-sm">{os.modelName} ({os.brandName})</p>
-          <p className="text-sm text-muted-foreground">Problema: {os.client.problem}</p>
-          <p className="text-sm text-muted-foreground">Valor declarado: {formatBRL(os.client.deviceValueCents || 0)}</p>
-          <div className="border-t pt-2 flex justify-between font-semibold text-sm">
-            <span>Total serviços</span>
-            <span>{formatBRL(os.totalCents)}</span>
-          </div>
-        </div>
+      {/* Title */}
+      <h1
+        className="text-3xl tracking-wider mb-4 text-center"
+        style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: 900,
+          textTransform: "uppercase",
+          color: "white",
+        }}
+      >
+        PEDIDO ENVIADO!
+      </h1>
 
-        {/* Download PDF */}
-        <Button variant="outline" size="lg" className="w-full gap-2" onClick={handleDownloadPDF}>
+      {/* Code badge */}
+      <div
+        className="mb-3"
+        style={{
+          background: "rgba(255,107,0,0.1)",
+          border: "1px solid rgba(255,107,0,0.3)",
+          borderRadius: "99px",
+          padding: "8px 20px",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 800,
+            color: "#FF6B00",
+            fontSize: "16px",
+          }}
+        >
+          Seu codigo: {pedido.codigo}
+        </span>
+      </div>
+
+      {/* Subtitle */}
+      <p
+        className="text-center mb-10"
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          fontWeight: 400,
+          fontSize: "13px",
+          color: "rgba(255,255,255,0.4)",
+        }}
+      >
+        Guarde este codigo para acompanhar seu pedido
+      </p>
+
+      {/* WhatsApp button */}
+      <div className="w-full max-w-sm space-y-3">
+        <button
+          onClick={handleWhatsApp}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full transition-all"
+          style={{
+            background: "#FF6B00",
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 800,
+            color: "white",
+            fontSize: "15px",
+            boxShadow: "0 0 20px rgba(255,107,0,0.4)",
+          }}
+        >
+          <MessageSquare className="w-5 h-5" />
+          Enviar pelo WhatsApp
+        </button>
+
+        {/* PDF button */}
+        <button
+          onClick={handleDownloadPDF}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full transition-all"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,107,0,0.3)",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            color: "rgba(255,255,255,0.6)",
+            fontSize: "15px",
+          }}
+        >
           <Download className="w-5 h-5" />
-          Baixar OS em PDF
-        </Button>
-
-        {/* Shipping instructions */}
-        <div className="rounded-xl border bg-card p-5 space-y-3">
-          <h3 className="font-semibold text-base">📦 Instruções de Envio</h3>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Embale seu aparelho com proteção adequada</li>
-            <li>Inclua uma cópia da OS no pacote</li>
-            <li>Envie para o endereço abaixo</li>
-          </ol>
-        </div>
-
-        {/* Store address */}
-        <div className="rounded-xl border bg-card p-5 space-y-2">
-          <h3 className="font-semibold text-sm text-muted-foreground">📍 Endereço de envio</h3>
-          <p className="text-sm leading-relaxed">{addrText}</p>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => { navigator.clipboard.writeText(addrText); toast.success("Endereço copiado!"); }}>
-            <Copy className="w-4 h-4" />
-            Copiar endereço
-          </Button>
-        </div>
-
-        {/* Actions */}
-        <div className="space-y-3 pt-2">
-          <Button variant="whatsapp" size="lg" className="w-full text-base gap-2" onClick={handleWhatsApp}>
-            <MessageSquare className="w-5 h-5" />
-            Confirmar envio via WhatsApp
-          </Button>
-          <Button variant="outline" size="lg" className="w-full text-base gap-2" onClick={handleNewOS}>
-            <Plus className="w-5 h-5" />
-            Criar outro orçamento
-          </Button>
-        </div>
-      </main>
+          Baixar etiqueta PDF
+        </button>
+      </div>
     </div>
   );
 }
