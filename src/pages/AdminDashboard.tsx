@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { format, subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -249,36 +250,52 @@ export default function AdminDashboard() {
                     )}
                   >
                     <Calendar className="w-3 h-3" />
-                    {p.label}
+                    {period === "custom" && customFrom && customTo
+                      ? `${format(customFrom, "dd/MM")} - ${format(customTo, "dd/MM")}`
+                      : p.label}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-4 space-y-3" align="end">
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">De:</p>
+                <PopoverContent className="w-auto p-0 bg-card border-border" align="end">
+                  <div className="p-3 space-y-3 max-w-[320px]">
                     <CalendarComponent
-                      mode="single"
-                      selected={customFrom}
-                      onSelect={(d) => { setCustomFrom(d); if (d && customTo) setPeriod("custom"); }}
-                      className="p-2 pointer-events-auto"
+                      mode="range"
+                      selected={customFrom && customTo ? { from: customFrom, to: customTo } as DateRange : customFrom ? { from: customFrom } as DateRange : undefined}
+                      onSelect={(range: DateRange | undefined) => {
+                        setCustomFrom(range?.from ?? undefined);
+                        setCustomTo(range?.to ?? undefined);
+                      }}
+                      locale={ptBR}
+                      className="p-0 pointer-events-auto"
+                      classNames={{
+                        day_range_start: "bg-primary text-primary-foreground rounded-full",
+                        day_range_end: "bg-primary text-primary-foreground rounded-full",
+                        day_range_middle: "bg-primary/15 text-foreground rounded-none",
+                        day_today: "border-b-2 border-primary font-bold",
+                      }}
+                      showOutsideDays
                     />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 text-xs"
+                        onClick={() => {
+                          setCustomFrom(undefined);
+                          setCustomTo(undefined);
+                        }}
+                      >
+                        Limpar
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 text-xs"
+                        disabled={!customFrom || !customTo}
+                        onClick={() => setPeriod("custom")}
+                      >
+                        Aplicar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Até:</p>
-                    <CalendarComponent
-                      mode="single"
-                      selected={customTo}
-                      onSelect={(d) => { setCustomTo(d); if (d && customFrom) setPeriod("custom"); }}
-                      className="p-2 pointer-events-auto"
-                    />
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    disabled={!customFrom || !customTo}
-                    onClick={() => setPeriod("custom")}
-                  >
-                    Aplicar
-                  </Button>
                 </PopoverContent>
               </Popover>
             ) : (
