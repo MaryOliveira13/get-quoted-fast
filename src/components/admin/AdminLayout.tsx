@@ -1,4 +1,5 @@
 import { useState } from "react";
+import mascoteLogo from "@/assets/mascote.png";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
