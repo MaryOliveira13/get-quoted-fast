@@ -593,6 +593,7 @@ export default function AdminOrcamentos() {
           </div>
         </div>
       ) : (
+        <>
         <div className="space-y-3">
           {loadingHistory ? (
             <div className="flex justify-center py-10">
@@ -627,7 +628,7 @@ export default function AdminOrcamentos() {
                   <Button size="sm" variant="outline" onClick={() => generatePNG(orc)} className="gap-1">
                     <Download className="w-3 h-3" /> PNG
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setDeleteId(orc.id)} className="gap-1 text-red-400 hover:text-red-300 hover:border-red-500/50">
+                  <Button size="sm" variant="outline" onClick={() => setDeleteId(orc.id)} className="gap-1 text-destructive hover:text-red-300 hover:border-destructive/50">
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
@@ -646,12 +647,13 @@ export default function AdminOrcamentos() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="bg-secondary hover:bg-secondary/80">Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600">
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white hover:bg-red-600">
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </>
       )}
     </div>
   );
