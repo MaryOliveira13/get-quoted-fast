@@ -6,7 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Download, FileText, Plus, History, X } from "lucide-react";
+import { Loader2, Download, FileText, Plus, History, X, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import powercellLogo from "@/assets/powercell-logo.png";
@@ -54,6 +64,7 @@ export default function AdminOrcamentos() {
   // History
   const [historico, setHistorico] = useState<Orcamento[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const models = useMemo(() => {
     if (!marca) return [];
@@ -163,7 +174,18 @@ export default function AdminOrcamentos() {
     toast.success(newStatus === "fechado" ? "Orçamento marcado como fechado" : "Orçamento marcado como não fechado");
   };
 
-  // Preload logo for canvas
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("orcamentos").delete().eq("id", deleteId);
+    if (error) {
+      toast.error("Erro ao excluir orçamento");
+    } else {
+      setHistorico((prev) => prev.filter((o) => o.id !== deleteId));
+      toast.success("Orçamento excluído com sucesso");
+    }
+    setDeleteId(null);
+  };
+
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
     const img = new Image();
@@ -571,6 +593,7 @@ export default function AdminOrcamentos() {
           </div>
         </div>
       ) : (
+        <>
         <div className="space-y-3">
           {loadingHistory ? (
             <div className="flex justify-center py-10">
@@ -605,11 +628,32 @@ export default function AdminOrcamentos() {
                   <Button size="sm" variant="outline" onClick={() => generatePNG(orc)} className="gap-1">
                     <Download className="w-3 h-3" /> PNG
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setDeleteId(orc.id)} className="gap-1 text-destructive hover:text-red-300 hover:border-destructive/50">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             ))
           )}
         </div>
+
+        <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir orçamento</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-secondary hover:bg-secondary/80">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white hover:bg-red-600">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        </>
       )}
     </div>
   );
