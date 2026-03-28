@@ -22,12 +22,17 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_envio: string
+          endereco_entrega: string | null
+          forma_pagamento: string | null
           id: string
           marca: string | null
           modelo: string | null
           observacoes: string | null
           pedido_id: string | null
+          recebimento_id: string | null
+          servico: string | null
           transportadora: string | null
+          valor_cobrado: number | null
         }
         Insert: {
           cliente_nome: string
@@ -36,12 +41,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_envio?: string
+          endereco_entrega?: string | null
+          forma_pagamento?: string | null
           id?: string
           marca?: string | null
           modelo?: string | null
           observacoes?: string | null
           pedido_id?: string | null
+          recebimento_id?: string | null
+          servico?: string | null
           transportadora?: string | null
+          valor_cobrado?: number | null
         }
         Update: {
           cliente_nome?: string
@@ -50,12 +60,17 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_envio?: string
+          endereco_entrega?: string | null
+          forma_pagamento?: string | null
           id?: string
           marca?: string | null
           modelo?: string | null
           observacoes?: string | null
           pedido_id?: string | null
+          recebimento_id?: string | null
+          servico?: string | null
           transportadora?: string | null
+          valor_cobrado?: number | null
         }
         Relationships: [
           {
@@ -63,6 +78,13 @@ export type Database = {
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "envios_recebimento_id_fkey"
+            columns: ["recebimento_id"]
+            isOneToOne: false
+            referencedRelation: "recebimentos"
             referencedColumns: ["id"]
           },
         ]
@@ -406,46 +428,67 @@ export type Database = {
       }
       recebimentos: {
         Row: {
+          acessorios_entregues: Json | null
           cliente_nome: string
           cliente_telefone: string | null
+          condicao_estetica: Json | null
           created_at: string
           created_by: string | null
           data_chegada: string
+          forma_pagamento: string | null
           id: string
           marca: string | null
           modelo: string | null
           observacoes: string | null
+          pedido_code: string | null
           pedido_id: string | null
+          prazo_dias: number | null
+          problema: string | null
           servico: string | null
           status_triagem: string
+          valor_orcamento: number | null
         }
         Insert: {
+          acessorios_entregues?: Json | null
           cliente_nome: string
           cliente_telefone?: string | null
+          condicao_estetica?: Json | null
           created_at?: string
           created_by?: string | null
           data_chegada?: string
+          forma_pagamento?: string | null
           id?: string
           marca?: string | null
           modelo?: string | null
           observacoes?: string | null
+          pedido_code?: string | null
           pedido_id?: string | null
+          prazo_dias?: number | null
+          problema?: string | null
           servico?: string | null
           status_triagem?: string
+          valor_orcamento?: number | null
         }
         Update: {
+          acessorios_entregues?: Json | null
           cliente_nome?: string
           cliente_telefone?: string | null
+          condicao_estetica?: Json | null
           created_at?: string
           created_by?: string | null
           data_chegada?: string
+          forma_pagamento?: string | null
           id?: string
           marca?: string | null
           modelo?: string | null
           observacoes?: string | null
+          pedido_code?: string | null
           pedido_id?: string | null
+          prazo_dias?: number | null
+          problema?: string | null
           servico?: string | null
           status_triagem?: string
+          valor_orcamento?: number | null
         }
         Relationships: [
           {
@@ -463,6 +506,7 @@ export type Database = {
     }
     Functions: {
       generate_pedido_code: { Args: never; Returns: string }
+      generate_recebimento_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
