@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   { label: "Orçamentos", icon: FileText, path: "/admin/orcamentos" },
   { label: "Logística", icon: PackageCheck, path: "/admin/logistica" },
   { label: "Envios Pós", icon: Truck, path: "/admin/envios-pos" },
-  { label: "Integrações", icon: Settings, path: "/admin/integracoes" },
+  
 ];
 
 interface AdminLayoutProps {
