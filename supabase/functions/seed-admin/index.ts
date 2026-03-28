@@ -14,34 +14,39 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  // Check if admin already exists
-  const { data: existing } = await supabaseAdmin.auth.admin.listUsers();
-  const adminExists = existing?.users?.some(u => u.email === "admin@powercell.com.br");
+  const admins = [
+    { email: "admin@powercell.com.br", password: "PowerCell@2026", name: "Administrador" },
+    { email: "vinicius@admin.com", password: "88125629VGs@", name: "Vinicius Admin" },
+  ];
 
-  if (adminExists) {
-    return new Response(JSON.stringify({ message: "Admin already exists" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+  const results: any[] = [];
+
+  for (const admin of admins) {
+    const { data: existing } = await supabaseAdmin.auth.admin.listUsers();
+    const alreadyExists = existing?.users?.some(u => u.email === admin.email);
+
+    if (alreadyExists) {
+      results.push({ email: admin.email, status: "already exists" });
+      continue;
+    }
+
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email: admin.email,
+      password: admin.password,
+      email_confirm: true,
+      user_metadata: { full_name: admin.name },
     });
+
+    if (error) {
+      results.push({ email: admin.email, status: "error", message: error.message });
+      continue;
+    }
+
+    await supabaseAdmin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+    results.push({ email: admin.email, status: "created", id: data.user.id });
   }
 
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email: "admin@powercell.com.br",
-    password: "PowerCell@2026",
-    email_confirm: true,
-    user_metadata: { full_name: "Administrador" },
-  });
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  // Update profile role to admin
-  await supabaseAdmin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
-
-  return new Response(JSON.stringify({ message: "Admin created", id: data.user.id }), {
+  return new Response(JSON.stringify({ results }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });

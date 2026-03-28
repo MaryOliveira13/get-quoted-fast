@@ -18,6 +18,7 @@ import ShippingConfirm from "./pages/ShippingConfirm";
 import ShippingRates from "./pages/ShippingRates";
 import AdminIntegrations from "./pages/AdminIntegrations";
 import AdminOrders from "./pages/AdminOrders";
+import AdminRoute from "./components/AdminRoute";
 import SelfLabelPersonal from "./pages/SelfLabelPersonal";
 import SelfLabelDevice from "./pages/SelfLabelDevice";
 import SelfLabelConfirm from "./pages/SelfLabelConfirm";
@@ -57,8 +58,8 @@ const App = () => (
           <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
           <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
           <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
-          <Route path="/admin/integracoes" element={<AdminIntegrations />} />
-          <Route path="/admin/pedidos" element={<AdminOrders />} />
+          <Route path="/admin/integracoes" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
+          <Route path="/admin/pedidos" element={<AdminRoute><AdminOrders /></AdminRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
