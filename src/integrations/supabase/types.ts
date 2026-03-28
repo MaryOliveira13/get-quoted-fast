@@ -134,6 +134,7 @@ export type Database = {
           modelo: string
           observacoes: string | null
           servicos: Json
+          status: string
           validade_dias: number
           valor_total: number
         }
@@ -147,6 +148,7 @@ export type Database = {
           modelo: string
           observacoes?: string | null
           servicos?: Json
+          status?: string
           validade_dias?: number
           valor_total?: number
         }
@@ -160,6 +162,7 @@ export type Database = {
           modelo?: string
           observacoes?: string | null
           servicos?: Json
+          status?: string
           validade_dias?: number
           valor_total?: number
         }
