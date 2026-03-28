@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      envios: {
+        Row: {
+          cliente_nome: string
+          cliente_telefone: string | null
+          codigo_rastreio: string | null
+          created_at: string
+          created_by: string | null
+          data_envio: string
+          id: string
+          marca: string | null
+          modelo: string | null
+          observacoes: string | null
+          pedido_id: string | null
+          transportadora: string | null
+        }
+        Insert: {
+          cliente_nome: string
+          cliente_telefone?: string | null
+          codigo_rastreio?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_envio?: string
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string | null
+          pedido_id?: string | null
+          transportadora?: string | null
+        }
+        Update: {
+          cliente_nome?: string
+          cliente_telefone?: string | null
+          codigo_rastreio?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_envio?: string
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string | null
+          pedido_id?: string | null
+          transportadora?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envios_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fotos_pedido: {
         Row: {
           created_at: string | null
@@ -67,6 +120,48 @@ export type Database = {
           id?: string
           refresh_token?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      orcamentos: {
+        Row: {
+          cliente_nome: string
+          cliente_telefone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          marca: string
+          modelo: string
+          observacoes: string | null
+          servicos: Json
+          validade_dias: number
+          valor_total: number
+        }
+        Insert: {
+          cliente_nome: string
+          cliente_telefone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          marca: string
+          modelo: string
+          observacoes?: string | null
+          servicos?: Json
+          validade_dias?: number
+          valor_total?: number
+        }
+        Update: {
+          cliente_nome?: string
+          cliente_telefone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          marca?: string
+          modelo?: string
+          observacoes?: string | null
+          servicos?: Json
+          validade_dias?: number
+          valor_total?: number
         }
         Relationships: []
       }
@@ -305,6 +400,59 @@ export type Database = {
           role?: string
         }
         Relationships: []
+      }
+      recebimentos: {
+        Row: {
+          cliente_nome: string
+          cliente_telefone: string | null
+          created_at: string
+          created_by: string | null
+          data_chegada: string
+          id: string
+          marca: string | null
+          modelo: string | null
+          observacoes: string | null
+          pedido_id: string | null
+          servico: string | null
+          status_triagem: string
+        }
+        Insert: {
+          cliente_nome: string
+          cliente_telefone?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_chegada?: string
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string | null
+          pedido_id?: string | null
+          servico?: string | null
+          status_triagem?: string
+        }
+        Update: {
+          cliente_nome?: string
+          cliente_telefone?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_chegada?: string
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          observacoes?: string | null
+          pedido_id?: string | null
+          servico?: string | null
+          status_triagem?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recebimentos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

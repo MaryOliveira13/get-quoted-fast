@@ -31,7 +31,7 @@ const Auth = () => {
       .single();
 
     if (profile?.role === "admin") {
-      navigate("/admin/pedidos");
+      navigate("/admin");
     } else {
       const displayName = name || profile?.full_name || "Usuário";
       toast.success(`Olá, ${displayName}! 👋`, { duration: 2000 });

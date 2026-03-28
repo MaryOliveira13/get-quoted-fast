@@ -147,10 +147,8 @@ export default function AdminOrders() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Pedidos Recebidos" backTo="/admin/integracoes" />
-
-      <main className="px-4 py-4 max-w-4xl mx-auto space-y-4">
+    <div className="space-y-4">
+      <h1 className="text-xl font-bold font-[Montserrat] uppercase tracking-wide">Pedidos Recebidos</h1>
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -214,7 +212,6 @@ export default function AdminOrders() {
             ))}
           </div>
         )}
-      </main>
 
       {/* Detail Modal */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>

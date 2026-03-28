@@ -86,10 +86,8 @@ export default function AdminIntegrations() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Integrações" backTo="/" />
-
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
+    <div className="space-y-6 max-w-lg">
+      <h1 className="text-xl font-bold font-[Montserrat] uppercase tracking-wide">Integrações</h1>
         {/* Status Card */}
         <div className="rounded-xl border bg-card p-6 space-y-4">
           <div className="flex items-center gap-3">
@@ -185,7 +183,6 @@ export default function AdminIntegrations() {
             <li>• Após salvar, o cálculo de frete deve funcionar automaticamente</li>
           </ul>
         </div>
-      </main>
     </div>
   );
 }
