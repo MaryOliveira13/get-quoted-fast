@@ -1,4 +1,5 @@
 import { useState } from "react";
+import mascoteLogo from "@/assets/mascote.png";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -69,9 +70,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-b border-border flex items-center justify-between min-h-[60px]">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <img
-              src="https://im.ge/i/Design-sem-nome-1.eKZjZT"
+              src={mascoteLogo}
               alt="Power Cell"
-              className="w-8 h-8 object-contain shrink-0"
+              className="w-9 h-9 object-contain shrink-0 rounded-full"
             />
             {!collapsed && (
               <div className="whitespace-nowrap">
