@@ -90,6 +90,7 @@ export default function AdminDashboard() {
   const [period, setPeriod] = useState<PeriodKey>("30d");
   const [customFrom, setCustomFrom] = useState<Date | undefined>();
   const [customTo, setCustomTo] = useState<Date | undefined>();
+  const [customOpen, setCustomOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Raw data
@@ -239,7 +240,7 @@ export default function AdminDashboard() {
         <div className="flex flex-wrap items-center gap-1.5">
           {PERIODS.map((p) =>
             p.key === "custom" ? (
-              <Popover key={p.key}>
+              <Popover key={p.key} open={customOpen} onOpenChange={setCustomOpen}>
                 <PopoverTrigger asChild>
                   <button
                     className={cn(
@@ -250,52 +251,66 @@ export default function AdminDashboard() {
                     )}
                   >
                     <Calendar className="w-3 h-3" />
-                    {period === "custom" && customFrom && customTo
-                      ? `${format(customFrom, "dd/MM")} - ${format(customTo, "dd/MM")}`
+                    {period === "custom" && customFrom
+                      ? customTo
+                        ? `${format(customFrom, "dd/MM")} - ${format(customTo, "dd/MM")}`
+                        : format(customFrom, "dd/MM")
                       : p.label}
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="end">
-                  <div className="p-3 space-y-3 max-w-[320px]">
-                    <CalendarComponent
-                      mode="range"
-                      selected={customFrom && customTo ? { from: customFrom, to: customTo } as DateRange : customFrom ? { from: customFrom } as DateRange : undefined}
-                      onSelect={(range: DateRange | undefined) => {
-                        setCustomFrom(range?.from ?? undefined);
-                        setCustomTo(range?.to ?? undefined);
-                      }}
-                      locale={ptBR}
-                      className="p-0 pointer-events-auto"
-                      classNames={{
-                        day_range_start: "bg-primary text-primary-foreground rounded-full",
-                        day_range_end: "bg-primary text-primary-foreground rounded-full",
-                        day_range_middle: "bg-primary/15 text-foreground rounded-none",
-                        day_today: "border-b-2 border-primary font-bold",
-                      }}
-                      showOutsideDays
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex-1 text-xs"
-                        onClick={() => {
-                          setCustomFrom(undefined);
-                          setCustomTo(undefined);
-                        }}
-                      >
-                        Limpar
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1 text-xs"
-                        disabled={!customFrom || !customTo}
-                        onClick={() => setPeriod("custom")}
-                      >
-                        Aplicar
-                      </Button>
-                    </div>
-                  </div>
+                <PopoverContent className="w-[320px] p-3 bg-card border-border" align="end">
+                  <CalendarComponent
+                    mode="range"
+                    selected={
+                      customFrom
+                        ? ({ from: customFrom, to: customTo } as DateRange)
+                        : undefined
+                    }
+                    onSelect={(range: DateRange | undefined) => {
+                      setCustomFrom(range?.from ?? undefined);
+                      setCustomTo(range?.to ?? undefined);
+                    }}
+                    locale={ptBR}
+                    numberOfMonths={1}
+                    className="p-0 pointer-events-auto"
+                    classNames={{
+                      months: "flex flex-col",
+                      month: "space-y-3",
+                      caption: "flex justify-center pt-1 relative items-center",
+                      caption_label: "text-sm font-medium",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                      row: "flex w-full mt-1",
+                      cell: "h-9 w-9 text-center text-sm p-0 relative",
+                      day: "h-9 w-9 p-0 font-normal text-sm hover:bg-primary/20 inline-flex items-center justify-center",
+                      day_range_start: "!bg-primary !text-primary-foreground rounded-l-full rounded-r-none",
+                      day_range_end: "!bg-primary !text-primary-foreground rounded-r-full rounded-l-none",
+                      day_range_middle: "!bg-primary/15 !text-foreground rounded-none",
+                      day_selected: "!bg-primary !text-primary-foreground rounded-full",
+                      day_today: "relative after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary",
+                      day_outside: "text-muted-foreground/40 pointer-events-none opacity-30",
+                      day_disabled: "text-muted-foreground opacity-50",
+                    }}
+                    showOutsideDays
+                    disabled={{ after: new Date() }}
+                  />
+                  <Button
+                    size="sm"
+                    className="w-full mt-3 text-xs"
+                    disabled={!customFrom}
+                    onClick={() => {
+                      if (!customTo && customFrom) setCustomTo(customFrom);
+                      setPeriod("custom");
+                      setCustomOpen(false);
+                    }}
+                  >
+                    Aplicar
+                  </Button>
                 </PopoverContent>
               </Popover>
             ) : (
