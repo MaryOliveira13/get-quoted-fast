@@ -627,11 +627,31 @@ export default function AdminOrcamentos() {
                   <Button size="sm" variant="outline" onClick={() => generatePNG(orc)} className="gap-1">
                     <Download className="w-3 h-3" /> PNG
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setDeleteId(orc.id)} className="gap-1 text-red-400 hover:text-red-300 hover:border-red-500/50">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             ))
           )}
         </div>
+
+        <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir orçamento</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-secondary hover:bg-secondary/80">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );
