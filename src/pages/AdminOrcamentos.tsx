@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Download, FileText, Plus, History } from "lucide-react";
+import { Loader2, Download, FileText, Plus, History, X } from "lucide-react";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
+import powercellLogo from "@/assets/powercell-logo.png";
 
 interface Orcamento {
   id: string;
@@ -21,6 +22,7 @@ interface Orcamento {
   observacoes: string | null;
   validade_dias: number;
   created_at: string;
+  status: string;
 }
 
 interface ServiceLine {
@@ -28,6 +30,11 @@ interface ServiceLine {
   price: number;
   selected: boolean;
   customPrice: string;
+}
+
+interface OutroDefeito {
+  descricao: string;
+  valor: string;
 }
 
 export default function AdminOrcamentos() {
@@ -39,8 +46,7 @@ export default function AdminOrcamentos() {
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
   const [serviceLines, setServiceLines] = useState<ServiceLine[]>([]);
-  const [outroDefeito, setOutroDefeito] = useState("");
-  const [outroValor, setOutroValor] = useState("");
+  const [outrosDefeitos, setOutrosDefeitos] = useState<OutroDefeito[]>([{ descricao: "", valor: "" }]);
   const [observacoes, setObservacoes] = useState("");
   const [validadeDias, setValidadeDias] = useState("7");
   const [saving, setSaving] = useState(false);
@@ -77,11 +83,13 @@ export default function AdminOrcamentos() {
     let total = serviceLines
       .filter((s) => s.selected)
       .reduce((sum, s) => sum + parseFloat(s.customPrice.replace(",", ".") || "0"), 0);
-    if (outroDefeito && outroValor) {
-      total += parseFloat(outroValor.replace(",", ".") || "0");
-    }
+    outrosDefeitos.forEach((d) => {
+      if (d.descricao && d.valor) {
+        total += parseFloat(d.valor.replace(",", ".") || "0");
+      }
+    });
     return total;
-  }, [serviceLines, outroDefeito, outroValor]);
+  }, [serviceLines, outrosDefeitos]);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
@@ -106,9 +114,11 @@ export default function AdminOrcamentos() {
     const selectedServices = serviceLines
       .filter((s) => s.selected)
       .map((s) => ({ name: s.name, price: parseFloat(s.customPrice.replace(",", ".") || "0") }));
-    if (outroDefeito) {
-      selectedServices.push({ name: outroDefeito, price: parseFloat(outroValor.replace(",", ".") || "0") });
-    }
+    outrosDefeitos.forEach((d) => {
+      if (d.descricao) {
+        selectedServices.push({ name: d.descricao, price: parseFloat(d.valor.replace(",", ".") || "0") });
+      }
+    });
     if (selectedServices.length === 0) {
       toast.error("Selecione pelo menos um serviço");
       return;
@@ -131,18 +141,36 @@ export default function AdminOrcamentos() {
       console.error(error);
     } else {
       toast.success("Orçamento salvo!");
-      // Reset
       setClienteNome("");
       setClienteTelefone("");
       setMarca("");
       setModelo("");
       setServiceLines([]);
-      setOutroDefeito("");
-      setOutroValor("");
+      setOutrosDefeitos([{ descricao: "", valor: "" }]);
       setObservacoes("");
     }
     setSaving(false);
   };
+
+  const toggleStatus = async (orc: Orcamento) => {
+    const newStatus = orc.status === "fechado" ? "nao_fechado" : "fechado";
+    const { error } = await supabase.from("orcamentos").update({ status: newStatus } as any).eq("id", orc.id);
+    if (error) {
+      toast.error("Erro ao atualizar status");
+      return;
+    }
+    setHistorico((prev) => prev.map((o) => (o.id === orc.id ? { ...o, status: newStatus } : o)));
+    toast.success(newStatus === "fechado" ? "Orçamento marcado como fechado" : "Orçamento marcado como não fechado");
+  };
+
+  // Preload logo for canvas
+  const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => setLogoImg(img);
+    img.src = powercellLogo;
+  }, []);
 
   const generatePDF = (orc?: Orcamento) => {
     const data = orc || {
@@ -153,7 +181,7 @@ export default function AdminOrcamentos() {
       servicos: serviceLines
         .filter((s) => s.selected)
         .map((s) => ({ name: s.name, price: parseFloat(s.customPrice.replace(",", ".") || "0") }))
-        .concat(outroDefeito ? [{ name: outroDefeito, price: parseFloat(outroValor.replace(",", ".") || "0") }] : []),
+        .concat(outrosDefeitos.filter((d) => d.descricao).map((d) => ({ name: d.descricao, price: parseFloat(d.valor.replace(",", ".") || "0") }))),
       valor_total: orc?.valor_total || valorTotal,
       observacoes: orc?.observacoes || observacoes,
       validade_dias: orc?.validade_dias || parseInt(validadeDias) || 7,
@@ -164,20 +192,30 @@ export default function AdminOrcamentos() {
     const pageW = doc.internal.pageSize.getWidth();
     let y = 20;
 
-    // Header
+    // Header with logo
     doc.setFillColor(13, 13, 13);
-    doc.rect(0, 0, pageW, 40, "F");
-    doc.setTextColor(255, 107, 0);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("POWER CELL", pageW / 2, 18, { align: "center" });
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text("Assistência Técnica — Orçamento", pageW / 2, 28, { align: "center" });
-    doc.setFontSize(8);
-    doc.text(`Data: ${new Date(data.created_at).toLocaleDateString("pt-BR")}`, pageW / 2, 35, { align: "center" });
+    doc.rect(0, 0, pageW, 55, "F");
 
-    y = 50;
+    // Add logo
+    try {
+      const logoW = 30;
+      const logoH = 30;
+      doc.addImage(powercellLogo, "PNG", (pageW - logoW) / 2, 5, logoW, logoH);
+      y = 40;
+    } catch {
+      y = 18;
+    }
+
+    doc.setTextColor(255, 107, 0);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Orçamento", pageW / 2, y, { align: "center" });
+    y += 8;
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text(`Data: ${new Date(data.created_at).toLocaleDateString("pt-BR")}`, pageW / 2, y, { align: "center" });
+
+    y = 65;
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -241,42 +279,57 @@ export default function AdminOrcamentos() {
       servicos: serviceLines
         .filter((s) => s.selected)
         .map((s) => ({ name: s.name, price: parseFloat(s.customPrice.replace(",", ".") || "0") }))
-        .concat(outroDefeito ? [{ name: outroDefeito, price: parseFloat(outroValor.replace(",", ".") || "0") }] : []),
+        .concat(outrosDefeitos.filter((d) => d.descricao).map((d) => ({ name: d.descricao, price: parseFloat(d.valor.replace(",", ".") || "0") }))),
       valor_total: orc?.valor_total || valorTotal,
       observacoes: orc?.observacoes || observacoes,
       validade_dias: orc?.validade_dias || parseInt(validadeDias) || 7,
       created_at: orc?.created_at || new Date().toISOString(),
     };
 
+    const services = Array.isArray(data.servicos) ? data.servicos : [];
+    const canvasHeight = 800 + Math.max(0, (services.length - 5) * 24);
+
     const canvas = document.createElement("canvas");
     const scale = 2;
     canvas.width = 600 * scale;
-    canvas.height = 800 * scale;
+    canvas.height = canvasHeight * scale;
     const ctx = canvas.getContext("2d")!;
     ctx.scale(scale, scale);
 
     // Background
     ctx.fillStyle = "#0d0d0d";
-    ctx.fillRect(0, 0, 600, 800);
+    ctx.fillRect(0, 0, 600, canvasHeight);
 
-    // Header
+    let y = 20;
+
+    // Draw logo if loaded
+    if (logoImg) {
+      const logoW = 80;
+      const logoH = 80;
+      ctx.drawImage(logoImg, (600 - logoW) / 2, y, logoW, logoH);
+      y += logoH + 10;
+    }
+
+    // Title
     ctx.fillStyle = "#FF6B00";
-    ctx.font = "bold 28px Montserrat, sans-serif";
+    ctx.font = "bold 24px Montserrat, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("POWER CELL", 300, 50);
+    ctx.fillText("Orçamento", 300, y + 5);
+    y += 15;
+
     ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.font = "14px Inter, sans-serif";
-    ctx.fillText("Assistência Técnica — Orçamento", 300, 75);
-    ctx.fillText(new Date(data.created_at).toLocaleDateString("pt-BR"), 300, 95);
+    ctx.font = "12px Inter, sans-serif";
+    ctx.fillText(new Date(data.created_at).toLocaleDateString("pt-BR"), 300, y + 5);
+    y += 20;
 
     // Divider
     ctx.strokeStyle = "rgba(255,255,255,0.1)";
     ctx.beginPath();
-    ctx.moveTo(40, 115);
-    ctx.lineTo(560, 115);
+    ctx.moveTo(40, y);
+    ctx.lineTo(560, y);
     ctx.stroke();
+    y += 25;
 
-    let y = 145;
     ctx.textAlign = "left";
 
     // Client
@@ -300,7 +353,6 @@ export default function AdminOrcamentos() {
     ctx.font = "bold 14px Montserrat, sans-serif";
     ctx.fillText("SERVIÇOS", 40, y); y += 22;
 
-    const services = Array.isArray(data.servicos) ? data.servicos : [];
     services.forEach((s: any) => {
       ctx.fillStyle = "rgba(255,255,255,0.8)";
       ctx.font = "14px Inter, sans-serif";
@@ -438,16 +490,52 @@ export default function AdminOrcamentos() {
             </div>
           )}
 
-          {/* Custom service */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Outro defeito</label>
-              <Input value={outroDefeito} onChange={(e) => setOutroDefeito(e.target.value)} placeholder="Descrição" />
+          {/* Outros defeitos - dynamic list */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground block">Outros defeitos</label>
+              <button
+                type="button"
+                onClick={() => setOutrosDefeitos([...outrosDefeitos, { descricao: "", valor: "" }])}
+                className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                title="Adicionar defeito"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Valor (R$)</label>
-              <Input value={outroValor} onChange={(e) => setOutroValor(e.target.value)} placeholder="0,00" />
-            </div>
+            {outrosDefeitos.map((d, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Input
+                  className="flex-1 text-sm"
+                  value={d.descricao}
+                  onChange={(e) => {
+                    const next = [...outrosDefeitos];
+                    next[i].descricao = e.target.value;
+                    setOutrosDefeitos(next);
+                  }}
+                  placeholder="Descreva o defeito..."
+                />
+                <Input
+                  className="w-28 text-right text-sm"
+                  value={d.valor}
+                  onChange={(e) => {
+                    const next = [...outrosDefeitos];
+                    next[i].valor = e.target.value;
+                    setOutrosDefeitos(next);
+                  }}
+                  placeholder="R$ 0,00"
+                />
+                {i > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setOutrosDefeitos(outrosDefeitos.filter((_, idx) => idx !== i))}
+                    className="p-1 rounded-md hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Obs + validade */}
@@ -492,15 +580,25 @@ export default function AdminOrcamentos() {
             <p className="text-center text-muted-foreground py-10">Nenhum orçamento gerado.</p>
           ) : (
             historico.map((orc) => (
-              <div key={orc.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between">
-                <div>
+              <div key={orc.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{orc.cliente_nome}</p>
                   <p className="text-xs text-muted-foreground">{orc.marca} {orc.modelo} — {new Date(orc.created_at).toLocaleDateString("pt-BR")}</p>
                   <p className="text-sm font-bold font-[Montserrat] text-primary mt-1">
                     R$ {Number(orc.valor_total).toFixed(2).replace(".", ",")}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => toggleStatus(orc)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                      orc.status === "fechado"
+                        ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                        : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    }`}
+                  >
+                    {orc.status === "fechado" ? "Fechado" : "Não fechado"}
+                  </button>
                   <Button size="sm" variant="outline" onClick={() => generatePDF(orc)} className="gap-1">
                     <Download className="w-3 h-3" /> PDF
                   </Button>
