@@ -10,6 +10,7 @@ import {
   TrendingDown,
   Minus,
   Calendar,
+  Handshake,
 } from "lucide-react";
 import {
   AreaChart,
@@ -100,7 +101,7 @@ export default function AdminDashboard() {
   const [recebimentos, setRecebimentos] = useState<any[]>([]);
 
   // Previous period counts
-  const [prevCounts, setPrevCounts] = useState({ pedidos: 0, orcamentos: 0, envios: 0, recebimentos: 0 });
+  const [prevCounts, setPrevCounts] = useState({ pedidos: 0, orcamentos: 0, envios: 0, recebimentos: 0, orcFechados: 0 });
 
   const range = useMemo(() => getRange(period, customFrom, customTo), [period, customFrom, customTo]);
 
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
     const toISO = range.to.toISOString();
     const prev = getPreviousRange(range.from, range.to);
 
-    const [pedRes, orcRes, envRes, recRes, prevPed, prevOrc, prevEnv, prevRec] = await Promise.all([
+    const [pedRes, orcRes, envRes, recRes, prevPed, prevOrc, prevEnv, prevRec, prevOrcFechados] = await Promise.all([
       supabase.from("pedidos").select("*").gte("created_at", fromISO).lte("created_at", toISO),
       supabase.from("orcamentos").select("*").gte("created_at", fromISO).lte("created_at", toISO),
       supabase.from("envios").select("*").gte("created_at", fromISO).lte("created_at", toISO),
@@ -123,6 +124,7 @@ export default function AdminDashboard() {
       supabase.from("orcamentos").select("id", { count: "exact", head: true }).gte("created_at", prev.from.toISOString()).lte("created_at", prev.to.toISOString()),
       supabase.from("envios").select("id", { count: "exact", head: true }).gte("created_at", prev.from.toISOString()).lte("created_at", prev.to.toISOString()),
       supabase.from("recebimentos").select("id", { count: "exact", head: true }).gte("created_at", prev.from.toISOString()).lte("created_at", prev.to.toISOString()),
+      supabase.from("orcamentos").select("id", { count: "exact", head: true }).eq("status", "fechado").gte("created_at", prev.from.toISOString()).lte("created_at", prev.to.toISOString()),
     ]);
 
     setPedidos(pedRes.data || []);
@@ -134,16 +136,19 @@ export default function AdminDashboard() {
       orcamentos: prevOrc.count || 0,
       envios: prevEnv.count || 0,
       recebimentos: prevRec.count || 0,
+      orcFechados: prevOrcFechados.count || 0,
     });
     setLoading(false);
   };
 
   /* ─── Derived data ─── */
+  const orcFechados = orcamentos.filter((o: any) => o.status === "fechado").length;
   const counts = {
     pedidos: pedidos.length,
     orcamentos: orcamentos.length,
     envios: envios.length,
     recebimentos: recebimentos.length,
+    orcFechados,
   };
 
   function pctChange(current: number, previous: number) {
@@ -219,6 +224,7 @@ export default function AdminDashboard() {
   const cards = [
     { label: "Pedidos Recebidos", value: counts.pedidos, prev: prevCounts.pedidos, icon: ClipboardList },
     { label: "Orçamentos Gerados", value: counts.orcamentos, prev: prevCounts.orcamentos, icon: FileText },
+    { label: "Orçamentos Fechados", value: counts.orcFechados, prev: prevCounts.orcFechados, icon: Handshake },
     { label: "Envios Realizados", value: counts.envios, prev: prevCounts.envios, icon: Truck },
     { label: "Recebimentos", value: counts.recebimentos, prev: prevCounts.recebimentos, icon: PackageCheck },
   ];
@@ -332,7 +338,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((c) => {
           const pct = pctChange(c.value, c.prev);
           return (
