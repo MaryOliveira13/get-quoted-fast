@@ -64,6 +64,7 @@ export default function AdminOrcamentos() {
   // History
   const [historico, setHistorico] = useState<Orcamento[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const models = useMemo(() => {
     if (!marca) return [];
