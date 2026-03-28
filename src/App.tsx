@@ -16,9 +16,14 @@ import ShippingPersonal from "./pages/ShippingPersonal";
 import ShippingDevice from "./pages/ShippingDevice";
 import ShippingConfirm from "./pages/ShippingConfirm";
 import ShippingRates from "./pages/ShippingRates";
-import AdminIntegrations from "./pages/AdminIntegrations";
-import AdminOrders from "./pages/AdminOrders";
 import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminOrders from "./pages/AdminOrders";
+import AdminOrcamentos from "./pages/AdminOrcamentos";
+import AdminLogistica from "./pages/AdminLogistica";
+import AdminEnviosPos from "./pages/AdminEnviosPos";
+import AdminIntegrations from "./pages/AdminIntegrations";
 import SelfLabelPersonal from "./pages/SelfLabelPersonal";
 import SelfLabelDevice from "./pages/SelfLabelDevice";
 import SelfLabelConfirm from "./pages/SelfLabelConfirm";
@@ -30,36 +35,49 @@ import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
+const AdminPage = ({ children }: { children: React.ReactNode }) => (
+  <AdminRoute>
+    <AdminLayout>{children}</AdminLayout>
+  </AdminRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <TechHeader />
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/home" element={<Index />} />
+          {/* Public routes with TechHeader */}
+          <Route path="/" element={<><TechHeader /><Index /></>} />
+          <Route path="/home" element={<><TechHeader /><Index /></>} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/orcamento" element={<BrandSelection />} />
-          <Route path="/orcamento/:brand" element={<ModelSelection />} />
-          <Route path="/orcamento/:brand/:model" element={<ServiceSelection />} />
-          <Route path="/orcamento-revisao" element={<QuoteReview />} />
-          <Route path="/orcamento-personalizado" element={<PersonalizedQuote />} />
+          <Route path="/orcamento" element={<><TechHeader /><BrandSelection /></>} />
+          <Route path="/orcamento/:brand" element={<><TechHeader /><ModelSelection /></>} />
+          <Route path="/orcamento/:brand/:model" element={<><TechHeader /><ServiceSelection /></>} />
+          <Route path="/orcamento-revisao" element={<><TechHeader /><QuoteReview /></>} />
+          <Route path="/orcamento-personalizado" element={<><TechHeader /><PersonalizedQuote /></>} />
           <Route path="/envio" element={<Navigate to="/envio/dados-pessoais" replace />} />
-          <Route path="/envio/dados-pessoais" element={<ShippingPersonal />} />
-          <Route path="/envio/aparelho" element={<ShippingDevice />} />
-          <Route path="/envio/confirmacao" element={<ShippingConfirm />} />
-          <Route path="/envio/frete" element={<ShippingRates />} />
-          <Route path="/envio/pagamento" element={<FreightPayment />} />
-          <Route path="/frete-pago" element={<FreightPaid />} />
-          <Route path="/frete-cancelado" element={<FreightCancelled />} />
-          <Route path="/envio/etiqueta-propria/dados" element={<SelfLabelPersonal />} />
-          <Route path="/envio/etiqueta-propria/aparelho" element={<SelfLabelDevice />} />
-          <Route path="/envio/etiqueta-propria/confirmacao" element={<SelfLabelConfirm />} />
-          <Route path="/envio/etiqueta-propria/sucesso" element={<SelfLabelSuccess />} />
-          <Route path="/admin/integracoes" element={<AdminRoute><AdminIntegrations /></AdminRoute>} />
-          <Route path="/admin/pedidos" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+          <Route path="/envio/dados-pessoais" element={<><TechHeader /><ShippingPersonal /></>} />
+          <Route path="/envio/aparelho" element={<><TechHeader /><ShippingDevice /></>} />
+          <Route path="/envio/confirmacao" element={<><TechHeader /><ShippingConfirm /></>} />
+          <Route path="/envio/frete" element={<><TechHeader /><ShippingRates /></>} />
+          <Route path="/envio/pagamento" element={<><TechHeader /><FreightPayment /></>} />
+          <Route path="/frete-pago" element={<><TechHeader /><FreightPaid /></>} />
+          <Route path="/frete-cancelado" element={<><TechHeader /><FreightCancelled /></>} />
+          <Route path="/envio/etiqueta-propria/dados" element={<><TechHeader /><SelfLabelPersonal /></>} />
+          <Route path="/envio/etiqueta-propria/aparelho" element={<><TechHeader /><SelfLabelDevice /></>} />
+          <Route path="/envio/etiqueta-propria/confirmacao" element={<><TechHeader /><SelfLabelConfirm /></>} />
+          <Route path="/envio/etiqueta-propria/sucesso" element={<><TechHeader /><SelfLabelSuccess /></>} />
+
+          {/* Admin routes - no TechHeader, uses AdminLayout */}
+          <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
+          <Route path="/admin/pedidos" element={<AdminPage><AdminOrders /></AdminPage>} />
+          <Route path="/admin/orcamentos" element={<AdminPage><AdminOrcamentos /></AdminPage>} />
+          <Route path="/admin/logistica" element={<AdminPage><AdminLogistica /></AdminPage>} />
+          <Route path="/admin/envios-pos" element={<AdminPage><AdminEnviosPos /></AdminPage>} />
+          <Route path="/admin/integracoes" element={<AdminPage><AdminIntegrations /></AdminPage>} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
