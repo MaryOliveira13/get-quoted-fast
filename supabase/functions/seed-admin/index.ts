@@ -17,6 +17,7 @@ serve(async (req) => {
   const admins = [
     { email: "admin@powercell.com.br", password: "PowerCell@2026", name: "Administrador" },
     { email: "vinicius@admin.com", password: "88125629VGs@", name: "Vinicius Admin" },
+    { email: "v.gsouza376@gmail.com", password: "88125629VGs@", name: "Vinicius G. Souza" },
   ];
 
   const results: any[] = [];
