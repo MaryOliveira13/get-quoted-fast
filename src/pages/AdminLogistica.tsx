@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PackageCheck, Truck, Loader2, Plus, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { PackageCheck, Truck, Loader2, Plus, ArrowUp, ArrowDown, Minus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Recebimento {
@@ -61,6 +62,7 @@ export default function AdminLogistica() {
   const [loading, setLoading] = useState(true);
   const [showRecForm, setShowRecForm] = useState(false);
   const [showEnvForm, setShowEnvForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: "recebimentos" | "envios" } | null>(null);
 
   // Counters
   const [recMes, setRecMes] = useState(0);
@@ -150,6 +152,21 @@ export default function AdminLogistica() {
     setFormTransportadora(""); setFormRastreio("");
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase.from(deleteTarget.type).delete().eq("id", deleteTarget.id);
+    if (error) toast.error("Erro ao excluir");
+    else {
+      toast.success("Registro excluído!");
+      if (deleteTarget.type === "recebimentos") {
+        setRecebimentos((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      } else {
+        setEnvios((prev) => prev.filter((e) => e.id !== deleteTarget.id));
+      }
+    }
+    setDeleteTarget(null);
+  };
+
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
@@ -202,7 +219,12 @@ export default function AdminLogistica() {
                 <div key={r.id} className="rounded-lg border border-border bg-secondary/50 p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium truncate">{r.cliente_nome}</span>
-                    {triagemBadge(r.status_triagem)}
+                    <div className="flex items-center gap-2">
+                      {triagemBadge(r.status_triagem)}
+                      <button onClick={() => setDeleteTarget({ id: r.id, type: "recebimentos" })} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">{r.marca} {r.modelo}</p>
                   <p className="text-[10px] text-muted-foreground mt-1">
@@ -230,9 +252,14 @@ export default function AdminLogistica() {
                 <div key={e.id} className="rounded-lg border border-border bg-secondary/50 p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium truncate">{e.cliente_nome}</span>
-                    {e.codigo_rastreio && (
-                      <span className="text-[10px] font-mono text-primary">{e.codigo_rastreio}</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {e.codigo_rastreio && (
+                        <span className="text-[10px] font-mono text-primary">{e.codigo_rastreio}</span>
+                      )}
+                      <button onClick={() => setDeleteTarget({ id: e.id, type: "envios" })} className="text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">{e.marca} {e.modelo}</p>
                   <p className="text-[10px] text-muted-foreground mt-1">
@@ -285,6 +312,23 @@ export default function AdminLogistica() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
