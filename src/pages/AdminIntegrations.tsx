@@ -183,7 +183,6 @@ export default function AdminIntegrations() {
             <li>• Após salvar, o cálculo de frete deve funcionar automaticamente</li>
           </ul>
         </div>
-      </div>
     </div>
   );
 }
