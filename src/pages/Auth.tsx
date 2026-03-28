@@ -153,9 +153,9 @@ const Auth = () => {
     >
       {/* Logo */}
       <img
-        src="https://im.ge/i/Design-sem-nome-1.eKZjZT"
+        src={logo}
         alt="Power Cell"
-        style={{ width: 120, height: 120, objectFit: "contain", marginBottom: 8 }}
+        style={{ maxWidth: 280, width: "100%", objectFit: "contain", marginBottom: 16 }}
       />
 
       {/* Card */}
