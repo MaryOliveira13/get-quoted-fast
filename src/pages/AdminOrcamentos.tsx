@@ -174,7 +174,18 @@ export default function AdminOrcamentos() {
     toast.success(newStatus === "fechado" ? "Orçamento marcado como fechado" : "Orçamento marcado como não fechado");
   };
 
-  // Preload logo for canvas
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("orcamentos").delete().eq("id", deleteId);
+    if (error) {
+      toast.error("Erro ao excluir orçamento");
+    } else {
+      setHistorico((prev) => prev.filter((o) => o.id !== deleteId));
+      toast.success("Orçamento excluído com sucesso");
+    }
+    setDeleteId(null);
+  };
+
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   useEffect(() => {
     const img = new Image();
