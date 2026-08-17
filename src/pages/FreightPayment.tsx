@@ -150,7 +150,7 @@ export default function FreightPayment() {
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            🔒 Você será redirecionado para o ambiente seguro do PagBank.
+            🔒 Você será redirecionado para o ambiente seguro do PagSeguro.
           </p>
         </div>
       </main>
