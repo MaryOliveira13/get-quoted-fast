@@ -215,7 +215,35 @@ export default function ShippingPersonal() {
 
           <div>
             <label htmlFor="cep" className={labelStyle}>CEP *</label>
-            <input id="cep" value={form.cep} onChange={(e) => set("cep", maskCEP(e.target.value))} className={`${inputStyle} ${errors.cep ? inputErrorStyle : ''}`} placeholder="00000-000" />
+            <div className="relative">
+              <input 
+                id="cep" 
+                value={form.cep} 
+                onChange={(e) => {
+                  const val = maskCEP(e.target.value);
+                  set("cep", val);
+                  const clean = val.replace(/\D/g, "");
+                  if (clean.length === 8) {
+                    fetch(`https://viacep.com.br/ws/${clean}/json/`)
+                      .then(r => r.json())
+                      .then(data => {
+                        if (!data.erro) {
+                          setForm(p => ({
+                            ...p,
+                            street: data.logradouro || p.street,
+                            district: data.bairro || p.district,
+                            city: data.localidade || p.city,
+                            uf: data.uf || p.uf
+                          }));
+                        }
+                      })
+                      .catch(err => console.error("ViaCEP error:", err));
+                  }
+                }} 
+                className={`${inputStyle} ${errors.cep ? inputErrorStyle : ''}`} 
+                placeholder="00000-000" 
+              />
+            </div>
           </div>
 
           <div>

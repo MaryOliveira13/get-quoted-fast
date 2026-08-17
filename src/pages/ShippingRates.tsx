@@ -80,7 +80,7 @@ export default function ShippingRates() {
     try {
       const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
         body: {
-          from: { postal_code: cleanCep },
+          postal_code: cleanCep,
           insurance_value: deviceValue > 0 ? deviceValue / 100 : 1500,
         },
       });
@@ -264,7 +264,7 @@ export default function ShippingRates() {
           </div>
           {draft.city && draft.uf && (
             <p className="font-['Inter'] text-[12px]" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
-              Envio de: {draft.city}, {draft.uf}
+              Envio de: {draft.city}, {draft.uf} → Destino: Power Cell
             </p>
           )}
         </div>
