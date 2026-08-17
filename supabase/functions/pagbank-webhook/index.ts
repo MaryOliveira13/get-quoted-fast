@@ -15,9 +15,9 @@ serve(async (req) => {
     const body = await req.json();
     console.log("PagBank Webhook received:", JSON.stringify(body));
 
-    const referenceId = body.reference_id;
+    const referenceId = body.reference_id || body.reference;
     if (!referenceId) {
-      console.log("No reference_id found in webhook");
+      console.log("No reference_id/reference found in webhook");
       return new Response("OK", { status: 200 });
     }
 
@@ -37,7 +37,7 @@ serve(async (req) => {
       return new Response("OK", { status: 200 });
     }
 
-    const pbStatus = body.status;
+    const pbStatus = body.status || (body.charges && body.charges[0] && body.charges[0].status);
     const paymentId = body.id;
 
     // Server-side validation with PagBank API if status is PAID
