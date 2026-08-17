@@ -113,7 +113,7 @@ export default function PixPayment() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Pagar com PagBank
+                Realizar pagamento
               </>
             )}
           </Button>

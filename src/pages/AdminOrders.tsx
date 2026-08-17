@@ -268,7 +268,7 @@ export default function AdminOrders() {
                 <div className="space-y-1">
                   <h4 className="font-semibold text-sm text-muted-foreground">Pagamento do Frete</h4>
                   <p className="text-sm">
-                    Provedor: <span className="capitalize">{selected.payment_provider || "N/A"}</span>
+                    Provedor: <span className="capitalize">{selected.payment_provider === 'pagbank' ? 'PagSeguro' : selected.payment_provider || "N/A"}</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Status Financeiro: {statusBadge(selected.freight_payment_status)}
