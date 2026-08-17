@@ -116,7 +116,7 @@ serve(async (req) => {
           height: 4,
           length: 18,
           weight: 0.35,
-          insurance_value: insuranceValue,
+          insurance_value: Math.min(insuranceValue, 4000),
           quantity: 1,
         },
       ],
