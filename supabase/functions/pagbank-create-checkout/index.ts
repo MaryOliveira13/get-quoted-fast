@@ -71,6 +71,24 @@ serve(async (req) => {
       });
     }
 
+    // Check for existing checkout to avoid duplicates
+    if (order.payment_id && order.payment_provider === "pagbank") {
+      const pbRes = await fetch(`${PAGBANK_API_URL}/checkouts/${order.payment_id}`, {
+        headers: { Authorization: `Bearer ${PAGBANK_TOKEN}` },
+      });
+      if (pbRes.ok) {
+        const pbData = await pbRes.json();
+        const payLink = pbData.links?.find((l: any) => l.rel === "PAY")?.href;
+        if (payLink && pbData.status !== "PAID" && pbData.status !== "CANCELED") {
+          console.log("Reusing existing PagBank checkout:", order.payment_id);
+          return new Response(JSON.stringify({ redirect_url: payLink }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+    }
+
     const amount = Number(order.shipping_amount);
     if (!amount || amount <= 0) {
       return new Response(
