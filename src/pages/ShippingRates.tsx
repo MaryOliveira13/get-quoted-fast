@@ -264,7 +264,7 @@ export default function ShippingRates() {
           </div>
           {draft.city && draft.uf && (
             <p className="font-['Inter'] text-[12px]" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
-              Envio de: {draft.city}, {draft.uf}
+              Envio de: {draft.city}, {draft.uf} → Destino: Power Cell
             </p>
           )}
         </div>
