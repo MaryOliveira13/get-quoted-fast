@@ -97,7 +97,7 @@ export default function PixPayment() {
 
         <div className="rounded-xl border bg-card p-6 space-y-4">
           <p className="text-sm text-center text-muted-foreground">
-            Você será redirecionado para o PagBank para concluir seu pagamento com segurança.
+            Você será redirecionado para o PagSeguro para concluir seu pagamento com segurança.
           </p>
           <Button
             size="lg"

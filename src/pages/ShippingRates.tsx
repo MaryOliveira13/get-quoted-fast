@@ -421,7 +421,7 @@ export default function ShippingRates() {
                           className="font-['Montserrat'] font-extrabold text-[18px]"
                           style={{ color: isSelected ? '#FF6B00' : 'white' }}
                         >
-                          {formatBRL(opt.priceCents)}
+                          {formatBRL(opt.priceCents / 100)}
                         </span>
                       )}
                       {/* Radio */}
