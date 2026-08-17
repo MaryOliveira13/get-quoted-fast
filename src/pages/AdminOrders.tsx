@@ -30,9 +30,9 @@ interface Pedido {
   frete_nome: string | null;
   frete_valor: number | null;
   status: string | null;
-  freight_payment_status: string | null;
-  payment_id: string | null;
-  payment_provider: string | null;
+  freight_payment_status?: string | null;
+  payment_id?: string | null;
+  payment_provider?: string | null;
   created_at: string | null;
 }
 
