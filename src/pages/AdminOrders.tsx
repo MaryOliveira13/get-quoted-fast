@@ -30,6 +30,9 @@ interface Pedido {
   frete_nome: string | null;
   frete_valor: number | null;
   status: string | null;
+  freight_payment_status?: string | null;
+  payment_id?: string | null;
+  payment_provider?: string | null;
   created_at: string | null;
 }
 
@@ -261,15 +264,26 @@ export default function AdminOrders() {
                   )}
                 </div>
 
-                {/* Frete */}
-                {selected.frete_nome && (
-                  <div className="space-y-1">
-                    <h4 className="font-semibold text-sm text-muted-foreground">Frete</h4>
+                {/* Pagamento */}
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-sm text-muted-foreground">Pagamento do Frete</h4>
+                  <p className="text-sm">
+                    Provedor: <span className="capitalize">{selected.payment_provider || "N/A"}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Status Financeiro: {statusBadge(selected.freight_payment_status)}
+                  </p>
+                  {selected.payment_id && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      ID Transação: {selected.payment_id}
+                    </p>
+                  )}
+                  {selected.frete_nome && (
                     <p className="text-sm">
                       {selected.frete_nome}: R$ {(selected.frete_valor || 0).toFixed(2).replace(".", ",")}
                     </p>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Photos */}
                 <div className="space-y-2">
