@@ -37,7 +37,7 @@ serve(async (req) => {
       return new Response("OK", { status: 200 });
     }
 
-    const pbStatus = body.status;
+    const pbStatus = body.status || (body.charges && body.charges[0] && body.charges[0].status);
     const paymentId = body.id;
 
     // Server-side validation with PagBank API if status is PAID
