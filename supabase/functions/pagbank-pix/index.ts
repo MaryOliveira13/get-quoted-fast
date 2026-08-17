@@ -28,7 +28,7 @@ serve(async (req) => {
         name: order.customer_name,
         email: order.customer_email || "cliente@powercell.com.br",
         tax_id: order.cpf.replace(/\D/g, ""),
-        phones: [{ country: "55", area: order.customer_phone.replace(/\D/g, "").substring(0, 2), number: order.customer_phone.replace(/\D/g, "").substring(2), type: "MOBILE" }]
+        phones: [{ country: "55", area: (order.customer_phone || "").replace(/\D/g, "").substring(0, 2) || "31", number: (order.customer_phone || "").replace(/\D/g, "").substring(2) || "998562010", type: "MOBILE" }]
       },
       items: [{ reference_id: `FRETE-${order_id}`, name: "Frete Power Cell", quantity: 1, unit_amount: amountCents }],
       qr_codes: [{ amount: { value: amountCents } }],
