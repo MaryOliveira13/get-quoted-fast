@@ -86,7 +86,7 @@ export default function PixPayment() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-28 pt-16">
       <PageHeader title="Pagamento" backTo="/" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
