@@ -81,7 +81,7 @@ serve(async (req) => {
         });
       }
 
-      if (order.freight_payment_status !== "paid" && order.freight_payment_status !== "approved") {
+      if (order.freight_payment_status !== "approved") {
         return new Response(JSON.stringify({ error: "Frete ainda não foi pago" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

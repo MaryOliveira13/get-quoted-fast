@@ -37,7 +37,8 @@ serve(async (req) => {
       );
     }
 
-    const IS_SANDBOX = true; 
+    const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
+    const IS_SANDBOX = ENV === "sandbox";
     const PAGBANK_API_URL = IS_SANDBOX
       ? "https://sandbox.api.pagseguro.com"
       : "https://api.pagseguro.com";
@@ -82,7 +83,10 @@ serve(async (req) => {
     }
 
     const amountCents = Math.round(amount * 100);
-    const origin = req.headers.get("origin") || "https://get-quoted-fast.lovable.app";
+    const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
+    const origin = ENV === "production" 
+      ? "https://powercelll.netlify.app" 
+      : (req.headers.get("origin") || "https://get-quoted-fast.lovable.app");
 
     const pagbankBody = {
       reference_id: order_id,

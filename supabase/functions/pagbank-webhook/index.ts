@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select("id, freight_payment_status, label_status")
+      .select("id, freight_payment_status, label_status, payment_id")
       .eq("id", referenceId)
       .single();
 
@@ -38,6 +38,32 @@ serve(async (req) => {
     }
 
     const pbStatus = body.status;
+    const paymentId = body.id;
+
+    // Server-side validation with PagBank API if status is PAID
+    if (pbStatus === "PAID" && paymentId) {
+      const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN");
+      const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
+      const PAGBANK_API_URL = ENV === "sandbox" ? "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
+      
+      try {
+        const verifyRes = await fetch(`${PAGBANK_API_URL}/orders/${paymentId}`, {
+          headers: { Authorization: `Bearer ${PAGBANK_TOKEN}` },
+        });
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          if (verifyData.status !== "PAID") {
+            console.error("PagBank verification failed: status mismatch", verifyData.status);
+            return new Response("OK", { status: 200 });
+          }
+        } else {
+          console.error("PagBank verification request failed", verifyRes.status);
+        }
+      } catch (e) {
+        console.error("Error verifying payment with PagBank API", e);
+      }
+    }
+
     let freightStatus = order.freight_payment_status;
 
     if (pbStatus === "PAID") {
