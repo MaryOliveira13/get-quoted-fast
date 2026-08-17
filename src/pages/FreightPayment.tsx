@@ -108,7 +108,7 @@ export default function FreightPayment() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-28 pt-16">
       <PageHeader title="Pagamento do Frete" backTo="/envio/frete" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
@@ -127,7 +127,7 @@ export default function FreightPayment() {
         <div className="rounded-xl border bg-card p-6 space-y-4">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <CreditCard className="w-5 h-5" />
-            <span>Pagamento via PagBank (Cartão ou Pix)</span>
+            <span>Pagamento seguro via PagSeguro</span>
           </div>
 
           <Button
@@ -150,7 +150,7 @@ export default function FreightPayment() {
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            🔒 Você será redirecionado para o ambiente seguro do PagSeguro.
+            Você será redirecionado para o ambiente seguro do PagSeguro.
           </p>
         </div>
       </main>

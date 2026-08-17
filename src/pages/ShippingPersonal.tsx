@@ -235,6 +235,11 @@ export default function ShippingPersonal() {
                             city: data.localidade || p.city,
                             uf: data.uf || p.uf
                           }));
+                          // Update draft immediately to reflect correct city/uf in other screens
+                          updateShippingDraft({
+                            city: data.localidade,
+                            uf: data.uf
+                          });
                         }
                       })
                       .catch(err => console.error("ViaCEP error:", err));
