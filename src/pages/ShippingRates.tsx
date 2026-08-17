@@ -80,7 +80,7 @@ export default function ShippingRates() {
     try {
       const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
         body: {
-          from: { postal_code: cleanCep },
+          postal_code: cleanCep,
           insurance_value: deviceValue > 0 ? deviceValue / 100 : 1500,
         },
       });

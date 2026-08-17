@@ -81,7 +81,7 @@ serve(async (req) => {
       return json({ error: "CEP da loja não configurado" }, 500);
     }
 
-    const rawCep = String(body.from?.postal_code || body.customerPostalCode || "").replace(/\D/g, "");
+    const rawCep = String(body.postal_code || body.from?.postal_code || body.customerPostalCode || "").replace(/\D/g, "");
     console.log("quote: rawCep =", rawCep);
     if (rawCep.length !== 8) {
       return json({ error: "CEP inválido. Informe 8 dígitos." }, 400);
@@ -107,8 +107,8 @@ serve(async (req) => {
     }
 
     const meBody = {
-      from: { postal_code: rawCep },
-      to: { postal_code: storeCep },
+      from: { postal_code: storeCep },
+      to: { postal_code: rawCep },
       products: [
         {
           id: "smartphone",
