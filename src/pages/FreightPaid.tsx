@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,8 @@ interface OrderData {
 export default function FreightPaid() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
+  const trackingToken = searchParams.get("token");
+  const navigate = useNavigate();
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,11 +61,17 @@ export default function FreightPaid() {
 
   const fetchOrder = useCallback(async () => {
     if (!orderId) return;
-    const { data, error: err } = await supabase
+    
+    const query = supabase
       .from("orders")
       .select("*")
-      .eq("id", orderId)
-      .single();
+      .eq("id", orderId);
+    
+    if (trackingToken) {
+      query.eq("tracking_token", trackingToken);
+    }
+
+    const { data, error: err } = await query.single();
 
     if (err || !data) {
       setError("Pedido não encontrado.");
@@ -73,9 +81,9 @@ export default function FreightPaid() {
     setOrder(data as unknown as OrderData);
     setLoading(false);
     return data;
-  }, [orderId]);
+  }, [orderId, trackingToken]);
 
-  // On mount: fetch order (no more PayPal capture needed — webhook handles it)
+  // On mount: fetch order
   useEffect(() => {
     if (!orderId) return;
     fetchOrder();
@@ -85,7 +93,7 @@ export default function FreightPaid() {
   useEffect(() => {
     if (!order) return;
     if (order.label_status === "generated") return;
-    if (order.freight_payment_status !== "approved") return;
+    if (order.freight_payment_status !== "approved" && order.freight_payment_status !== "paid") return;
 
     setPolling(true);
     let attempts = 0;
@@ -93,11 +101,16 @@ export default function FreightPaid() {
 
     const interval = setInterval(async () => {
       attempts++;
-      const { data } = await supabase
+      const query = supabase
         .from("orders")
         .select("label_status, label_url_pdf, label_url_png, tracking_code, freight_payment_status")
-        .eq("id", orderId!)
-        .single();
+        .eq("id", orderId!);
+      
+      if (trackingToken) {
+        query.eq("tracking_token", trackingToken);
+      }
+
+      const { data } = await query.single();
 
       if (data?.label_status === "generated") {
         setOrder((prev) =>
@@ -128,25 +141,30 @@ export default function FreightPaid() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [order?.label_status, order?.freight_payment_status, orderId]);
+  }, [order?.label_status, order?.freight_payment_status, orderId, trackingToken]);
 
   // Also poll for payment status if not paid yet
   useEffect(() => {
     if (!order) return;
-    if (order.freight_payment_status === "approved") return;
+    if (order.freight_payment_status === "approved" || order.freight_payment_status === "paid") return;
 
     let attempts = 0;
     const maxAttempts = 20;
 
     const interval = setInterval(async () => {
       attempts++;
-      const { data } = await supabase
+      const query = supabase
         .from("orders")
         .select("freight_payment_status, label_status, label_url_pdf, label_url_png, tracking_code")
-        .eq("id", orderId!)
-        .single();
+        .eq("id", orderId!);
+      
+      if (trackingToken) {
+        query.eq("tracking_token", trackingToken);
+      }
 
-      if (data?.freight_payment_status === "approved") {
+      const { data } = await query.single();
+
+      if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
         setOrder((prev) =>
           prev
             ? { ...prev, ...data }
@@ -161,7 +179,7 @@ export default function FreightPaid() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [order?.freight_payment_status, orderId]);
+  }, [order?.freight_payment_status, orderId, trackingToken]);
 
   const handleRetryLabel = async () => {
     if (!orderId) return;
@@ -274,7 +292,7 @@ Valor pago do frete: R$ ${(order.shipping_amount || 0).toFixed(2).replace(".", "
 Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passos?`;
 
   const isLabelReady = order.label_status === "generated" && order.label_url_pdf;
-  const isPaid = order.freight_payment_status === "approved";
+  const isPaid = order.freight_payment_status === "approved" || order.freight_payment_status === "paid";
 
   return (
     <div className="min-h-screen bg-background pb-8">
