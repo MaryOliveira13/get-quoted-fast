@@ -129,7 +129,7 @@ export default function ServiceSelection() {
         </div>
 
         <h1 className="text-[26px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-1">
-          Selecione o serviço
+          Orçamento personalizado →
         </h1>
         <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)] mb-4">
           Valores base. Confirmação final após avaliação do aparelho.
