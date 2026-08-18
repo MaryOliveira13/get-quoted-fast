@@ -11,10 +11,53 @@ serve(async (req) => {
 
   try {
     const { order_id } = await req.json();
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const { data: order, error: orderErr } = await supabase.from("orders").select("*").eq("id", order_id).single();
-    if (orderErr || !order) throw new Error("Pedido não encontrado");
+    if (!order_id) {
+      throw new Error("order_id é obrigatório");
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // 1. Authorization check
+    // The call comes from PagBank Webhook (no JWT) OR Admin panel (JWT)
+    const authHeader = req.headers.get("Authorization");
+    let isAuthorized = false;
+
+    if (authHeader) {
+      const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (user) {
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        if (profile?.role === "admin") isAuthorized = true;
+      }
+    }
+
+    // 2. Load order details
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from("orders")
+      .select("*")
+      .eq("id", order_id)
+      .single();
+
+    if (orderErr || !order) {
+      throw new Error("Pedido não encontrado");
+    }
+
+    // 3. Logic check: Only allow Pix for approved payment OR admin OR first generation
+    // (If user is anonymous, we only allow creating a QR code for an unpaid order)
+    if (!isAuthorized && order.freight_payment_status === "approved") {
+      // If already paid, don't generate new QR code for customer
+      return new Response(JSON.stringify({ error: "Pagamento já realizado" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
     const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN");
     const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
@@ -25,32 +68,56 @@ serve(async (req) => {
     const body = {
       reference_id: order_id,
       customer: {
-        name: order.customer_name,
+        name: order.customer_name || "Cliente",
         email: order.customer_email || "cliente@powercell.com.br",
-        tax_id: order.cpf.replace(/\D/g, ""),
-        phones: [{ country: "55", area: (order.customer_phone || "").replace(/\D/g, "").substring(0, 2) || "31", number: (order.customer_phone || "").replace(/\D/g, "").substring(2) || "998562010", type: "MOBILE" }]
+        tax_id: (order.cpf || "").replace(/\D/g, ""),
+        phones: [{
+          country: "55",
+          area: (order.customer_phone || "").replace(/\D/g, "").substring(0, 2) || "31",
+          number: (order.customer_phone || "").replace(/\D/g, "").substring(2) || "998562010",
+          type: "MOBILE"
+        }]
       },
-      items: [{ reference_id: `FRETE-${order_id}`, name: "Frete Power Cell", quantity: 1, unit_amount: amountCents }],
-      qr_codes: [{ amount: { value: amountCents } }],
+      items: [{
+        reference_id: `FRETE-${order_id}`,
+        name: "Frete Power Cell",
+        quantity: 1,
+        unit_amount: amountCents
+      }],
+      qr_codes: [{
+        amount: { value: amountCents }
+      }],
       notification_urls: [`${Deno.env.get("SUPABASE_URL")}/functions/v1/pagbank-webhook`]
     };
 
     const res = await fetch(`${API_URL}/orders`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${PAGBANK_TOKEN}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PAGBANK_TOKEN}`
+      },
       body: JSON.stringify(body)
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(JSON.stringify(data));
+    if (!res.ok) {
+      console.error("PagBank Pix Error:", JSON.stringify(data));
+      throw new Error("Erro no PagBank ao gerar Pix");
+    }
 
     const qrCode = data.qr_codes?.[0];
-    return new Response(JSON.stringify({ 
-      qrcode_png: qrCode?.links.find((l: any) => l.content_type === "image/png")?.href,
-      qrcode_text: qrCode?.text 
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({
+      qrcode_png: qrCode?.links?.find((l: any) => l.content_type === "image/png")?.href,
+      qrcode_text: qrCode?.text
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("pagbank-pix error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   }
 });
