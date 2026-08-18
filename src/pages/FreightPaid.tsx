@@ -35,6 +35,7 @@ interface OrderData {
 export default function FreightPaid() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
+  const trackingToken = searchParams.get("tracking_token");
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ export default function FreightPaid() {
     try {
       // Use the secure Edge Function instead of direct SELECT
       const { data, error: err } = await supabase.functions.invoke("public-order-status", {
-        body: { order_id: orderId },
+        body: { order_id: orderId, tracking_token: trackingToken },
       });
 
       if (err || !data || data.error) {
@@ -82,7 +83,7 @@ export default function FreightPaid() {
     const interval = setInterval(async () => {
       attempts++;
       const { data } = await supabase.functions.invoke("public-order-status", {
-        body: { order_id: orderId },
+        body: { order_id: orderId, tracking_token: trackingToken },
       });
 
       if (data?.label_status === "generated") {
@@ -117,7 +118,7 @@ export default function FreightPaid() {
     const interval = setInterval(async () => {
       attempts++;
       const { data } = await supabase.functions.invoke("public-order-status", {
-        body: { order_id: orderId },
+        body: { order_id: orderId, tracking_token: trackingToken },
       });
 
       if (data?.freight_payment_status === "approved") {
