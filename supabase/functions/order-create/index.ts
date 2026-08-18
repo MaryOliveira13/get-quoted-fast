@@ -76,7 +76,6 @@ serve(async (req) => {
       payment_provider: "pagbank",
       payment_id: null,
       tracking_code: null,
-      status: "novo", // Default internal status
       tracking_token: tracking_token,
     }).select("id").single();
 
