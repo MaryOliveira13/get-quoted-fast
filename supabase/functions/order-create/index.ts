@@ -25,6 +25,7 @@ const ORDER_INSERT_WHITELIST = [
   "services",
   "shipping_option",
   "repair_estimate_total",
+  "tracking_token",
 ];
 
 const supabase = createClient(
@@ -75,7 +76,7 @@ serve(async (req) => {
       tracking_code: null,
       paid_at: null,
       status: "novo", // Default internal status
-      tracking_token,
+      tracking_token: tracking_token,
     }).select("id").single();
 
     if (error) {
