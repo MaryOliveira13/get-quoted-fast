@@ -58,7 +58,7 @@ export default function ServiceSelection() {
   };
 
   const selectedServices = services.filter((s) => selected.has(serviceId(s.name)));
-  const totalCents = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalCents = selectedServices.reduce((sum, s) => sum + s.price * 100, 0);
 
   const handleReview = () => {
     navigate("/orcamento-revisao", {
@@ -70,7 +70,7 @@ export default function ServiceSelection() {
         services: selectedServices.map((s) => ({
           id: serviceId(s.name),
           label: s.name,
-          priceCents: s.price,
+          priceCents: s.price * 100,
         })),
         totalCents,
       },
@@ -129,7 +129,7 @@ export default function ServiceSelection() {
         </div>
 
         <h1 className="text-[26px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)] mb-1">
-          Orçamento personalizado →
+          Selecione o serviço
         </h1>
         <p className="text-[13px] text-foreground/40 font-normal font-[family-name:var(--font-body)] mb-4">
           Valores base. Confirmação final após avaliação do aparelho.
@@ -163,7 +163,7 @@ export default function ServiceSelection() {
                   </div>
                 </div>
                 <p className="text-[18px] text-primary tracking-[0.5px] font-bold font-[family-name:var(--font-display)]">
-                  {formatBRL(service.price)}
+                  {formatBRL(service.price * 100)}
                 </p>
               </button>
             );

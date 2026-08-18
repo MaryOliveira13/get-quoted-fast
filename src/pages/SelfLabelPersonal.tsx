@@ -129,33 +129,7 @@ export default function SelfLabelPersonal() {
 
           <div className="space-y-1">
             <Label htmlFor="cep">CEP *</Label>
-            <Input 
-              id="cep" 
-              value={form.cep} 
-              onChange={(e) => {
-                const val = maskCEP(e.target.value);
-                set("cep", val);
-                const clean = val.replace(/\D/g, "");
-                if (clean.length === 8) {
-                  fetch(`https://viacep.com.br/ws/${clean}/json/`)
-                    .then(r => r.json())
-                    .then(data => {
-                      if (!data.erro) {
-                        setForm(p => ({
-                          ...p,
-                          street: data.logradouro || p.street,
-                          district: data.bairro || p.district,
-                          city: data.localidade || p.city,
-                          uf: data.uf || p.uf
-                        }));
-                      }
-                    })
-                    .catch(err => console.error("ViaCEP error:", err));
-                }
-              }} 
-              className={inputClass("cep")} 
-              placeholder="00000-000" 
-            />
+            <Input id="cep" value={form.cep} onChange={(e) => set("cep", maskCEP(e.target.value))} className={inputClass("cep")} placeholder="00000-000" />
           </div>
 
           <div className="space-y-1">

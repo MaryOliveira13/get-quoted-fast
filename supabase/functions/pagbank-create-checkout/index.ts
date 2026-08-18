@@ -37,8 +37,7 @@ serve(async (req) => {
       );
     }
 
-    const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
-    const IS_SANDBOX = ENV === "sandbox";
+    const IS_SANDBOX = true; 
     const PAGBANK_API_URL = IS_SANDBOX
       ? "https://sandbox.api.pagseguro.com"
       : "https://api.pagseguro.com";
@@ -71,24 +70,6 @@ serve(async (req) => {
       });
     }
 
-    // Check for existing checkout to avoid duplicates
-    if (order.payment_id && order.payment_provider === "pagbank") {
-      const pbRes = await fetch(`${PAGBANK_API_URL}/checkouts/${order.payment_id}`, {
-        headers: { Authorization: `Bearer ${PAGBANK_TOKEN}` },
-      });
-      if (pbRes.ok) {
-        const pbData = await pbRes.json();
-        const payLink = pbData.links?.find((l: any) => l.rel === "PAY")?.href;
-        if (payLink && pbData.status !== "PAID" && pbData.status !== "CANCELED") {
-          console.log("Reusing existing PagBank checkout:", order.payment_id);
-          return new Response(JSON.stringify({ redirect_url: payLink }), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-      }
-    }
-
     const amount = Number(order.shipping_amount);
     if (!amount || amount <= 0) {
       return new Response(
@@ -101,10 +82,7 @@ serve(async (req) => {
     }
 
     const amountCents = Math.round(amount * 100);
-    const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
-    const origin = ENV === "production" 
-      ? "https://powercelll.netlify.app" 
-      : (req.headers.get("origin") || "https://get-quoted-fast.lovable.app");
+    const origin = req.headers.get("origin") || "https://get-quoted-fast.lovable.app";
 
     const pagbankBody = {
       reference_id: order_id,

@@ -43,7 +43,7 @@ export default function SelfLabelConfirm() {
 
       // 2. Build services text
       const servicoText = quote.services.map((s) => s.label).join(", ");
-      const valorTotal = quote.totalCents;
+      const valorTotal = quote.totalCents / 100;
 
       // 3. Insert pedido
       const { data: pedido, error: insertError } = await supabase

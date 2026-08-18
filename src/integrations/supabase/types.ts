@@ -224,7 +224,6 @@ export type Database = {
           shipping_amount: number
           shipping_option: Json | null
           tracking_code: string | null
-          tracking_token: string | null
           updated_at: string
         }
         Insert: {
@@ -260,7 +259,6 @@ export type Database = {
           shipping_amount?: number
           shipping_option?: Json | null
           tracking_code?: string | null
-          tracking_token?: string | null
           updated_at?: string
         }
         Update: {
@@ -296,7 +294,6 @@ export type Database = {
           shipping_amount?: number
           shipping_option?: Json | null
           tracking_code?: string | null
-          tracking_token?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -510,7 +507,6 @@ export type Database = {
     Functions: {
       generate_pedido_code: { Args: never; Returns: string }
       generate_recebimento_code: { Args: never; Returns: string }
-      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

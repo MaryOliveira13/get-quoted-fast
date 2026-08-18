@@ -83,7 +83,6 @@ const PAGAMENTO_OPTIONS = [
   "PIX",
   "Cartão de débito",
   "Cartão de crédito",
-  "PagSeguro",
   "A combinar",
 ];
 
@@ -92,7 +91,6 @@ const PAGAMENTO_ENVIO_OPTIONS = [
   "PIX",
   "Cartão de débito",
   "Cartão de crédito",
-  "PagSeguro",
 ];
 
 function statusBadge(status: string) {

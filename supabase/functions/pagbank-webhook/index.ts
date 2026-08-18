@@ -15,9 +15,9 @@ serve(async (req) => {
     const body = await req.json();
     console.log("PagBank Webhook received:", JSON.stringify(body));
 
-    const referenceId = body.reference_id || body.reference;
+    const referenceId = body.reference_id;
     if (!referenceId) {
-      console.log("No reference_id/reference found in webhook");
+      console.log("No reference_id found in webhook");
       return new Response("OK", { status: 200 });
     }
 
@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select("id, freight_payment_status, label_status, payment_id")
+      .select("id, freight_payment_status, label_status")
       .eq("id", referenceId)
       .single();
 
@@ -37,33 +37,7 @@ serve(async (req) => {
       return new Response("OK", { status: 200 });
     }
 
-    const pbStatus = body.status || (body.charges && body.charges[0] && body.charges[0].status);
-    const paymentId = body.id;
-
-    // Server-side validation with PagBank API if status is PAID
-    if (pbStatus === "PAID" && paymentId) {
-      const PAGBANK_TOKEN = Deno.env.get("PAGBANK_TOKEN");
-      const ENV = Deno.env.get("PAGBANK_ENVIRONMENT") || "sandbox";
-      const PAGBANK_API_URL = ENV === "sandbox" ? "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
-      
-      try {
-        const verifyRes = await fetch(`${PAGBANK_API_URL}/orders/${paymentId}`, {
-          headers: { Authorization: `Bearer ${PAGBANK_TOKEN}` },
-        });
-        if (verifyRes.ok) {
-          const verifyData = await verifyRes.json();
-          if (verifyData.status !== "PAID") {
-            console.error("PagBank verification failed: status mismatch", verifyData.status);
-            return new Response("OK", { status: 200 });
-          }
-        } else {
-          console.error("PagBank verification request failed", verifyRes.status);
-        }
-      } catch (e) {
-        console.error("Error verifying payment with PagBank API", e);
-      }
-    }
-
+    const pbStatus = body.status;
     let freightStatus = order.freight_payment_status;
 
     if (pbStatus === "PAID") {

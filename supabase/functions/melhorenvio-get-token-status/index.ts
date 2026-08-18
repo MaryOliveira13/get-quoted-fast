@@ -20,37 +20,12 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return json({ error: "Não autenticado" }, 401);
-    }
-
-    const supabaseAdmin = createClient(
+    const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Validate User JWT
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
-
-    if (authError || !user) {
-      return json({ error: "Sessão inválida" }, 401);
-    }
-
-    // 2. Check Admin Role server-side
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || profile?.role !== "admin") {
-      return json({ error: "Acesso negado: Requer role admin" }, 403);
-    }
-
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("melhor_envio_tokens")
       .select("access_token, updated_at")
       .order("created_at", { ascending: false })
@@ -61,7 +36,6 @@ serve(async (req) => {
       return json({ connected: false });
     }
 
-    // Return only metadata, never the full token
     return json({
       connected: true,
       tokenPrefix: data.access_token.slice(0, 8) + "...",

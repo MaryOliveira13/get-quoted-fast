@@ -80,7 +80,7 @@ export default function ShippingRates() {
     try {
       const { data, error: fnError } = await supabase.functions.invoke("melhorenvio-quote", {
         body: {
-          postal_code: cleanCep,
+          from: { postal_code: cleanCep },
           insurance_value: deviceValue > 0 ? deviceValue / 100 : 1500,
         },
       });
@@ -183,7 +183,7 @@ export default function ShippingRates() {
             deliveryMaxDays: opt.deliveryMaxDays,
             price: (opt.priceCents / 100).toFixed(2),
           },
-          repair_estimate_total: quote.totalCents,
+          repair_estimate_total: quote.totalCents / 100,
         },
       });
 
@@ -191,7 +191,7 @@ export default function ShippingRates() {
         throw new Error(orderData?.error || "Erro ao criar pedido");
       }
 
-      navigate(`/envio/pagamento?order_id=${orderData.order_id}&tracking_token=${orderData.tracking_token}`);
+      navigate(`/envio/pagamento?order_id=${orderData.order_id}`);
     } catch (err: any) {
       console.error("Payment error:", err);
       toast.error(err.message || "Erro ao processar pagamento");
@@ -264,7 +264,7 @@ export default function ShippingRates() {
           </div>
           {draft.city && draft.uf && (
             <p className="font-['Inter'] text-[12px]" style={{ color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>
-              Envio de: {draft.city}, {draft.uf} → Destino: Power Cell
+              Envio de: {draft.city}, {draft.uf}
             </p>
           )}
         </div>
@@ -421,7 +421,7 @@ export default function ShippingRates() {
                           className="font-['Montserrat'] font-extrabold text-[18px]"
                           style={{ color: isSelected ? '#FF6B00' : 'white' }}
                         >
-                          {formatBRL(opt.priceCents / 100)}
+                          {formatBRL(opt.priceCents)}
                         </span>
                       )}
                       {/* Radio */}
