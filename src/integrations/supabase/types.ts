@@ -507,6 +507,7 @@ export type Database = {
     Functions: {
       generate_pedido_code: { Args: never; Returns: string }
       generate_recebimento_code: { Args: never; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
