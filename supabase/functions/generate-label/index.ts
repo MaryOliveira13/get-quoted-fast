@@ -27,12 +27,16 @@ serve(async (req) => {
     );
 
     // 1. Authorization check
-    // The call comes from PagBank Webhook (no JWT) OR Admin panel (JWT)
     const authHeader = req.headers.get("Authorization");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     let isAuthorized = false;
 
-    if (authHeader) {
-      // Check if it's an admin
+    // A) Check if it's a trusted internal call using service role key
+    if (authHeader === `Bearer ${serviceRoleKey}`) {
+      isAuthorized = true;
+    } 
+    // B) Check if it's an authenticated admin
+    else if (authHeader) {
       const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
       if (user) {
         const { data: profile } = await supabaseAdmin
@@ -44,8 +48,14 @@ serve(async (req) => {
       }
     }
 
-    // If not admin, check if it's a trusted internal call (e.g. from pagbank-webhook)
-    // In this sandbox, we verify the order payment status as a proxy for the webhook flow
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 2. Load order and check pre-conditions
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
       .select("freight_payment_status, label_status, label_url_pdf, label_url_png, tracking_code, customer_cep, brand, model, shipping_amount, shipping_option, melhor_envio_shipment_id")
@@ -59,10 +69,10 @@ serve(async (req) => {
       });
     }
 
-    // Only allow label generation if payment is approved (trusted state) OR admin
-    if (!isAuthorized && order.freight_payment_status !== "approved") {
-      return new Response(JSON.stringify({ error: "Não autorizado: Pagamento pendente" }), {
-        status: 403,
+    // STATE CHECK: Payment must be approved
+    if (order.freight_payment_status !== "approved") {
+      return new Response(JSON.stringify({ error: "Pagamento pendente" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
