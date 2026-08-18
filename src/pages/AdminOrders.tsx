@@ -101,7 +101,22 @@ export default function AdminOrders() {
       .from("fotos_pedido")
       .select("id, url")
       .eq("pedido_id", p.id);
-    setFotos(data || []);
+
+    // Bucket is private: convert stored paths/URLs into short-lived signed URLs
+    const signed = await Promise.all(
+      (data || []).map(async (foto) => {
+        const marker = "/fotos-pedidos/";
+        const idx = foto.url?.indexOf(marker) ?? -1;
+        const path = idx >= 0 ? foto.url.slice(idx + marker.length) : foto.url;
+        if (!path) return foto;
+        const { data: signedData } = await supabase.storage
+          .from("fotos-pedidos")
+          .createSignedUrl(path, 60 * 10);
+        return signedData?.signedUrl ? { ...foto, url: signedData.signedUrl } : foto;
+      })
+    );
+
+    setFotos(signed);
     setLoadingFotos(false);
   };
 
