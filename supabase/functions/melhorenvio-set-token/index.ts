@@ -20,26 +20,49 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return json({ error: "Não autenticado" }, 401);
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // 1. Validate User JWT
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+
+    if (authError || !user) {
+      return json({ error: "Sessão inválida" }, 401);
+    }
+
+    // 2. Check Admin Role server-side
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || profile?.role !== "admin") {
+      return json({ error: "Acesso negado: Requer role admin" }, 403);
+    }
+
     const { accessToken } = await req.json();
 
     if (!accessToken || typeof accessToken !== "string" || accessToken.trim().length < 20) {
       return json({ error: "Token inválido. Deve ter pelo menos 20 caracteres." }, 400);
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
     const token = accessToken.trim();
-    const now = new Date().toISOString();
-    // Set expires_at far in the future for manual tokens
     const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Delete all existing tokens and insert new one
-    await supabase.from("melhor_envio_tokens").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // Delete existing tokens and insert new one
+    await supabaseAdmin.from("melhor_envio_tokens").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-    const { error: insertError } = await supabase.from("melhor_envio_tokens").insert({
+    const { error: insertError } = await supabaseAdmin.from("melhor_envio_tokens").insert({
       access_token: token,
       refresh_token: "",
       expires_at: farFuture,
@@ -50,7 +73,7 @@ serve(async (req) => {
       return json({ error: "Erro ao salvar token no banco." }, 500);
     }
 
-    console.log("set-token: token saved, prefix =", token.slice(0, 10) + "...");
+    console.log(`set-token: token saved by admin ${user.email}`);
     return json({ ok: true });
   } catch (error) {
     console.error("set-token error:", error);
