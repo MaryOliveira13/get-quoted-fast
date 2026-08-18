@@ -57,10 +57,7 @@ serve(async (req) => {
     // Server-side validation of shipping amount
     const shipping_amount = parseFloat(shipping_option.price || shipping_option.priceCents / 100 || 0);
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const tracking_token = crypto.randomUUID();
 
     const { data, error } = await supabase.from("orders").insert({
       ...body,
@@ -73,6 +70,7 @@ serve(async (req) => {
       tracking_code: null,
       paid_at: null,
       status: "novo", // Default internal status
+      tracking_token,
     }).select("id").single();
 
     if (error) {
@@ -83,7 +81,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ order_id: data.id }), {
+    return new Response(JSON.stringify({ order_id: data.id, tracking_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

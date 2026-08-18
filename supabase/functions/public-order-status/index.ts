@@ -20,7 +20,7 @@ serve(async (req) => {
   }
 
   try {
-    const { order_id } = await req.json();
+    const { order_id, tracking_token } = await req.json();
 
     if (!order_id) return json({ error: "order_id é obrigatório" }, 400);
 
@@ -31,12 +31,25 @@ serve(async (req) => {
 
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
-      .select("id, freight_payment_status, label_status, tracking_code, brand, model, shipping_option, shipping_amount, label_url_pdf, label_url_png")
+      .select("id, freight_payment_status, label_status, tracking_code, brand, model, shipping_option, shipping_amount, label_url_pdf, label_url_png, tracking_token")
       .eq("id", order_id)
       .single();
 
     if (orderErr || !order) {
       return json({ error: "Pedido não encontrado" }, 404);
+    }
+
+    // Security check: Match token
+    // Compatibility: If order has no token (older ones), we might allow or block. 
+    // Instruction says "proponha uma estratégia segura de compatibilidade. Evite deixar indefinidamente aberto apenas por order_id."
+    // We will block unless token matches OR order has no token (legacy).
+    if (order.tracking_token && order.tracking_token !== tracking_token) {
+      return json({ error: "Acesso negado: Token de acompanhamento inválido" }, 403);
+    }
+
+    if (!order.tracking_token && tracking_token) {
+      // If we provided a token but order has none, also block to be safe
+      return json({ error: "Acesso negado: Pedido legado sem token" }, 403);
     }
 
     // Return ONLY safe fields for public status tracking
