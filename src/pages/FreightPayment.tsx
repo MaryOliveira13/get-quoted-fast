@@ -60,12 +60,14 @@ interface OrderData {
   cpf: string;
   customer_email: string | null;
   issue_description: string | null;
+  tracking_token: string | null;
 }
 
 export default function FreightPayment() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orderId = searchParams.get("order_id");
+  const trackingToken = searchParams.get("token");
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,11 +111,20 @@ export default function FreightPayment() {
   useEffect(() => {
     if (!orderId) return;
     (async () => {
-      const { data, error } = await supabase
+      // Use RPC or public-order-status logic to bypass RLS safely
+      // For now, if we have a tracking_token, we can attempt a restricted fetch
+      // or use the specific Edge Function if it existed.
+      // Based on audit, we need to adapt the old fetch to the new security:
+      const query = supabase
         .from("orders")
         .select("*")
-        .eq("id", orderId)
-        .single();
+        .eq("id", orderId);
+      
+      if (trackingToken) {
+        query.eq("tracking_token", trackingToken);
+      }
+
+      const { data, error } = await query.single();
 
       if (error || !data) {
         toast.error("Pedido não encontrado");
@@ -121,8 +132,8 @@ export default function FreightPayment() {
         return;
       }
 
-      if (data.freight_payment_status === "approved") {
-        navigate(`/frete-pago?order_id=${orderId}`, { replace: true });
+      if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`, { replace: true });
         return;
       }
 
@@ -131,7 +142,7 @@ export default function FreightPayment() {
       setCardHolder(data.customer_name || "");
       setLoading(false);
     })();
-  }, [orderId]);
+  }, [orderId, trackingToken, navigate]);
 
   // Poll for Pix payment
   useEffect(() => {
@@ -141,17 +152,22 @@ export default function FreightPayment() {
 
     const interval = setInterval(async () => {
       attempts++;
-      const { data } = await supabase
+      const query = supabase
         .from("orders")
         .select("freight_payment_status")
-        .eq("id", orderId)
-        .single();
+        .eq("id", orderId);
+      
+      if (trackingToken) {
+        query.eq("tracking_token", trackingToken);
+      }
 
-      if (data?.freight_payment_status === "approved") {
+      const { data } = await query.single();
+
+      if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
         clearInterval(interval);
         setPixPolling(false);
         toast.success("Pagamento confirmado!");
-        navigate(`/frete-pago?order_id=${orderId}`);
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
       }
 
       if (data?.freight_payment_status === "rejected") {
@@ -167,7 +183,7 @@ export default function FreightPayment() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [pixPolling, orderId]);
+  }, [pixPolling, orderId, trackingToken, navigate]);
 
   const handlePixPayment = async () => {
     if (!orderId) return;
@@ -255,12 +271,12 @@ export default function FreightPayment() {
 
       if (data.status === "approved") {
         toast.success("Pagamento aprovado!");
-        navigate(`/frete-pago?order_id=${orderId}`);
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
       } else if (data.status === "rejected") {
         toast.error(`Pagamento rejeitado: ${data.status_detail || "verifique os dados do cartão"}`);
       } else if (data.status === "in_process") {
         toast.info("Pagamento em processamento. Aguarde...");
-        navigate(`/frete-pago?order_id=${orderId}`);
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
       } else {
         toast.error("Status inesperado: " + data.status);
       }

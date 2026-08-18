@@ -103,7 +103,7 @@ serve(async (req) => {
         .eq("id", orderId)
         .single();
 
-      if (order && order.label_status !== "generated") {
+      if (order?.label_status !== "generated") {
         try {
           const labelRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-label`, {
             method: "POST",
@@ -114,17 +114,19 @@ serve(async (req) => {
             body: JSON.stringify({ order_id: orderId }),
           });
           const labelData = await labelRes.json();
-          console.log("Label generation result:", labelRes.status, JSON.stringify(labelData).slice(0, 300));
+          console.log("Auto label generation result:", labelRes.status, labelData);
         } catch (e) {
-          console.error("Label generation failed:", e);
-          await supabase.from("orders").update({ label_status: "failed" }).eq("id", orderId);
+          console.error("Auto label generation failed:", e);
         }
       }
     }
 
     return new Response("OK", { status: 200, headers: corsHeaders });
   } catch (error) {
-    console.error("Webhook error:", error);
-    return new Response("OK", { status: 200, headers: corsHeaders });
+    console.error("mercadopago-webhook error:", error);
+    return new Response(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
