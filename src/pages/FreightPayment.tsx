@@ -52,27 +52,27 @@ export default function FreightPayment() {
   useEffect(() => {
     if (!orderId) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, brand, model, shipping_amount, freight_payment_status, shipping_option")
-        .eq("id", orderId)
-        .single();
+      // Use public-order-status to bypass RLS for customers
+      const { data, error } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId, tracking_token: searchParams.get("tracking_token") },
+      });
 
-      if (error || !data) {
-        toast.error("Pedido não encontrado");
+      if (error || !data || data.error) {
+        console.error("Payment page order fetch error:", error || data?.error);
+        toast.error(data?.error || "Pedido não encontrado");
         setLoading(false);
         return;
       }
 
       if (data.freight_payment_status === "approved") {
-        navigate(`/frete-pago?order_id=${orderId}`, { replace: true });
+        navigate(`/frete-pago?order_id=${orderId}&tracking_token=${searchParams.get("tracking_token")}`, { replace: true });
         return;
       }
 
       setOrder(data as unknown as OrderData);
       setLoading(false);
     })();
-  }, [orderId, navigate]);
+  }, [orderId, navigate, searchParams]);
 
   const handleGeneratePix = async () => {
     if (!orderId) return;
