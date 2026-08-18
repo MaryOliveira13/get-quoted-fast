@@ -191,7 +191,7 @@ export default function ShippingRates() {
         throw new Error(orderData?.error || "Erro ao criar pedido");
       }
 
-      navigate(`/envio/pagamento?order_id=${orderData.order_id}`);
+      navigate(`/envio/pagamento?order_id=${orderData.order_id}&tracking_token=${orderData.tracking_token}`);
     } catch (err: any) {
       console.error("Payment error:", err);
       toast.error(err.message || "Erro ao processar pagamento");
