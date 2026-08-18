@@ -27,6 +27,11 @@ const ORDER_INSERT_WHITELIST = [
   "repair_estimate_total",
 ];
 
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+);
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -68,9 +73,7 @@ serve(async (req) => {
       payment_provider: "pagbank",
       payment_id: null,
       tracking_code: null,
-      paid_at: null,
-      status: "novo", // Default internal status
-      tracking_token,
+      tracking_token: tracking_token,
     }).select("id").single();
 
     if (error) {
