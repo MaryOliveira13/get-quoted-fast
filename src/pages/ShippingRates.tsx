@@ -183,7 +183,7 @@ export default function ShippingRates() {
             deliveryMaxDays: opt.deliveryMaxDays,
             price: (opt.priceCents / 100).toFixed(2),
           },
-          repair_estimate_total: quote.totalCents / 100,
+          repair_estimate_total: quote.totalCents,
         },
       });
 
