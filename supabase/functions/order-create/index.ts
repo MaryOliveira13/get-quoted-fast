@@ -25,15 +25,12 @@ const ORDER_INSERT_WHITELIST = [
   "services",
   "shipping_option",
   "repair_estimate_total",
-  "tracking_token",
 ];
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
-
-console.log("order-create: initialized with URL", Deno.env.get("SUPABASE_URL"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
