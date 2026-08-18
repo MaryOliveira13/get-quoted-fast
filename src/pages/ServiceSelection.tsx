@@ -58,7 +58,7 @@ export default function ServiceSelection() {
   };
 
   const selectedServices = services.filter((s) => selected.has(serviceId(s.name)));
-  const totalCents = selectedServices.reduce((sum, s) => sum + s.price * 100, 0);
+  const totalCents = selectedServices.reduce((sum, s) => sum + s.price, 0);
 
   const handleReview = () => {
     navigate("/orcamento-revisao", {
@@ -70,7 +70,7 @@ export default function ServiceSelection() {
         services: selectedServices.map((s) => ({
           id: serviceId(s.name),
           label: s.name,
-          priceCents: s.price * 100,
+          priceCents: s.price,
         })),
         totalCents,
       },
@@ -163,7 +163,7 @@ export default function ServiceSelection() {
                   </div>
                 </div>
                 <p className="text-[18px] text-primary tracking-[0.5px] font-bold font-[family-name:var(--font-display)]">
-                  {formatBRL(service.price * 100)}
+                  {formatBRL(service.price)}
                 </p>
               </button>
             );
