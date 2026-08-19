@@ -12,14 +12,17 @@ serve(async (req) => {
 
   try {
     const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY")!;
-    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "sandbox";
+    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "production";
     const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN")!;
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     
-    const ASAAS_BASE_URL =
-      ASAAS_ENVIRONMENT === "production"
-        ? "https://www.asaas.com/api/v3"
-        : "https://sandbox.asaas.com/api/v3";
+    // Explicitly check for sandbox/production
+    const isSandbox = ASAAS_ENVIRONMENT === "sandbox";
+    const ASAAS_BASE_URL = isSandbox
+        ? "https://sandbox.asaas.com/api/v3"
+        : "https://api.asaas.com/api/v3";
+
+    console.log("Configuring webhook for environment:", ASAAS_ENVIRONMENT, "URL:", ASAAS_BASE_URL);
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/asaas-webhook`;
 
@@ -29,13 +32,21 @@ serve(async (req) => {
     });
     const listData = await listRes.json();
 
+    if (!listRes.ok) {
+        console.error("Erro ao listar webhooks Asaas:", listData);
+        return new Response(JSON.stringify({ error: "Erro ao listar webhooks no Asaas", details: listData }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+    }
+
     let webhookExists = false;
     if (listData.data) {
         webhookExists = listData.data.some((w: any) => w.url === webhookUrl);
     }
 
     if (webhookExists) {
-        return new Response(JSON.stringify({ message: "Webhook Asaas já configurado." }), {
+        return new Response(JSON.stringify({ message: "Webhook Asaas já configurado.", env: ASAAS_ENVIRONMENT }), {
             status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -44,7 +55,7 @@ serve(async (req) => {
     // 2. Criar webhook
     const webhookBody = {
       url: webhookUrl,
-      email: "financeiro@powercell.com.br", // Fallback email
+      email: "financeiro@powercell.com.br", 
       enabled: true,
       interrupted: false,
       apiVersion: 3,
@@ -80,7 +91,7 @@ serve(async (req) => {
         });
     }
 
-    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", data: createData }), {
+    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", data: createData, env: ASAAS_ENVIRONMENT }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
