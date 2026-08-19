@@ -12,31 +12,64 @@ serve(async (req) => {
 
   try {
     const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
-    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "production";
-    
-    // Test base URLs
-    const sandboxUrl = "https://sandbox.asaas.com/api/v3/customers?limit=1";
-    const prodUrl = "https://api.asaas.com/api/v3/customers?limit=1";
+    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "sandbox";
+    const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
-    console.log("Testing with ASAAS_API_KEY (partially hidden)");
+    if (!ASAAS_API_KEY || !ASAAS_WEBHOOK_TOKEN) {
+       return new Response(JSON.stringify({ error: "Missing ASAAS_API_KEY or ASAAS_WEBHOOK_TOKEN" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+    }
     
-    const prodRes = await fetch(prodUrl, {
-        headers: { access_token: ASAAS_API_KEY || "" }
-    });
-    const prodText = await prodRes.text();
-    
-    const sandRes = await fetch(sandboxUrl, {
-        headers: { access_token: ASAAS_API_KEY || "" }
-    });
-    const sandText = await sandRes.text();
+    // Explicit selection based on successful test
+    const ASAAS_BASE_URL = "https://sandbox.asaas.com/api/v3";
+    const webhookUrl = `${SUPABASE_URL}/functions/v1/asaas-webhook`;
 
-    return new Response(JSON.stringify({ 
-        env_config: ASAAS_ENVIRONMENT,
-        production: { status: prodRes.status, text: prodText },
-        sandbox: { status: sandRes.status, text: sandText }
-    }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    console.log(`Configuring webhook for environment: ${ASAAS_ENVIRONMENT} URL: ${ASAAS_BASE_URL}`);
+
+    const webhookBody = {
+      url: webhookUrl,
+      email: "financeiro@powercell.com.br", 
+      enabled: true,
+      interrupted: false,
+      apiVersion: 3,
+      authToken: ASAAS_WEBHOOK_TOKEN,
+      events: [
+        "PAYMENT_CONFIRMED",
+        "PAYMENT_RECEIVED",
+        "PAYMENT_REJECTED",
+        "PAYMENT_CANCELLED",
+        "PAYMENT_DELETED",
+        "PAYMENT_AWAITING_RISK_ANALYSIS",
+        "PAYMENT_APPROVED_BY_RISK_ANALYSIS",
+        "PAYMENT_REPROVED_BY_RISK_ANALYSIS"
+      ]
+    };
+
+    const createRes = await fetch(`${ASAAS_BASE_URL}/webhook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        access_token: ASAAS_API_KEY,
+      },
+      body: JSON.stringify(webhookBody),
+    });
+
+    const createText = await createRes.text();
+    console.log("Asaas create response text:", createText);
+
+    if (!createRes.ok) {
+        return new Response(JSON.stringify({ error: "Erro ao configurar webhook no Asaas", status: createRes.status, details: createText }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+    }
+
+    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", env: ASAAS_ENVIRONMENT, details: createText }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), {
