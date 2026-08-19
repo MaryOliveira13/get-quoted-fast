@@ -25,7 +25,9 @@ serve(async (req) => {
       customer_district, customer_city, customer_uf,
       brand, model, issue_description, services,
       shipping_option, repair_estimate_total,
+      order_id, tracking_token: existing_tracking_token,
     } = body;
+
 
     if (!cpf || !customer_name || !customer_phone || !brand || !model || !shipping_option) {
       return new Response(JSON.stringify({ error: "Campos obrigatórios faltando." }), {
@@ -63,18 +65,11 @@ serve(async (req) => {
       tracking_token,
     }).select("id, tracking_token").single();
 
-    if (error) {
-      console.error("Insert error:", error);
-      return new Response(JSON.stringify({ error: "Erro ao criar pedido.", details: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ order_id: data.id, tracking_token: data.tracking_token }), {
+    return new Response(JSON.stringify({ order_id: result.id, tracking_token: result.tracking_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (err) {
     console.error("order-create error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {

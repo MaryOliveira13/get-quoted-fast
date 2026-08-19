@@ -157,41 +157,53 @@ export default function ShippingRates() {
       if (!opt) throw new Error("Opção de frete não encontrada");
 
       const device = draft.devices?.[0];
+      const orderPayload = {
+        cpf: draft.cpf || "",
+        customer_name: draft.fullName || "",
+        customer_phone: draft.phone || "",
+        customer_email: draft.email || "",
+        customer_cep: draft.cep?.replace(/\D/g, "") || "",
+        customer_street: draft.street || "",
+        customer_number: draft.number || "",
+        customer_complement: draft.complement || "",
+        customer_district: draft.district || "",
+        customer_city: draft.city || "",
+        customer_uf: draft.uf || "",
+        brand: quote.brandName,
+        model: quote.modelName,
+        issue_description: device?.problem || "",
+        services: quote.services,
+        shipping_option: {
+          serviceId: opt.serviceId,
+          serviceName: opt.serviceName,
+          companyName: opt.companyName,
+          deliveryMinDays: opt.deliveryMinDays,
+          deliveryMaxDays: opt.deliveryMaxDays,
+          price: (opt.priceCents / 100).toFixed(2),
+        },
+        repair_estimate_total: quote.totalCents / 100,
+        order_id: draft.orderId,
+        tracking_token: draft.trackingToken,
+      };
+
+      console.log("Calling order-create with payload:", orderPayload);
 
       const { data: orderData, error: orderErr } = await supabase.functions.invoke("order-create", {
-        body: {
-          cpf: draft.cpf || "",
-          customer_name: draft.fullName || "",
-          customer_phone: draft.phone || "",
-          customer_email: draft.email || "",
-          customer_cep: draft.cep?.replace(/\D/g, "") || "",
-          customer_street: draft.street || "",
-          customer_number: draft.number || "",
-          customer_complement: draft.complement || "",
-          customer_district: draft.district || "",
-          customer_city: draft.city || "",
-          customer_uf: draft.uf || "",
-          brand: quote.brandName,
-          model: quote.modelName,
-          issue_description: device?.problem || "",
-          services: quote.services,
-          shipping_option: {
-            serviceId: opt.serviceId,
-            serviceName: opt.serviceName,
-            companyName: opt.companyName,
-            deliveryMinDays: opt.deliveryMinDays,
-            deliveryMaxDays: opt.deliveryMaxDays,
-            price: (opt.priceCents / 100).toFixed(2),
-          },
-          repair_estimate_total: quote.totalCents / 100,
-        },
+        body: orderPayload,
       });
+
 
       if (orderErr || !orderData?.order_id) {
         throw new Error(orderData?.error || "Erro ao criar pedido");
       }
 
-      navigate(`/envio/pagamento?order_id=${orderData.order_id}`);
+      updateShippingDraft({
+        orderId: orderData.order_id,
+        trackingToken: orderData.tracking_token
+      });
+
+      navigate(`/envio/pagamento?order_id=${orderData.order_id}&tracking_token=${orderData.tracking_token}`);
+
     } catch (err: any) {
       console.error("Payment error:", err);
       toast.error(err.message || "Erro ao processar pagamento");
