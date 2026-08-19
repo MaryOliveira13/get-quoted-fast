@@ -49,7 +49,7 @@ interface OrderData {
 export default function FreightPaid() {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
-  const trackingToken = searchParams.get("token");
+  const trackingToken = searchParams.get("tracking_token");
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -60,27 +60,32 @@ export default function FreightPaid() {
   const [retrying, setRetrying] = useState(false);
 
   const fetchOrder = useCallback(async () => {
-    if (!orderId) return;
-    
-    const query = supabase
-      .from("orders")
-      .select("*")
-      .eq("id", orderId);
-    
-    if (trackingToken) {
-      query.eq("tracking_token", trackingToken);
-    }
-
-    const { data, error: err } = await query.single();
-
-    if (err || !data) {
-      setError("Pedido não encontrado.");
-      setLoading(false);
+    if (!orderId || !trackingToken) {
+      if (!orderId) {
+        setError("ID do pedido não informado.");
+        setLoading(false);
+      }
       return;
     }
-    setOrder(data as unknown as OrderData);
-    setLoading(false);
-    return data;
+    
+    try {
+      const { data, error: err } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId, tracking_token: trackingToken }
+      });
+
+      if (err || !data) {
+        setError("Pedido não encontrado.");
+        setLoading(false);
+        return;
+      }
+      setOrder(data as unknown as OrderData);
+      setLoading(false);
+      return data;
+    } catch (err) {
+      console.error("Fetch order error:", err);
+      setError("Erro ao carregar pedido.");
+      setLoading(false);
+    }
   }, [orderId, trackingToken]);
 
   // On mount: fetch order
@@ -101,16 +106,9 @@ export default function FreightPaid() {
 
     const interval = setInterval(async () => {
       attempts++;
-      const query = supabase
-        .from("orders")
-        .select("label_status, label_url_pdf, label_url_png, tracking_code, freight_payment_status")
-        .eq("id", orderId!);
-      
-      if (trackingToken) {
-        query.eq("tracking_token", trackingToken);
-      }
-
-      const { data } = await query.single();
+      const { data } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId!, tracking_token: trackingToken! }
+      });
 
       if (data?.label_status === "generated") {
         setOrder((prev) =>
@@ -153,16 +151,9 @@ export default function FreightPaid() {
 
     const interval = setInterval(async () => {
       attempts++;
-      const query = supabase
-        .from("orders")
-        .select("freight_payment_status, label_status, label_url_pdf, label_url_png, tracking_code")
-        .eq("id", orderId!);
-      
-      if (trackingToken) {
-        query.eq("tracking_token", trackingToken);
-      }
-
-      const { data } = await query.single();
+      const { data } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId!, tracking_token: trackingToken! }
+      });
 
       if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
         setOrder((prev) =>
