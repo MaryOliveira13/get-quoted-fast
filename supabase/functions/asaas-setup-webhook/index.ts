@@ -23,8 +23,10 @@ serve(async (req) => {
         });
     }
     
-    // Explicit selection based on successful test
-    const ASAAS_BASE_URL = "https://sandbox.asaas.com/api/v3";
+    // Environment-based URL selection
+    const ASAAS_BASE_URL = ASAAS_ENVIRONMENT === "production" 
+      ? "https://api.asaas.com/v3" 
+      : "https://api-sandbox.asaas.com/v3";
     const webhookUrl = `${SUPABASE_URL}/functions/v1/asaas-webhook`;
 
     console.log(`Configuring webhook for environment: ${ASAAS_ENVIRONMENT} URL: ${ASAAS_BASE_URL}`);
