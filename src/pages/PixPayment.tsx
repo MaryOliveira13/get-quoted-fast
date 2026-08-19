@@ -1,50 +1,129 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { getShippingDraft, getQuoteDraft } from "@/lib/storage";
-import { buildPixPayload, copyToClipboard } from "@/lib/pix";
 import { formatBRL } from "@/lib/money";
-import { AlertCircle, Copy, CheckCircle } from "lucide-react";
+import { AlertCircle, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 export default function PixPayment() {
   const navigate = useNavigate();
-  const quote = getQuoteDraft();
-  const draft = getShippingDraft();
-  const [paid, setPaid] = useState(false);
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("order_id");
+  const trackingToken = searchParams.get("token");
 
-  const priceCents = draft.shippingPriceCents || 0;
-  const shippingType = draft.selectedShipping || "PAC";
+  const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState<any>(null);
+  const [pixData, setPixData] = useState<any>(null);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [polling, setPolling] = useState(false);
 
-  const pixPayload = useMemo(() => {
-    return buildPixPayload({
-      amountCents: priceCents,
-      referenceId: `PC-${Date.now()}`,
-    });
-  }, [priceCents]);
+  useEffect(() => {
+    if (!orderId) return;
+    fetchOrder();
+  }, [orderId]);
 
-  if (!quote || !priceCents) {
+  const fetchOrder = async () => {
+    setLoading(true);
+    const query = supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId!);
+    
+    if (trackingToken) {
+      query.eq("tracking_token", trackingToken);
+    }
+
+    const { data, error } = await query.single();
+
+    if (error || !data) {
+      toast.error("Pedido não encontrado");
+      setLoading(false);
+      return;
+    }
+
+    if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
+      navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+      return;
+    }
+
+    setOrder(data);
+    setLoading(false);
+    
+    // Auto-trigger Pix generation if order found
+    generatePix(data.id);
+  };
+
+  const generatePix = async (id: string) => {
+    setPixLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
+        body: { order_id: id, tracking_token: trackingToken },
+      });
+      if (error) throw error;
+      setPixData(data);
+      setPolling(true);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao gerar Pix");
+    }
+    setPixLoading(false);
+  };
+
+  // Poll for status
+  useEffect(() => {
+    if (!polling || !orderId) return;
+    const interval = setInterval(async () => {
+      const query = supabase
+        .from("orders")
+        .select("freight_payment_status")
+        .eq("id", orderId!);
+      
+      if (trackingToken) {
+        query.eq("tracking_token", trackingToken);
+      }
+
+      const { data } = await query.single();
+      if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
+        setPolling(false);
+        toast.success("Pagamento confirmado!");
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [polling, orderId, trackingToken, navigate]);
+
+  if (!orderId) {
     return (
       <div className="min-h-screen bg-background">
         <PageHeader title="Pagamento" backTo="/envio/frete" />
         <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
           <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">Dados de pagamento não encontrados.</p>
-          <Button variant="outline" onClick={() => navigate("/envio/frete")}>Voltar</Button>
+          <p className="text-lg font-semibold text-center">ID do pedido não informado.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PageHeader title="Pagamento" backTo="/envio/frete" />
+        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Carregando pedido…</p>
         </div>
       </div>
     );
   }
 
   const handleCopy = () => {
-    copyToClipboard(pixPayload).then(() => toast.success("Código Pix copiado!"));
-  };
-
-  const handlePaid = () => {
-    setPaid(true);
-    toast.success("Pagamento registrado! Entraremos em contato em breve.");
+    if (pixData?.qr_code) {
+      navigator.clipboard.writeText(pixData.qr_code);
+      toast.success("Código Pix copiado!");
+    }
   };
 
   return (
@@ -54,54 +133,58 @@ export default function PixPayment() {
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Valor do frete ({shippingType})
+            Valor do frete
           </p>
-          <p className="text-3xl font-bold">{formatBRL(priceCents)}</p>
+          <p className="text-3xl font-bold">{formatBRL(order.shipping_amount * 100)}</p>
         </div>
 
-        {/* QR Code */}
-        <div className="flex justify-center">
-          <div className="bg-white p-4 rounded-xl">
-            <QRCode value={pixPayload} size={200} />
+        {pixLoading ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
           </div>
-        </div>
-
-        {/* Copy code */}
-        <div className="rounded-xl border bg-card p-4 space-y-3">
-          <p className="text-sm font-semibold">Pix copia e cola</p>
-          <div className="bg-secondary rounded-lg p-3">
-            <p className="text-xs text-muted-foreground break-all font-mono">{pixPayload}</p>
-          </div>
-          <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopy}>
-            <Copy className="w-4 h-4" />
-            Copiar código Pix
-          </Button>
-        </div>
-
-        <p className="text-xs text-muted-foreground text-center">
-          ⏱ O QR Code expira em 30 minutos. Após o pagamento, clique em "Já paguei".
-        </p>
-      </main>
-
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t px-4 py-4">
-        <div className="max-w-lg mx-auto">
-          {paid ? (
-            <div className="flex items-center justify-center gap-2 text-whatsapp py-3">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-semibold">Pagamento registrado!</span>
+        ) : pixData ? (
+          <>
+            {/* QR Code */}
+            <div className="flex justify-center">
+              <div className="bg-white p-4 rounded-xl">
+                <img
+                  src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                  alt="QR Code Pix"
+                  className="w-[200px] h-[200px]"
+                />
+              </div>
             </div>
-          ) : (
-            <Button
-              variant="whatsapp"
-              size="lg"
-              className="w-full text-base"
-              onClick={handlePaid}
-            >
-              Já paguei
-            </Button>
-          )}
-        </div>
-      </div>
+
+            {/* Copy code */}
+            <div className="rounded-xl border bg-card p-4 space-y-3">
+              <p className="text-sm font-semibold">Pix copia e cola</p>
+              <div className="bg-secondary rounded-lg p-3">
+                <p className="text-xs text-muted-foreground break-all font-mono">
+                  {pixData.qr_code.length > 100 ? pixData.qr_code.slice(0, 100) + "..." : pixData.qr_code}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopy}>
+                <Copy className="w-4 h-4" />
+                Copiar código Pix
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 py-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Aguardando pagamento…</span>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              ⏱ O QR Code expira em breve. A confirmação é automática.
+            </p>
+          </>
+        ) : (
+          <div className="text-center py-10">
+             <Button onClick={() => generatePix(order.id)}>Tentar gerar Pix novamente</Button>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
