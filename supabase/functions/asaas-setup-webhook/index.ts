@@ -31,7 +31,8 @@ serve(async (req) => {
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/asaas-webhook`;
 
-    // 1. Listar webhooks existentes
+    // 1. Listar configurações de webhook para cobranças
+    // Asaas tem webhooks separados para diferentes recursos. O de pagamentos é /webhook
     const listRes = await fetch(`${ASAAS_BASE_URL}/webhook`, {
       headers: { access_token: ASAAS_API_KEY },
     });
@@ -39,36 +40,13 @@ serve(async (req) => {
     const listText = await listRes.text();
     console.log("Asaas list response text:", listText);
 
-    if (!listRes.ok) {
-        return new Response(JSON.stringify({ error: "Erro ao listar webhooks no Asaas", status: listRes.status, details: listText }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-    }
+    // Se for 404, talvez o endpoint esteja errado para este tipo de conta ou ambiente.
+    // Mas de acordo com a doc v3, /webhook (GET) retorna a configuração.
+    
+    // Se não conseguirmos listar, vamos tentar configurar diretamente via POST /webhook
+    // O Asaas permite apenas UMA configuração de webhook por tipo de evento global.
 
-    let listData;
-    try {
-        listData = JSON.parse(listText);
-    } catch (e) {
-        return new Response(JSON.stringify({ error: "Asaas API returned non-JSON response", details: listText }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-    }
-
-    let webhookExists = false;
-    if (listData.data) {
-        webhookExists = listData.data.some((w: any) => w.url === webhookUrl);
-    }
-
-    if (webhookExists) {
-        return new Response(JSON.stringify({ message: "Webhook Asaas já configurado.", env: ASAAS_ENVIRONMENT }), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-    }
-
-    // 2. Criar webhook
+    // 2. Criar/Atualizar configuração de webhook
     const webhookBody = {
       url: webhookUrl,
       email: "financeiro@powercell.com.br", 
@@ -107,7 +85,7 @@ serve(async (req) => {
         });
     }
 
-    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", env: ASAAS_ENVIRONMENT }), {
+    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", env: ASAAS_ENVIRONMENT, details: createText }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
