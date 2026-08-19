@@ -23,15 +23,28 @@ serve(async (req) => {
         });
     }
     
-    // In V3, the webhook configuration for payments is actually at /webhook (global)
-    // but some accounts/environments might use the newer structure.
-    // Let's try both /webhook and /webhooks
+    // In V3, global webhook configuration is /webhook.
+    // However, some versions of the API might be restricted by user permissions.
     
     const ASAAS_BASE_URL = ASAAS_ENVIRONMENT === "sandbox"
         ? "https://sandbox.asaas.com/api/v3"
         : "https://api.asaas.com/api/v3";
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/asaas-webhook`;
+
+    // Let's try to verify if the key is valid first by fetching profile or customers
+    const profileRes = await fetch(`${ASAAS_BASE_URL}/customers?limit=1`, {
+        headers: { access_token: ASAAS_API_KEY }
+    });
+    const profileText = await profileRes.text();
+    console.log("Profile check status:", profileRes.status, profileText);
+
+    if (!profileRes.ok) {
+        return new Response(JSON.stringify({ error: "API Key inválida ou ambiente incorreto", status: profileRes.status, details: profileText }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+    }
 
     const webhookBody = {
       url: webhookUrl,
@@ -49,7 +62,7 @@ serve(async (req) => {
       ]
     };
 
-    // Try /webhook first
+    // Try /webhook
     console.log(`Attempting /webhook for environment: ${ASAAS_ENVIRONMENT}`);
     const res1 = await fetch(`${ASAAS_BASE_URL}/webhook`, {
       method: "POST",
@@ -70,30 +83,23 @@ serve(async (req) => {
         });
     }
 
-    // If 404, try /webhooks
-    if (res1.status === 404) {
-        console.log(`Attempting /webhooks for environment: ${ASAAS_ENVIRONMENT}`);
-        const res2 = await fetch(`${ASAAS_BASE_URL}/webhooks`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            access_token: ASAAS_API_KEY,
-          },
-          body: JSON.stringify(webhookBody),
-        });
-        const text2 = await res2.text();
-        console.log("/webhooks response:", res2.status, text2);
-        
-        if (res2.ok) {
-            return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", path: "/webhooks", env: ASAAS_ENVIRONMENT }), {
-              status: 200,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
-        
-        return new Response(JSON.stringify({ error: "Erro ao configurar webhook no Asaas", status: res2.status, details: text2 }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Try /webhook/setting (another common pattern in some Asaas API versions)
+    console.log(`Attempting /webhook/setting for environment: ${ASAAS_ENVIRONMENT}`);
+    const res2 = await fetch(`${ASAAS_BASE_URL}/webhook/setting`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        access_token: ASAAS_API_KEY,
+      },
+      body: JSON.stringify(webhookBody),
+    });
+    const text2 = await res2.text();
+    console.log("/webhook/setting response:", res2.status, text2);
+    
+    if (res2.ok) {
+        return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", path: "/webhook/setting", env: ASAAS_ENVIRONMENT }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     }
 
