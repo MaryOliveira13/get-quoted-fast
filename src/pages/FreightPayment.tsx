@@ -67,7 +67,7 @@ export default function FreightPayment() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orderId = searchParams.get("order_id");
-  const trackingToken = searchParams.get("token");
+  const trackingToken = searchParams.get("tracking_token");
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,38 +94,38 @@ export default function FreightPayment() {
 
   // Fetch order
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !trackingToken) {
+      if (!orderId) setLoading(false);
+      return;
+    }
+    
     (async () => {
-      // Use RPC or public-order-status logic to bypass RLS safely
-      // For now, if we have a tracking_token, we can attempt a restricted fetch
-      // or use the specific Edge Function if it existed.
-      // Based on audit, we need to adapt the old fetch to the new security:
-      const query = supabase
-        .from("orders")
-        .select("*")
-        .eq("id", orderId);
-      
-      if (trackingToken) {
-        query.eq("tracking_token", trackingToken);
-      }
+      try {
+        const { data, error } = await supabase.functions.invoke("public-order-status", {
+          body: { order_id: orderId, tracking_token: trackingToken }
+        });
 
-      const { data, error } = await query.single();
+        if (error || !data) {
+          console.error("Error fetching order:", error);
+          toast.error("Pedido não encontrado");
+          setLoading(false);
+          return;
+        }
 
-      if (error || !data) {
-        toast.error("Pedido não encontrado");
+        if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
+          navigate(`/frete-pago?order_id=${orderId}&tracking_token=${trackingToken}`, { replace: true });
+          return;
+        }
+
+        setOrder(data as unknown as OrderData);
+        setCardCpf(data.cpf?.replace(/\D/g, "") || "");
+        setCardHolder(data.customer_name || "");
+      } catch (err) {
+        console.error("Public order status call failed:", err);
+        toast.error("Erro ao carregar pedido");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`, { replace: true });
-        return;
-      }
-
-      setOrder(data as unknown as OrderData);
-      setCardCpf(data.cpf?.replace(/\D/g, "") || "");
-      setCardHolder(data.customer_name || "");
-      setLoading(false);
     })();
   }, [orderId, trackingToken, navigate]);
 
@@ -137,22 +137,15 @@ export default function FreightPayment() {
 
     const interval = setInterval(async () => {
       attempts++;
-      const query = supabase
-        .from("orders")
-        .select("freight_payment_status")
-        .eq("id", orderId);
-      
-      if (trackingToken) {
-        query.eq("tracking_token", trackingToken);
-      }
-
-      const { data } = await query.single();
+      const { data, error } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId, tracking_token: trackingToken }
+      });
 
       if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
         clearInterval(interval);
         setPixPolling(false);
         toast.success("Pagamento confirmado!");
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+        navigate(`/frete-pago?order_id=${orderId}&tracking_token=${trackingToken}`);
       }
 
       if (data?.freight_payment_status === "rejected") {
@@ -221,12 +214,12 @@ export default function FreightPayment() {
 
       if (data.status === "approved") {
         toast.success("Pagamento aprovado!");
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+        navigate(`/frete-pago?order_id=${orderId}&tracking_token=${trackingToken}`);
       } else if (data.status === "rejected") {
         toast.error("Pagamento não autorizado. Revise os dados ou tente outro cartão.");
       } else {
         toast.info("Pagamento em análise. Aguarde a confirmação.");
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+        navigate(`/frete-pago?order_id=${orderId}&tracking_token=${trackingToken}`);
       }
     } catch (err: any) {
       console.error("Card payment error:", err);
