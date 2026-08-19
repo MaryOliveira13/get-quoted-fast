@@ -36,21 +36,21 @@ serve(async (req) => {
       headers: { access_token: ASAAS_API_KEY },
     });
     
-    let listData;
     const listText = await listRes.text();
-    try {
-        listData = JSON.parse(listText);
-    } catch (e) {
-        console.error("Failed to parse Asaas list response:", listText);
-        return new Response(JSON.stringify({ error: "Asaas API returned non-JSON response", details: listText }), {
+    console.log("Asaas list response text:", listText);
+
+    if (!listRes.ok) {
+        return new Response(JSON.stringify({ error: "Erro ao listar webhooks no Asaas", status: listRes.status, details: listText }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     }
 
-    if (!listRes.ok) {
-        console.error("Erro ao listar webhooks Asaas:", listData);
-        return new Response(JSON.stringify({ error: "Erro ao listar webhooks no Asaas", details: listData }), {
+    let listData;
+    try {
+        listData = JSON.parse(listText);
+    } catch (e) {
+        return new Response(JSON.stringify({ error: "Asaas API returned non-JSON response", details: listText }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -98,26 +98,16 @@ serve(async (req) => {
     });
 
     const createText = await createRes.text();
-    let createData;
-    try {
-        createData = JSON.parse(createText);
-    } catch (e) {
-        console.error("Failed to parse Asaas create response:", createText);
-        return new Response(JSON.stringify({ error: "Asaas API returned non-JSON response on create", details: createText }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-    }
+    console.log("Asaas create response text:", createText);
 
     if (!createRes.ok) {
-        console.error("Erro ao configurar webhook Asaas:", createData);
-        return new Response(JSON.stringify({ error: "Erro ao configurar webhook no Asaas", details: createData }), {
+        return new Response(JSON.stringify({ error: "Erro ao configurar webhook no Asaas", status: createRes.status, details: createText }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
     }
 
-    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", data: createData, env: ASAAS_ENVIRONMENT }), {
+    return new Response(JSON.stringify({ message: "Webhook Asaas configurado com sucesso!", env: ASAAS_ENVIRONMENT }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
