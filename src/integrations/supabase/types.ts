@@ -192,6 +192,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          asaas_customer_id: string | null
           brand: string
           cpf: string
           created_at: string
@@ -228,6 +229,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          asaas_customer_id?: string | null
           brand: string
           cpf: string
           created_at?: string
@@ -264,6 +266,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          asaas_customer_id?: string | null
           brand?: string
           cpf?: string
           created_at?: string
