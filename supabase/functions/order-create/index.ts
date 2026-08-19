@@ -30,10 +30,7 @@ serve(async (req) => {
 
     const shipping_amount = parseFloat(shipping_option.price || shipping_option.priceCents / 100 || 0);
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const tracking_token = crypto.randomUUID();
 
     const { data, error } = await supabase.from("orders").insert({
       cpf,
@@ -56,8 +53,9 @@ serve(async (req) => {
       repair_estimate_total: repair_estimate_total || 0,
       freight_payment_status: "pending",
       label_status: "pending",
-      payment_provider: "mercadopago",
-    }).select("id").single();
+      payment_provider: "asaas",
+      tracking_token,
+    }).select("id, tracking_token").single();
 
     if (error) {
       console.error("Insert error:", error);
@@ -67,7 +65,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ order_id: data.id }), {
+    return new Response(JSON.stringify({ order_id: data.id, tracking_token: data.tracking_token }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
