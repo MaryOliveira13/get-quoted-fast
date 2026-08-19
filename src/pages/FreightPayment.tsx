@@ -508,13 +508,13 @@ export default function FreightPayment() {
               ) : (
                 <>
                   <CreditCard className="w-5 h-5" />
-                  Pagar {formatBRL(amountCents)}
+                  Pagar {formatBRL(order.shipping_amount * 100)}
                 </>
               )}
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              🔒 Pagamento seguro via Mercado Pago
+              🔒 Pagamento seguro via Asaas
             </p>
           </div>
         )}
