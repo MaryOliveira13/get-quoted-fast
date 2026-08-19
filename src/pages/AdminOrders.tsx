@@ -202,7 +202,7 @@ export default function AdminOrders() {
                 </p>
                 <div className="flex justify-between items-center mt-2">
                   <span className="text-xs text-muted-foreground">
-                    {p.frete_nome ? `${p.frete_nome}: R$ ${(p.frete_valor || 0).toFixed(2).replace(".", ",")}` : "Frete: --"}
+                    {p.frete_nome ? `${p.frete_nome}: R$ ${(p.frete_valor || 0).toFixed(2).replace(".", ",")}` : "Frete: --"} (Asaas)
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR") : ""}

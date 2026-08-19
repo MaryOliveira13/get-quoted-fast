@@ -45,7 +45,7 @@ function getCarrierLogo(companyName: string): string | undefined {
   return undefined;
 }
 
-const MP_PUBLIC_KEY = "APP_USR-e2e243db-9d24-4a51-9dff-4d71a199fa98";
+const ASAAS_ENVIRONMENT = "sandbox"; // Will be used in backend calls, but useful to keep track here
 
 interface OrderData {
   id: string;
@@ -89,23 +89,8 @@ export default function FreightPayment() {
   const [cardHolder, setCardHolder] = useState("");
   const [cardCpf, setCardCpf] = useState("");
 
-  const mpRef = useRef<any>(null);
-  const sdkLoaded = useRef(false);
+  // MercadoPago references removed as we are switching to Asaas via backend
 
-  // Load MercadoPago SDK
-  useEffect(() => {
-    if (sdkLoaded.current) return;
-    const script = document.createElement("script");
-    script.src = "https://sdk.mercadopago.com/js/v2";
-    script.onload = () => {
-      sdkLoaded.current = true;
-      mpRef.current = new (window as any).MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
-    };
-    document.body.appendChild(script);
-    return () => {
-      // Don't remove script on unmount since SDK is global
-    };
-  }, []);
 
   // Fetch order
   useEffect(() => {
@@ -190,11 +175,10 @@ export default function FreightPayment() {
     setPixLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("mercadopago-create-payment", {
+      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
         body: {
           order_id: orderId,
-          payment_type: "pix",
-          payer_email: order?.customer_email || undefined,
+          tracking_token: trackingToken,
         },
       });
 
@@ -213,72 +197,36 @@ export default function FreightPayment() {
 
   const handleCardPayment = async () => {
     if (!orderId || !order) return;
-    if (!mpRef.current) {
-      toast.error("SDK do Mercado Pago não carregou. Recarregue a página.");
-      return;
-    }
-
+    
     setCardLoading(true);
 
     try {
-      // Create card token
-      const tokenData = await mpRef.current.createCardToken({
-        cardNumber: cardNumber.replace(/\s/g, ""),
-        cardholderName: cardHolder,
-        cardExpirationMonth: cardExpMonth,
-        cardExpirationYear: cardExpYear.length === 2 ? `20${cardExpYear}` : cardExpYear,
-        securityCode: cardCvv,
-        identificationType: "CPF",
-        identificationNumber: cardCpf.replace(/\D/g, ""),
-      });
-
-      if (!tokenData?.id) {
-        throw new Error("Erro ao tokenizar cartão. Verifique os dados.");
-      }
-
-      // Get payment method info
-      const bin = cardNumber.replace(/\s/g, "").slice(0, 6);
-      let paymentMethodId = "visa";
-      let issuerId = "";
-
-      try {
-        const pmRes = await fetch(
-          `https://api.mercadopago.com/v1/payment_methods/search?public_key=${MP_PUBLIC_KEY}&bin=${bin}&marketplace=NONE`
-        );
-        const pmData = await pmRes.json();
-        if (pmData.results?.[0]) {
-          paymentMethodId = pmData.results[0].id;
-          issuerId = pmData.results[0].issuer?.id || "";
-        }
-      } catch {
-        // fallback to defaults
-      }
-
-      const { data, error } = await supabase.functions.invoke("mercadopago-create-payment", {
+      const { data, error } = await supabase.functions.invoke("asaas-pay-credit-card", {
         body: {
           order_id: orderId,
-          payment_type: "credit_card",
-          token: tokenData.id,
-          payment_method_id: paymentMethodId,
-          issuer_id: issuerId,
-          installments: 1,
-          payer_email: order.customer_email || undefined,
+          tracking_token: trackingToken,
+          card_data: {
+            holderName: cardHolder,
+            number: cardNumber,
+            expiryMonth: cardExpMonth,
+            expiryYear: cardExpYear.length === 2 ? `20${cardExpYear}` : cardExpYear,
+            ccv: cardCvv,
+            holderCpf: cardCpf,
+          },
         },
       });
 
       if (error) throw new Error("Erro ao processar pagamento");
-      if (data?.error) throw new Error(data.details || data.error);
+      if (data?.error) throw new Error(data.error);
 
       if (data.status === "approved") {
         toast.success("Pagamento aprovado!");
         navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
       } else if (data.status === "rejected") {
-        toast.error(`Pagamento rejeitado: ${data.status_detail || "verifique os dados do cartão"}`);
-      } else if (data.status === "in_process") {
-        toast.info("Pagamento em processamento. Aguarde...");
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+        toast.error("Pagamento não autorizado. Revise os dados ou tente outro cartão.");
       } else {
-        toast.error("Status inesperado: " + data.status);
+        toast.info("Pagamento em análise. Aguarde a confirmação.");
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
       }
     } catch (err: any) {
       console.error("Card payment error:", err);
@@ -365,7 +313,7 @@ export default function FreightPayment() {
           </div>
           <div className="border-t pt-3 flex justify-between items-center">
             <span className="text-sm font-semibold">Valor do frete:</span>
-            <span className="text-xl font-bold">{formatBRL(amountCents)}</span>
+            <span className="text-xl font-bold">{formatBRL(order.shipping_amount * 100)}</span>
           </div>
           <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-2">
             ⚠️ Você está pagando apenas o frete de envio. O valor do conserto será combinado após análise técnica.
@@ -421,7 +369,7 @@ export default function FreightPayment() {
                   ) : (
                     <>
                       <QrCode className="w-5 h-5" />
-                      Gerar QR Code Pix
+                      Pagar {formatBRL(order.shipping_amount * 100)} no Pix
                     </>
                   )}
                 </Button>
