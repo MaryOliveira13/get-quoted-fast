@@ -27,7 +27,10 @@ export interface ShippingDraft {
   shippingOptionName?: string;
   cartItemId?: string;
   printUrl?: string;
+  orderId?: string;
+  trackingToken?: string;
 }
+
 
 export interface DeviceData {
   type: string;
