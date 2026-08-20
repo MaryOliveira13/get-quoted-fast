@@ -55,9 +55,9 @@ serve(async (req) => {
 
     // Mapear status Asaas para Power Cell
     let freightStatus = "pending";
-    if (body.event === "PAYMENT_CONFIRMED" || body.event === "PAYMENT_RECEIVED") {
+    if (body.event === "PAYMENT_CONFIRMED" || body.event === "PAYMENT_RECEIVED" || body.event === "PAYMENT_APPROVED_BY_RISK_ANALYSIS") {
       freightStatus = "approved";
-    } else if (body.event === "PAYMENT_REJECTED") {
+    } else if (body.event === "PAYMENT_REJECTED" || body.event === "PAYMENT_REPROVED_BY_RISK_ANALYSIS" || body.event === "PAYMENT_CREDIT_CARD_CAPTURE_REFUSED") {
       freightStatus = "rejected";
     } else if (body.event === "PAYMENT_DELETED" || body.event === "PAYMENT_CANCELLED") {
       freightStatus = "cancelled";

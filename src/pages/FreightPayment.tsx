@@ -72,6 +72,7 @@ export default function FreightPayment() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"pix" | "card">("pix");
+  const [cardType, setCardType] = useState<"credit" | "debit">("credit");
 
   // Pix state
   const [pixLoading, setPixLoading] = useState(false);
@@ -88,6 +89,7 @@ export default function FreightPayment() {
   const [cardCvv, setCardCvv] = useState("");
   const [cardHolder, setCardHolder] = useState("");
   const [cardCpf, setCardCpf] = useState("");
+  const [installments, setInstallments] = useState("1");
 
   // MercadoPago references removed as we are switching to Asaas via backend
 
@@ -198,6 +200,7 @@ export default function FreightPayment() {
         body: {
           order_id: orderId,
           tracking_token: trackingToken,
+          installments: parseInt(installments),
           card_data: {
             holderName: cardHolder,
             number: cardNumber,
@@ -224,6 +227,33 @@ export default function FreightPayment() {
     } catch (err: any) {
       console.error("Card payment error:", err);
       toast.error(err.message || "Erro ao processar pagamento");
+    }
+    setCardLoading(false);
+  };
+
+  const handleDebitPayment = async () => {
+    if (!orderId) return;
+    setCardLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
+        body: {
+          order_id: orderId,
+          tracking_token: trackingToken,
+          billing_type: "DEBIT_CARD",
+        },
+      });
+
+      if (error) throw new Error("Erro ao criar pagamento");
+      if (data?.error) throw new Error(data.error);
+
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl;
+      } else {
+        throw new Error("URL de checkout não retornada");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao iniciar pagamento no débito");
     }
     setCardLoading(false);
   };
@@ -412,103 +442,153 @@ export default function FreightPayment() {
 
         {/* CARD */}
         {tab === "card" && (
-          <div className="rounded-xl border bg-card p-5 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="card-number">Número do cartão</Label>
-              <Input
-                id="card-number"
-                placeholder="0000 0000 0000 0000"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                maxLength={19}
-              />
+          <div className="space-y-4">
+             {/* Card selection (Credit/Debit) */}
+            <div className="flex gap-4 p-1 bg-secondary rounded-lg">
+              <button
+                onClick={() => setCardType("credit")}
+                className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
+                  cardType === "credit" ? "bg-background shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                CRÉDITO
+              </button>
+              <button
+                onClick={() => setCardType("debit")}
+                className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
+                  cardType === "debit" ? "bg-background shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                DÉBITO
+              </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="card-exp-month">Mês</Label>
-                <Input
-                  id="card-exp-month"
-                  placeholder="MM"
-                  value={cardExpMonth}
-                  onChange={(e) => setCardExpMonth(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                  maxLength={2}
-                />
+            {cardType === "credit" ? (
+              <div className="rounded-xl border bg-card p-5 space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="card-number">Número do cartão</Label>
+                  <Input
+                    id="card-number"
+                    placeholder="0000 0000 0000 0000"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    maxLength={19}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="card-exp-month">Mês</Label>
+                    <Input
+                      id="card-exp-month"
+                      placeholder="MM"
+                      value={cardExpMonth}
+                      onChange={(e) => setCardExpMonth(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                      maxLength={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="card-exp-year">Ano</Label>
+                    <Input
+                      id="card-exp-year"
+                      placeholder="AA"
+                      value={cardExpYear}
+                      onChange={(e) => setCardExpYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      maxLength={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="card-cvv">CVV</Label>
+                    <Input
+                      id="card-cvv"
+                      placeholder="123"
+                      value={cardCvv}
+                      onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      maxLength={4}
+                      type="password"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="card-holder">Nome no cartão</Label>
+                  <Input
+                    id="card-holder"
+                    placeholder="NOME COMO NO CARTÃO"
+                    value={cardHolder}
+                    onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="card-cpf">CPF do titular</Label>
+                  <Input
+                    id="card-cpf"
+                    placeholder="000.000.000-00"
+                    value={cardCpf}
+                    onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="installments">Parcelas</Label>
+                  <select
+                    id="installments"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={installments}
+                    onChange={(e) => setInstallments(e.target.value)}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => {
+                      const val = order.shipping_amount / i;
+                      if (i > 1 && val < 5) return null; // Minimum installment check
+                      return (
+                        <option key={i} value={i}>
+                          {i}x de {formatBRL(val * 100)} sem juros
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="w-full text-base gap-2"
+                  onClick={handleCardPayment}
+                  disabled={cardLoading}
+                >
+                  {cardLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processando…
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5" />
+                      Pagar {formatBRL(order.shipping_amount * 100)}
+                    </>
+                  )}
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="card-exp-year">Ano</Label>
-                <Input
-                  id="card-exp-year"
-                  placeholder="AA"
-                  value={cardExpYear}
-                  onChange={(e) => setCardExpYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  maxLength={4}
-                />
+            ) : (
+              <div className="rounded-xl border bg-card p-5 text-center space-y-4">
+                <CreditCard className="w-12 h-12 mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground px-4">
+                  Pagamento em cartão de débito será concluído no ambiente seguro do Asaas.
+                </p>
+                <Button
+                  size="lg"
+                  className="w-full text-base gap-2"
+                  onClick={handleDebitPayment}
+                  disabled={cardLoading}
+                >
+                  {cardLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Continuar com cartão de débito"
+                  )}
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="card-cvv">CVV</Label>
-                <Input
-                  id="card-cvv"
-                  placeholder="123"
-                  value={cardCvv}
-                  onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  maxLength={4}
-                  type="password"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="card-holder">Nome no cartão</Label>
-              <Input
-                id="card-holder"
-                placeholder="NOME COMO NO CARTÃO"
-                value={cardHolder}
-                onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="card-cpf">CPF do titular</Label>
-              <Input
-                id="card-cpf"
-                placeholder="000.000.000-00"
-                value={cardCpf}
-                onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                maxLength={14}
-              />
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full text-base gap-2"
-              onClick={handleCardPayment}
-              disabled={
-                cardLoading ||
-                cardNumber.replace(/\s/g, "").length < 13 ||
-                !cardExpMonth ||
-                !cardExpYear ||
-                cardCvv.length < 3 ||
-                !cardHolder ||
-                cardCpf.length < 11
-              }
-            >
-              {cardLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processando…
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5" />
-                  Pagar {formatBRL(order.shipping_amount * 100)}
-                </>
-              )}
-            </Button>
-
-            <p className="text-xs text-muted-foreground text-center">
-              🔒 Pagamento seguro via Asaas
-            </p>
+            )}
           </div>
         )}
       </main>

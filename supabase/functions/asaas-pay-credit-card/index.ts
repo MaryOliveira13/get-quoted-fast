@@ -18,6 +18,7 @@ serve(async (req) => {
       order_id,
       tracking_token,
       card_data,
+      installments,
     } = body;
 
     if (!order_id || !card_data) {
@@ -99,11 +100,9 @@ serve(async (req) => {
 
     // 3. Criar cobrança via Cartão de Crédito
     const dueDate = new Date().toISOString().split("T")[0];
-    
-    // Obter IP do pagador (via headers da Edge Function)
     const remoteIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
 
-    const paymentBody = {
+    const paymentBody: any = {
       customer: asaasCustomerId,
       billingType: "CREDIT_CARD",
       value: amount,
@@ -128,6 +127,13 @@ serve(async (req) => {
       remoteIp: remoteIp,
     };
 
+    // Adicionar parcelamento se selecionado (> 1)
+    if (installments && installments > 1) {
+      paymentBody.installmentCount = installments;
+      paymentBody.totalValue = amount;
+      delete paymentBody.value; // totalValue é usado em parcelamentos
+    }
+
     const createPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
       method: "POST",
       headers: {
@@ -148,6 +154,7 @@ serve(async (req) => {
             payment_id: paymentData.id, 
             status: paymentData.status, 
             billingType: "CREDIT_CARD",
+            installments: installments,
             errors: paymentData.errors 
         }
     });
@@ -171,7 +178,6 @@ serve(async (req) => {
             freight_payment_status: "approved",
         }).eq("id", order_id);
 
-        // Disparar etiqueta
         try {
             fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-label`, {
                 method: "POST",
@@ -189,7 +195,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         payment_id: paymentData.id,
-        status: paymentData.status === "CONFIRMED" || paymentData.status === "RECEIVED" ? "approved" : "pending",
+        status: paymentData.status === "CONFIRMED" || paymentData.status === "RECEIVED" ? "approved" : 
+                (paymentData.status === "AWAITING_RISK_ANALYSIS" ? "pending" : "pending"),
         details: paymentData.status,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

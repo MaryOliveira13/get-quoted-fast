@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { order_id, tracking_token } = await req.json();
+    const { order_id, tracking_token, billing_type } = await req.json();
 
     if (!order_id) {
       return new Response(
@@ -47,7 +47,6 @@ serve(async (req) => {
       });
     }
 
-    // Se fornecido tracking_token, validar
     if (tracking_token && order.tracking_token !== tracking_token) {
       return new Response(JSON.stringify({ error: "Token inválido" }), {
         status: 403,
@@ -74,7 +73,6 @@ serve(async (req) => {
     let asaasCustomerId = order.asaas_customer_id;
 
     if (!asaasCustomerId) {
-      // Buscar por email no Asaas primeiro para evitar duplicatas
       const searchRes = await fetch(`${ASAAS_BASE_URL}/customers?email=${encodeURIComponent(order.customer_email || "")}`, {
         headers: { access_token: ASAAS_API_KEY },
       });
@@ -83,13 +81,12 @@ serve(async (req) => {
       if (searchData.data && searchData.data.length > 0) {
         asaasCustomerId = searchData.data[0].id;
       } else {
-        // Criar novo cliente
         const customerBody = {
           name: order.customer_name || "Cliente Power Cell",
           email: order.customer_email || undefined,
           cpfCnpj: order.cpf?.replace(/\D/g, "") || undefined,
           mobilePhone: order.customer_phone?.replace(/\D/g, "") || undefined,
-          notificationDisabled: false,
+          notificationDisabled: true,
         };
 
         const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
@@ -109,34 +106,40 @@ serve(async (req) => {
         asaasCustomerId = customerData.id;
       }
 
-      // Salvar asaas_customer_id no pedido
       await supabase
         .from("orders")
         .update({ asaas_customer_id: asaasCustomerId })
         .eq("id", order_id);
     }
 
-    // 3. Verificar se já existe cobrança PIX pendente para este pedido
+    const type = billing_type || "PIX";
+
+    // 3. Verificar se já existe cobrança pendente para este pedido e tipo
     if (order.payment_id && order.payment_provider === "asaas") {
         const checkPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments/${order.payment_id}`, {
             headers: { access_token: ASAAS_API_KEY },
         });
         if (checkPaymentRes.ok) {
             const paymentData = await checkPaymentRes.json();
-            if (paymentData.billingType === "PIX" && paymentData.status === "PENDING") {
-                // Reutilizar e buscar QR Code
-                const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
-                    headers: { access_token: ASAAS_API_KEY },
-                });
-                const qrData = await qrRes.json();
-                
-                return new Response(JSON.stringify({
+            if (paymentData.billingType === type && paymentData.status === "PENDING") {
+                // Reutilizar
+                let responseData: any = {
                     payment_id: paymentData.id,
-                    qr_code_base64: qrData.encodedImage,
-                    qr_code: qrData.payload,
+                    status: paymentData.status,
                     expirationDate: paymentData.dueDate,
-                    status: paymentData.status
-                }), {
+                    invoiceUrl: paymentData.invoiceUrl,
+                };
+
+                if (type === "PIX") {
+                    const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
+                        headers: { access_token: ASAAS_API_KEY },
+                    });
+                    const qrData = await qrRes.json();
+                    responseData.qr_code_base64 = qrData.encodedImage;
+                    responseData.qr_code = qrData.payload;
+                }
+                
+                return new Response(JSON.stringify(responseData), {
                     status: 200,
                     headers: { ...corsHeaders, "Content-Type": "application/json" },
                 });
@@ -144,14 +147,14 @@ serve(async (req) => {
         }
     }
 
-    // 4. Criar cobrança PIX
+    // 4. Criar cobrança
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 1); // 1 dia de validade
+    dueDate.setDate(dueDate.getDate() + 1);
 
     const paymentBody = {
       customer: asaasCustomerId,
-      billingType: "PIX",
-      value: amount, // Asaas usa valor real, não centavos
+      billingType: type,
+      value: amount,
       dueDate: dueDate.toISOString().split("T")[0],
       externalReference: order_id,
       description: `Frete Power Cell - ${order.brand} ${order.model}`,
@@ -176,11 +179,22 @@ serve(async (req) => {
       });
     }
 
-    // 5. Buscar QR Code
-    const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
-      headers: { access_token: ASAAS_API_KEY },
-    });
-    const qrData = await qrRes.json();
+    let responseData: any = {
+      payment_id: paymentData.id,
+      status: paymentData.status,
+      expirationDate: paymentData.dueDate,
+      invoiceUrl: paymentData.invoiceUrl,
+    };
+
+    // 5. Se for PIX, buscar QR Code
+    if (type === "PIX") {
+      const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
+        headers: { access_token: ASAAS_API_KEY },
+      });
+      const qrData = await qrRes.json();
+      responseData.qr_code_base64 = qrData.encodedImage;
+      responseData.qr_code = qrData.payload;
+    }
 
     // 6. Atualizar pedido
     await supabase
@@ -193,13 +207,7 @@ serve(async (req) => {
       .eq("id", order_id);
 
     return new Response(
-      JSON.stringify({
-        payment_id: paymentData.id,
-        qr_code_base64: qrData.encodedImage,
-        qr_code: qrData.payload,
-        expirationDate: paymentData.dueDate,
-        status: paymentData.status,
-      }),
+      JSON.stringify(responseData),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
