@@ -591,43 +591,6 @@ export default function FreightPayment() {
             )}
           </div>
         )}
-                onChange={(e) => setCardCpf(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                maxLength={14}
-              />
-            </div>
-
-            <Button
-              size="lg"
-              className="w-full text-base gap-2"
-              onClick={handleCardPayment}
-              disabled={
-                cardLoading ||
-                cardNumber.replace(/\s/g, "").length < 13 ||
-                !cardExpMonth ||
-                !cardExpYear ||
-                cardCvv.length < 3 ||
-                !cardHolder ||
-                cardCpf.length < 11
-              }
-            >
-              {cardLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processando…
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5" />
-                  Pagar {formatBRL(order.shipping_amount * 100)}
-                </>
-              )}
-            </Button>
-
-            <p className="text-xs text-muted-foreground text-center">
-              🔒 Pagamento seguro via Asaas
-            </p>
-          </div>
-        )}
       </main>
     </div>
   );
