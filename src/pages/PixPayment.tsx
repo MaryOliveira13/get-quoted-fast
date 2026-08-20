@@ -13,7 +13,7 @@ export default function PixPayment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("order_id");
-  const trackingToken = searchParams.get("token");
+  const trackingToken = searchParams.get("token") || searchParams.get("tracking_token");
 
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
@@ -28,33 +28,32 @@ export default function PixPayment() {
 
   const fetchOrder = async () => {
     setLoading(true);
-    const query = supabase
-      .from("orders")
-      .select("*")
-      .eq("id", orderId!);
-    
-    if (trackingToken) {
-      query.eq("tracking_token", trackingToken);
-    }
+    try {
+      const { data, error } = await supabase.functions.invoke("public-order-status", {
+        body: { order_id: orderId, tracking_token: trackingToken }
+      });
 
-    const { data, error } = await query.single();
+      if (error || !data) {
+        toast.error("Pedido não encontrado");
+        setLoading(false);
+        return;
+      }
 
-    if (error || !data) {
-      toast.error("Pedido não encontrado");
+      if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
+        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&tracking_token=${trackingToken}` : ""}`);
+        return;
+      }
+
+      setOrder(data);
       setLoading(false);
-      return;
+      
+      // Auto-trigger Pix generation if order found
+      generatePix(data.id);
+    } catch (err) {
+      console.error("Public order status call failed:", err);
+      toast.error("Erro ao carregar pedido");
+      setLoading(false);
     }
-
-    if (data.freight_payment_status === "approved" || data.freight_payment_status === "paid") {
-      navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
-      return;
-    }
-
-    setOrder(data);
-    setLoading(false);
-    
-    // Auto-trigger Pix generation if order found
-    generatePix(data.id);
   };
 
   const generatePix = async (id: string) => {
@@ -76,20 +75,17 @@ export default function PixPayment() {
   useEffect(() => {
     if (!polling || !orderId) return;
     const interval = setInterval(async () => {
-      const query = supabase
-        .from("orders")
-        .select("freight_payment_status")
-        .eq("id", orderId!);
-      
-      if (trackingToken) {
-        query.eq("tracking_token", trackingToken);
-      }
-
-      const { data } = await query.single();
-      if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
-        setPolling(false);
-        toast.success("Pagamento confirmado!");
-        navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&token=${trackingToken}` : ""}`);
+      try {
+        const { data } = await supabase.functions.invoke("public-order-status", {
+          body: { order_id: orderId, tracking_token: trackingToken }
+        });
+        if (data?.freight_payment_status === "approved" || data?.freight_payment_status === "paid") {
+          setPolling(false);
+          toast.success("Pagamento confirmado!");
+          navigate(`/frete-pago?order_id=${orderId}${trackingToken ? `&tracking_token=${trackingToken}` : ""}`);
+        }
+      } catch (e) {
+        console.error("Polling error:", e);
       }
     }, 3000);
     return () => clearInterval(interval);
