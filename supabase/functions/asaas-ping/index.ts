@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const apiKey = Deno.env.get("ASAAS_API_KEY");
+  const apiKey = Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2");
   if (!apiKey) {
     return new Response(JSON.stringify({ ok: false, error: "ASAAS_API_KEY não configurada" }), {
       status: 500,
