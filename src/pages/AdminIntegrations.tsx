@@ -5,6 +5,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2, Plug, RefreshCw, Save, Key } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
+interface AsaasStats {
+  environment: string;
+  baseUrl: string;
+  apiKeyConfigured: boolean;
+  webhookTokenConfigured: boolean;
+  lastWebhookEvent?: string;
+  lastWebhookTime?: string;
+  lastWebhookStatus?: number;
+  lastWebhookError?: string;
+}
 
 export default function AdminIntegrations() {
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
@@ -13,6 +27,10 @@ export default function AdminIntegrations() {
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tokenInput, setTokenInput] = useState("");
+  
+  const [asaasStats, setAsaasStats] = useState<AsaasStats | null>(null);
+  const [loadingAsaas, setLoadingAsaas] = useState(false);
+
 
   useEffect(() => {
     checkStatus();
