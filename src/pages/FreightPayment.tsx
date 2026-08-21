@@ -248,7 +248,7 @@ export default function FreightPayment() {
   };
 
   const handleDebitPayment = async () => {
-    if (!orderId) return;
+    if (!orderId || cardLoading) return;
     setCardLoading(true);
 
     try {
@@ -260,8 +260,9 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao criar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao criar pagamento"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao criar pagamento");
+
 
       if (data.invoiceUrl) {
         window.location.href = data.invoiceUrl;
