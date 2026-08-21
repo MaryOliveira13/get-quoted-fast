@@ -206,8 +206,8 @@ export default function FreightPayment() {
 
 
   const handleCardPayment = async () => {
-    if (!orderId || !order) return;
-    
+    if (!orderId || !order || cardLoading) return;
+
     setCardLoading(true);
 
     try {
@@ -227,8 +227,9 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao processar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao processar pagamento"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao processar pagamento");
+
 
       if (data.status === "approved") {
         toast.success("Pagamento aprovado!");
