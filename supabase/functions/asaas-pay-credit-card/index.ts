@@ -7,205 +7,245 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ASAAS_BASE_URL = "https://api.asaas.com/v3";
+
+function asaasHeaders() {
+  return {
+    accept: "application/json",
+    "content-type": "application/json",
+    "User-Agent": "PowerCell/1.0",
+    access_token: (Deno.env.get("ASAAS_API_KEY") ?? "").trim(),
+  };
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function fail(stage: string, httpStatus: number, message: string, code?: string) {
+  return json({ success: false, stage, httpStatus, code: code ?? null, message }, httpStatus);
+}
+
+function asaasError(data: any): { code: string | null; message: string } {
+  const first = data?.errors?.[0];
+  return {
+    code: first?.code ?? null,
+    message: first?.description ?? "Pagamento não autorizado pelo gateway.",
+  };
+}
+
+function mapStatus(s?: string): "approved" | "pending" | "rejected" {
+  switch (s) {
+    case "CONFIRMED":
+    case "RECEIVED":
+    case "RECEIVED_IN_CASH":
+      return "approved";
+    case "PENDING":
+    case "AWAITING_RISK_ANALYSIS":
+      return "pending";
+    default:
+      return "rejected";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const body = await req.json();
-    const {
-      order_id,
-      tracking_token,
-      card_data,
-      installments,
-    } = body;
-
-    if (!order_id || !card_data) {
-      return new Response(
-        JSON.stringify({ error: "order_id e card_data são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!(Deno.env.get("ASAAS_API_KEY") ?? "").trim()) {
+      return fail("authentication", 500, "ASAAS_API_KEY não configurada.");
     }
 
-    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY")!;
-    const ASAAS_ENVIRONMENT = "production";
-    const ASAAS_BASE_URL = ASAAS_ENVIRONMENT === "production" 
-      ? "https://api.asaas.com/v3" 
-      : "https://api-sandbox.asaas.com/v3";
+    const body = await req.json();
+    const { order_id, tracking_token, card_data, installments } = body ?? {};
+
+    if (!order_id || !card_data) {
+      return fail("creditCard", 400, "order_id e dados do cartão são obrigatórios.");
+    }
+
+    const installmentCount = Math.max(1, Math.min(12, Number(installments) || 1));
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1. Validar pedido e tracking_token
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .select("*")
       .eq("id", order_id)
-      .single();
+      .maybeSingle();
 
-    if (orderErr || !order) {
-      return new Response(JSON.stringify({ error: "Pedido não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    if (orderErr || !order) return fail("creditCard", 404, "Pedido não encontrado.");
     if (tracking_token && order.tracking_token !== tracking_token) {
-      return new Response(JSON.stringify({ error: "Token inválido" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return fail("creditCard", 403, "Token inválido para este pedido.");
     }
-
-    if (order.freight_payment_status === "approved" || order.freight_payment_status === "paid") {
-      return new Response(JSON.stringify({ error: "Frete já foi pago" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (["approved", "paid"].includes(order.freight_payment_status)) {
+      return fail("creditCard", 400, "O frete deste pedido já foi pago.");
     }
 
     const amount = Number(order.shipping_amount);
-
-    // 2. Criar ou buscar cliente no Asaas
-    let asaasCustomerId = order.asaas_customer_id;
-    if (!asaasCustomerId) {
-        const searchRes = await fetch(`${ASAAS_BASE_URL}/customers?email=${encodeURIComponent(order.customer_email || "")}`, {
-            headers: { access_token: ASAAS_API_KEY },
-        });
-        const searchData = await searchRes.json();
-        
-        if (searchData.data && searchData.data.length > 0) {
-            asaasCustomerId = searchData.data[0].id;
-        } else {
-            const customerBody = {
-                name: order.customer_name || "Cliente Power Cell",
-                email: order.customer_email || undefined,
-                cpfCnpj: order.cpf?.replace(/\D/g, "") || undefined,
-                mobilePhone: order.customer_phone?.replace(/\D/g, "") || undefined,
-            };
-            const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", access_token: ASAAS_API_KEY },
-                body: JSON.stringify(customerBody),
-            });
-            const customerData = await createCustomerRes.json();
-            if (!createCustomerRes.ok) throw new Error("Erro ao criar cliente Asaas");
-            asaasCustomerId = customerData.id;
-        }
-        await supabase.from("orders").update({ asaas_customer_id: asaasCustomerId }).eq("id", order_id);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return fail("creditCard", 400, "Valor do frete inválido para este pedido.");
     }
 
-    // 3. Criar cobrança via Cartão de Crédito
-    const dueDate = new Date().toISOString().split("T")[0];
-    const remoteIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    // ---------- CLIENTE ----------
+    let customerId: string | null = order.asaas_customer_id || null;
+    if (customerId) {
+      const checkRes = await fetch(`${ASAAS_BASE_URL}/customers/${customerId}`, {
+        headers: asaasHeaders(),
+      });
+      if (!checkRes.ok) customerId = null;
+    }
 
-    const paymentBody: any = {
-      customer: asaasCustomerId,
+    if (!customerId) {
+      const cpf = (order.cpf || "").replace(/\D/g, "");
+      const phone = (order.customer_phone || "").replace(/\D/g, "");
+      const customerBody: Record<string, unknown> = {
+        name: order.customer_name || "Cliente Power Cell",
+        externalReference: order.id,
+      };
+      if (cpf) customerBody.cpfCnpj = cpf;
+      if (order.customer_email) customerBody.email = order.customer_email;
+      if (phone) customerBody.mobilePhone = phone;
+
+      const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
+        method: "POST",
+        headers: asaasHeaders(),
+        body: JSON.stringify(customerBody),
+      });
+      const customerData = await createCustomerRes.json().catch(() => ({}));
+      if (!createCustomerRes.ok || !customerData?.id) {
+        const e = asaasError(customerData);
+        console.error("Asaas customer error", createCustomerRes.status, e.code);
+        return fail("customer", createCustomerRes.status || 500, e.message, e.code ?? undefined);
+      }
+      customerId = customerData.id;
+      await supabase.from("orders").update({ asaas_customer_id: customerId }).eq("id", order.id);
+    }
+
+    // ---------- COBRANÇA CARTÃO ----------
+    const remoteIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("x-real-ip") ||
+      "";
+
+    const holderPhone = (order.customer_phone || "").replace(/\D/g, "");
+    const paymentBody: Record<string, unknown> = {
+      customer: customerId,
       billingType: "CREDIT_CARD",
-      value: amount,
-      dueDate: dueDate,
-      externalReference: order_id,
-      description: `Frete Power Cell - ${order.brand} ${order.model}`,
+      dueDate: new Date().toISOString().split("T")[0],
+      description: "Frete do pedido Power Cell",
+      externalReference: order.id,
       creditCard: {
         holderName: card_data.holderName,
-        number: card_data.number.replace(/\s/g, ""),
-        expiryMonth: card_data.expiryMonth,
-        expiryYear: card_data.expiryYear,
-        ccv: card_data.ccv,
+        number: String(card_data.number || "").replace(/\D/g, ""),
+        expiryMonth: String(card_data.expiryMonth || "").padStart(2, "0"),
+        expiryYear: String(card_data.expiryYear || ""),
+        ccv: String(card_data.ccv || ""),
       },
       creditCardHolderInfo: {
         name: card_data.holderName,
-        email: order.customer_email,
-        cpfCnpj: card_data.holderCpf.replace(/\D/g, ""),
-        postalCode: order.customer_cep?.replace(/\D/g, ""),
+        email: order.customer_email || undefined,
+        cpfCnpj: String(card_data.holderCpf || order.cpf || "").replace(/\D/g, ""),
+        postalCode: (order.customer_cep || "").replace(/\D/g, ""),
         addressNumber: order.customer_number || "SN",
-        mobilePhone: order.customer_phone?.replace(/\D/g, ""),
+        phone: holderPhone || undefined,
       },
-      remoteIp: remoteIp,
     };
+    if (remoteIp) paymentBody.remoteIp = remoteIp;
 
-    // Adicionar parcelamento se selecionado (> 1)
-    if (installments && installments > 1) {
-      paymentBody.installmentCount = installments;
+    if (installmentCount > 1) {
+      paymentBody.installmentCount = installmentCount;
       paymentBody.totalValue = amount;
-      delete paymentBody.value; // totalValue é usado em parcelamentos
+    } else {
+      paymentBody.value = amount;
     }
 
-    const createPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
+    const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        access_token: ASAAS_API_KEY,
-      },
+      headers: asaasHeaders(),
       body: JSON.stringify(paymentBody),
     });
+    const payment = await createRes.json().catch(() => ({}));
 
-    const paymentData = await createPaymentRes.json();
-    
-    // LOG sanitizado
+    const brand = payment?.creditCard?.creditCardBrand ?? null;
+    const last4 = payment?.creditCard?.creditCardNumber ?? null;
+
     await supabase.from("payment_logs").insert({
-        order_id: order_id,
-        provider: "asaas",
-        status: paymentData.status || "error",
-        payload: { 
-            payment_id: paymentData.id, 
-            status: paymentData.status, 
-            billingType: "CREDIT_CARD",
-            installments: installments,
-            errors: paymentData.errors 
-        }
+      order_id: order.id,
+      provider: "asaas",
+      status: payment?.status ?? "error",
+      payload: {
+        stage: "creditCard",
+        payment_id: payment?.id ?? null,
+        status: payment?.status ?? null,
+        billingType: "CREDIT_CARD",
+        installments: installmentCount,
+        totalValue: amount,
+        card_brand: brand,
+        card_last4: last4,
+        error_code: payment?.errors?.[0]?.code ?? null,
+      },
     });
 
-    if (!createPaymentRes.ok) {
-      console.error("Erro no pagamento Asaas:", paymentData);
-      return new Response(JSON.stringify({ 
-          error: paymentData.errors?.[0]?.description || "Pagamento recusado.",
-          status: "rejected"
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!createRes.ok || !payment?.id) {
+      const e = asaasError(payment);
+      console.error("Asaas credit card error", createRes.status, e.code);
+      return fail("creditCard", createRes.status || 400, e.message, e.code ?? undefined);
     }
 
-    // 4. Tratar sucesso
-    if (paymentData.status === "CONFIRMED" || paymentData.status === "RECEIVED") {
-        await supabase.from("orders").update({
-            payment_id: paymentData.id,
-            payment_provider: "asaas",
-            freight_payment_status: "approved",
-        }).eq("id", order_id);
+    const status = mapStatus(payment.status);
 
-        try {
-            fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-label`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-                },
-                body: JSON.stringify({ order_id }),
-            });
-        } catch (e) {
-            console.error("Erro ao disparar etiqueta:", e);
-        }
+    await supabase
+      .from("orders")
+      .update({
+        payment_id: payment.id,
+        payment_provider: "asaas",
+        freight_payment_status: status,
+        payment_external_reference: order.id,
+        payment_created_at: new Date().toISOString(),
+        payment_billing_type: "CREDIT_CARD",
+        payment_installments: installmentCount,
+        payment_total_value: amount,
+        card_brand: brand,
+        card_last4: last4,
+      })
+      .eq("id", order.id);
+
+    if (status === "approved" && order.label_status !== "generated") {
+      try {
+        await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-label`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ order_id: order.id }),
+        });
+      } catch (e) {
+        console.error("Erro ao disparar etiqueta:", e);
+      }
     }
 
-    return new Response(
-      JSON.stringify({
-        payment_id: paymentData.id,
-        status: paymentData.status === "CONFIRMED" || paymentData.status === "RECEIVED" ? "approved" : 
-                (paymentData.status === "AWAITING_RISK_ANALYSIS" ? "pending" : "pending"),
-        details: paymentData.status,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({
+      success: true,
+      paymentId: payment.id,
+      status,
+      asaasStatus: payment.status,
+      installments: installmentCount,
+      value: amount,
+      cardBrand: brand,
+      cardLast4: last4,
+      invoiceUrl: payment.invoiceUrl ?? null,
+    });
   } catch (err) {
     console.error("asaas-pay-credit-card error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return fail("creditCard", 500, "Erro interno ao processar o cartão.");
   }
 });
