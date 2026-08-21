@@ -166,7 +166,7 @@ export default function FreightPayment() {
   }, [pixPolling, orderId, trackingToken, navigate]);
 
   const handlePixPayment = async () => {
-    if (!orderId) return;
+    if (!orderId || pixLoading) return;
     setPixLoading(true);
 
     try {
@@ -177,18 +177,20 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao criar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao gerar Pix"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao gerar Pix");
 
-      setPixQrBase64(data.qr_code_base64 || "");
-      setPixCode(data.qr_code || "");
-      setPixPaymentId(data.payment_id);
+      setPixQrBase64(data.encodedImage || "");
+      setPixCode(data.payload || "");
+      setPixInvoiceUrl(data.invoiceUrl || "");
+      setPixPaymentId(data.paymentId || null);
       setPixPolling(true);
     } catch (err: any) {
       toast.error(err.message || "Erro ao gerar Pix");
     }
     setPixLoading(false);
   };
+
 
   const handleCardPayment = async () => {
     if (!orderId || !order) return;
