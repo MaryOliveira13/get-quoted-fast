@@ -26,13 +26,13 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    const phone = Deno.env.get("ASAAS_API_KEY");
+    const value = Deno.env.get("ASAAS_API_KEY");
     const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
 
     const stats = {
       environment: "production",
       baseUrl: "https://api.asaas.com/v3",
-      apiKeyConfigured: !!phone,
+      apiKeyConfigured: !!value,
       webhookTokenConfigured: !!ASAAS_WEBHOOK_TOKEN,
       lastWebhookEvent: lastLog?.payload?.event || null,
       lastWebhookTime: lastLog?.created_at || null,
