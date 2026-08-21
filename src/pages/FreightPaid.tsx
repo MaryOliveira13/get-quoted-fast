@@ -406,9 +406,10 @@ Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passo
             onClick={() => { openWhatsApp(waMessage); }}
           >
             <MessageCircle className="w-5 h-5" />
-            Enviar no WhatsApp
+            Enviar confirmação pelo WhatsApp
           </Button>
         )}
+
       </main>
     </div>
   );
