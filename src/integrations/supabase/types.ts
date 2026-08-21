@@ -194,6 +194,8 @@ export type Database = {
         Row: {
           asaas_customer_id: string | null
           brand: string
+          card_brand: string | null
+          card_last4: string | null
           cpf: string
           created_at: string
           customer_cep: string | null
@@ -216,8 +218,13 @@ export type Database = {
           model: string
           mp_external_reference: string | null
           mp_payment_id: string | null
+          payment_billing_type: string | null
+          payment_created_at: string | null
+          payment_external_reference: string | null
           payment_id: string | null
+          payment_installments: number | null
           payment_provider: string | null
+          payment_total_value: number | null
           paypal_capture_id: string | null
           paypal_order_id: string | null
           repair_estimate_total: number
@@ -231,6 +238,8 @@ export type Database = {
         Insert: {
           asaas_customer_id?: string | null
           brand: string
+          card_brand?: string | null
+          card_last4?: string | null
           cpf: string
           created_at?: string
           customer_cep?: string | null
@@ -253,8 +262,13 @@ export type Database = {
           model: string
           mp_external_reference?: string | null
           mp_payment_id?: string | null
+          payment_billing_type?: string | null
+          payment_created_at?: string | null
+          payment_external_reference?: string | null
           payment_id?: string | null
+          payment_installments?: number | null
           payment_provider?: string | null
+          payment_total_value?: number | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           repair_estimate_total?: number
@@ -268,6 +282,8 @@ export type Database = {
         Update: {
           asaas_customer_id?: string | null
           brand?: string
+          card_brand?: string | null
+          card_last4?: string | null
           cpf?: string
           created_at?: string
           customer_cep?: string | null
@@ -290,8 +306,13 @@ export type Database = {
           model?: string
           mp_external_reference?: string | null
           mp_payment_id?: string | null
+          payment_billing_type?: string | null
+          payment_created_at?: string | null
+          payment_external_reference?: string | null
           payment_id?: string | null
+          payment_installments?: number | null
           payment_provider?: string | null
+          payment_total_value?: number | null
           paypal_capture_id?: string | null
           paypal_order_id?: string | null
           repair_estimate_total?: number
