@@ -12,7 +12,7 @@ serve(async (req) => {
 
   try {
     const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
-    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "sandbox";
+    const ASAAS_ENVIRONMENT = "production";
     const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
