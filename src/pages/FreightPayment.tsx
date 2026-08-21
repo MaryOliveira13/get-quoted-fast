@@ -45,7 +45,7 @@ function getCarrierLogo(companyName: string): string | undefined {
   return undefined;
 }
 
-const ASAAS_ENVIRONMENT = "sandbox"; // Will be used in backend calls, but useful to keep track here
+const ASAAS_ENVIRONMENT = "production";
 
 interface OrderData {
   id: string;
