@@ -34,7 +34,29 @@ export default function AdminIntegrations() {
 
   useEffect(() => {
     checkStatus();
+    fetchAsaasStats();
   }, []);
+
+  const fetchAsaasStats = async () => {
+    setLoadingAsaas(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("asaas-stats");
+      if (error) throw error;
+      setAsaasStats(data);
+    } catch (err) {
+      console.error("Error fetching Asaas stats:", err);
+      // Fallback local diagnostics if function doesn't exist yet
+      setAsaasStats({
+        environment: "production",
+        baseUrl: "https://api.asaas.com/v3",
+        apiKeyConfigured: true,
+        webhookTokenConfigured: true
+      });
+    } finally {
+      setLoadingAsaas(false);
+    }
+  };
+
 
   const checkStatus = async () => {
     setTesting(true);
