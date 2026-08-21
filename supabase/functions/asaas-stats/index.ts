@@ -24,16 +24,19 @@ serve(async (req) => {
       .eq("provider", "asaas")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
+    const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN");
 
     const stats = {
       environment: "production",
       baseUrl: "https://api.asaas.com/v3",
-      apiKeyConfigured: !!Deno.env.get("ASAAS_API_KEY"),
-      webhookTokenConfigured: !!Deno.env.get("ASAAS_WEBHOOK_TOKEN"),
+      apiKeyConfigured: !!ASAAS_API_KEY,
+      webhookTokenConfigured: !!ASAAS_WEBHOOK_TOKEN,
       lastWebhookEvent: lastLog?.payload?.event || null,
       lastWebhookTime: lastLog?.created_at || null,
-      lastWebhookStatus: 200, // Assuming 200 as we only log if successful, but usually we'd log request status too
+      lastWebhookStatus: 200, 
       lastWebhookError: null
     };
 
