@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY")!;
-    const ASAAS_ENVIRONMENT = Deno.env.get("ASAAS_ENVIRONMENT") || "sandbox";
+    const ASAAS_ENVIRONMENT = "production";
     const ASAAS_BASE_URL = ASAAS_ENVIRONMENT === "production" 
       ? "https://api.asaas.com/v3" 
       : "https://api-sandbox.asaas.com/v3";
