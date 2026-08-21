@@ -144,7 +144,19 @@ export default function FreightPayment() {
     })();
   }, [orderId, trackingToken, navigate]);
 
+  // Reutilizar cobrança Pix pendente ao recarregar a página
+  const pixRestored = useRef(false);
+  useEffect(() => {
+    const anyOrder = order as any;
+    if (!order || pixRestored.current) return;
+    if (anyOrder.payment_provider === "asaas" && anyOrder.payment_id && anyOrder.payment_billing_type === "PIX") {
+      pixRestored.current = true;
+      handlePixPayment();
+    }
+  }, [order]);
+
   // Poll for Pix payment
+
   useEffect(() => {
     if (!pixPolling || !orderId) return;
     let attempts = 0;
