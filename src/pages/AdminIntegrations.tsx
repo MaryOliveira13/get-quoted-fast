@@ -260,7 +260,7 @@ export default function AdminIntegrations() {
                   <div className="text-muted-foreground">Base URL:</div>
                   <div className="font-mono text-[11px] truncate">{asaasStats.baseUrl}</div>
                   
-                  <div className="text-muted-foreground">API Key:</div>
+                  <div className="text-muted-foreground">errorDescription:</div>
                   <div className="flex items-center gap-1">
                     {asaasStats.apiKeyConfigured ? (
                       <Badge variant="outline" className="text-whatsapp border-whatsapp/30 bg-whatsapp/5 gap-1">
