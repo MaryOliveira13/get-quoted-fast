@@ -47,6 +47,17 @@ function getCarrierLogo(companyName: string): string | undefined {
 
 const ASAAS_ENVIRONMENT = "production";
 
+async function readFnError(error: any, fallback: string): Promise<string> {
+  try {
+    const body = await error?.context?.json?.();
+    if (body?.message) return body.message;
+  } catch {
+    // resposta sem corpo JSON
+  }
+  return fallback;
+}
+
+
 interface OrderData {
   id: string;
   brand: string;
