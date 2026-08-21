@@ -223,6 +223,109 @@ export default function AdminIntegrations() {
             <li>• Após salvar, o cálculo de frete deve funcionar automaticamente</li>
           </ul>
         </div>
+
+        {/* Asaas Diagnostics Section */}
+        <Card className="border-primary/20 bg-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                </div>
+                Diagnóstico Asaas
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={fetchAsaasStats} 
+                disabled={loadingAsaas}
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingAsaas ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+            <CardDescription>Status e configuração do gateway de pagamento</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {asaasStats ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="text-muted-foreground">Ambiente:</div>
+                  <div className="font-medium flex items-center gap-2">
+                    {asaasStats.environment}
+                    <Badge variant={asaasStats.environment === "production" ? "default" : "secondary"} className="text-[10px] h-4 px-1">
+                      {asaasStats.environment === "production" ? "PROD" : "SBX"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-muted-foreground">Base URL:</div>
+                  <div className="font-mono text-[11px] truncate">{asaasStats.baseUrl}</div>
+                  
+                  <div className="text-muted-foreground">API Key:</div>
+                  <div className="flex items-center gap-1">
+                    {asaasStats.apiKeyConfigured ? (
+                      <Badge variant="outline" className="text-whatsapp border-whatsapp/30 bg-whatsapp/5 gap-1">
+                        <CheckCircle className="w-3 h-3" /> Configurada
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="gap-1">
+                        <XCircle className="w-3 h-3" /> Não configurada
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="text-muted-foreground">Webhook Token:</div>
+                  <div className="flex items-center gap-1">
+                    {asaasStats.webhookTokenConfigured ? (
+                      <Badge variant="outline" className="text-whatsapp border-whatsapp/30 bg-whatsapp/5 gap-1">
+                        <CheckCircle className="w-3 h-3" /> Configurado
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-yellow-500 border-yellow-500/30 bg-yellow-500/5 gap-1">
+                        <AlertCircle className="w-3 h-3" /> Pendente
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <Separator className="my-2" />
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Última Atividade Webhook</h4>
+                  {asaasStats.lastWebhookTime ? (
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <div className="text-muted-foreground">Evento:</div>
+                      <div className="font-medium">{asaasStats.lastWebhookEvent}</div>
+                      
+                      <div className="text-muted-foreground">Horário:</div>
+                      <div>{new Date(asaasStats.lastWebhookTime).toLocaleString("pt-BR")}</div>
+                      
+                      <div className="text-muted-foreground">Status HTTP:</div>
+                      <div className={asaasStats.lastWebhookStatus === 200 ? "text-whatsapp" : "text-destructive"}>
+                        {asaasStats.lastWebhookStatus}
+                      </div>
+
+                      {asaasStats.lastWebhookError && (
+                        <>
+                          <div className="text-muted-foreground col-span-2 mt-1 italic text-[10px]">Erro sanitizado:</div>
+                          <div className="col-span-2 text-destructive font-mono text-[10px] break-all bg-destructive/5 p-1 rounded">
+                            {asaasStats.lastWebhookError}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Nenhum evento recebido recentemente.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
     </div>
+
   );
 }
