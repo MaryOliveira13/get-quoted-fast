@@ -7,214 +7,217 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const ASAAS_BASE_URL = "https://api.asaas.com/v3";
+
+function asaasHeaders() {
+  return {
+    accept: "application/json",
+    "content-type": "application/json",
+    "User-Agent": "PowerCell/1.0",
+    access_token: (Deno.env.get("ASAAS_API_KEY") ?? "").trim(),
+  };
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function fail(
+  stage: string,
+  httpStatus: number,
+  message: string,
+  code?: string,
+) {
+  return json({ success: false, stage, httpStatus, code: code ?? null, message }, httpStatus);
+}
+
+function asaasError(data: any): { code: string | null; message: string } {
+  const first = data?.errors?.[0];
+  return {
+    code: first?.code ?? null,
+    message: first?.description ?? "Falha na comunicação com o gateway de pagamento.",
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { order_id, tracking_token, billing_type } = await req.json();
-
-    if (!order_id) {
-      return new Response(
-        JSON.stringify({ error: "order_id é obrigatório" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!(Deno.env.get("ASAAS_API_KEY") ?? "").trim()) {
+      return fail("authentication", 500, "ASAAS_API_KEY não configurada.");
     }
 
-    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY")!;
-    const ASAAS_ENVIRONMENT = "production";
-    const ASAAS_BASE_URL = ASAAS_ENVIRONMENT === "production" 
-      ? "https://api.asaas.com/v3" 
-      : "https://api-sandbox.asaas.com/v3";
+    const { order_id, tracking_token, billing_type } = await req.json();
+    if (!order_id) return fail("payment", 400, "order_id é obrigatório.");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1. Validar pedido e tracking_token
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .select("*")
       .eq("id", order_id)
-      .single();
+      .maybeSingle();
 
-    if (orderErr || !order) {
-      return new Response(JSON.stringify({ error: "Pedido não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    if (orderErr || !order) return fail("payment", 404, "Pedido não encontrado.");
     if (tracking_token && order.tracking_token !== tracking_token) {
-      return new Response(JSON.stringify({ error: "Token inválido" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return fail("payment", 403, "Token inválido para este pedido.");
     }
-
-    if (order.freight_payment_status === "approved" || order.freight_payment_status === "paid") {
-      return new Response(JSON.stringify({ error: "Frete já foi pago" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (["approved", "paid"].includes(order.freight_payment_status)) {
+      return fail("payment", 400, "O frete deste pedido já foi pago.");
     }
 
     const amount = Number(order.shipping_amount);
-    if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ error: "Valor do frete inválido" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return fail("payment", 400, "Valor do frete inválido para este pedido.");
     }
 
-    // 2. Criar ou buscar cliente no Asaas
-    let asaasCustomerId = order.asaas_customer_id;
+    const type: string = billing_type || "PIX";
 
-    if (!asaasCustomerId) {
-      const searchRes = await fetch(`${ASAAS_BASE_URL}/customers?email=${encodeURIComponent(order.customer_email || "")}`, {
-        headers: { access_token: ASAAS_API_KEY },
+    // ---------- CLIENTE ----------
+    let customerId: string | null = order.asaas_customer_id || null;
+
+    if (customerId) {
+      const checkRes = await fetch(`${ASAAS_BASE_URL}/customers/${customerId}`, {
+        headers: asaasHeaders(),
       });
-      const searchData = await searchRes.json();
-      
-      if (searchData.data && searchData.data.length > 0) {
-        asaasCustomerId = searchData.data[0].id;
-      } else {
-        const customerBody = {
-          name: order.customer_name || "Cliente Power Cell",
-          email: order.customer_email || undefined,
-          cpfCnpj: order.cpf?.replace(/\D/g, "") || undefined,
-          mobilePhone: order.customer_phone?.replace(/\D/g, "") || undefined,
-          notificationDisabled: true,
-        };
-
-        const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            access_token: ASAAS_API_KEY,
-          },
-          body: JSON.stringify(customerBody),
-        });
-
-        const customerData = await createCustomerRes.json();
-        if (!createCustomerRes.ok) {
-          console.error("Erro ao criar cliente Asaas:", customerData);
-          throw new Error("Erro ao criar cliente no gateway de pagamento");
-        }
-        asaasCustomerId = customerData.id;
+      if (!checkRes.ok) {
+        // ID antigo (ex.: sandbox) — descartar
+        customerId = null;
       }
+    }
+
+    if (!customerId) {
+      const cpf = (order.cpf || "").replace(/\D/g, "");
+      const phone = (order.customer_phone || "").replace(/\D/g, "");
+      const customerBody: Record<string, unknown> = {
+        name: order.customer_name || "Cliente Power Cell",
+        externalReference: order.id,
+      };
+      if (cpf) customerBody.cpfCnpj = cpf;
+      if (order.customer_email) customerBody.email = order.customer_email;
+      if (phone) customerBody.mobilePhone = phone;
+
+      const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
+        method: "POST",
+        headers: asaasHeaders(),
+        body: JSON.stringify(customerBody),
+      });
+      const customerData = await createCustomerRes.json().catch(() => ({}));
+      if (!createCustomerRes.ok || !customerData?.id) {
+        const e = asaasError(customerData);
+        console.error("Asaas customer error", createCustomerRes.status, e.code);
+        return fail("customer", createCustomerRes.status || 500, e.message, e.code ?? undefined);
+      }
+      customerId = customerData.id;
+      await supabase.from("orders").update({ asaas_customer_id: customerId }).eq("id", order.id);
+    }
+
+    // ---------- REUTILIZAR COBRANÇA PENDENTE ----------
+    let payment: any = null;
+    if (order.payment_id && order.payment_provider === "asaas") {
+      const existingRes = await fetch(`${ASAAS_BASE_URL}/payments/${order.payment_id}`, {
+        headers: asaasHeaders(),
+      });
+      if (existingRes.ok) {
+        const existing = await existingRes.json();
+        if (existing?.billingType === type && existing?.status === "PENDING") {
+          payment = existing;
+        }
+      }
+    }
+
+    // ---------- CRIAR COBRANÇA ----------
+    if (!payment) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 1);
+
+      const paymentBody = {
+        customer: customerId,
+        billingType: type,
+        value: amount,
+        dueDate: dueDate.toISOString().split("T")[0],
+        description: "Frete do pedido Power Cell",
+        externalReference: order.id,
+      };
+
+      const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
+        method: "POST",
+        headers: asaasHeaders(),
+        body: JSON.stringify(paymentBody),
+      });
+      const created = await createRes.json().catch(() => ({}));
+      if (!createRes.ok || !created?.id) {
+        const e = asaasError(created);
+        console.error("Asaas payment error", createRes.status, e.code);
+        return fail("payment", createRes.status || 500, e.message, e.code ?? undefined);
+      }
+      payment = created;
 
       await supabase
         .from("orders")
-        .update({ asaas_customer_id: asaasCustomerId })
-        .eq("id", order_id);
-    }
+        .update({
+          payment_id: payment.id,
+          payment_provider: "asaas",
+          freight_payment_status: "pending",
+          payment_external_reference: order.id,
+          payment_created_at: new Date().toISOString(),
+          payment_billing_type: type,
+          payment_total_value: amount,
+        })
+        .eq("id", order.id);
 
-    const type = billing_type || "PIX";
-
-    // 3. Verificar se já existe cobrança pendente para este pedido e tipo
-    if (order.payment_id && order.payment_provider === "asaas") {
-        const checkPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments/${order.payment_id}`, {
-            headers: { access_token: ASAAS_API_KEY },
-        });
-        if (checkPaymentRes.ok) {
-            const paymentData = await checkPaymentRes.json();
-            if (paymentData.billingType === type && paymentData.status === "PENDING") {
-                // Reutilizar
-                let responseData: any = {
-                    payment_id: paymentData.id,
-                    status: paymentData.status,
-                    expirationDate: paymentData.dueDate,
-                    invoiceUrl: paymentData.invoiceUrl,
-                };
-
-                if (type === "PIX") {
-                    const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
-                        headers: { access_token: ASAAS_API_KEY },
-                    });
-                    const qrData = await qrRes.json();
-                    responseData.qr_code_base64 = qrData.encodedImage;
-                    responseData.qr_code = qrData.payload;
-                }
-                
-                return new Response(JSON.stringify(responseData), {
-                    status: 200,
-                    headers: { ...corsHeaders, "Content-Type": "application/json" },
-                });
-            }
-        }
-    }
-
-    // 4. Criar cobrança
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 1);
-
-    const paymentBody = {
-      customer: asaasCustomerId,
-      billingType: type,
-      value: amount,
-      dueDate: dueDate.toISOString().split("T")[0],
-      externalReference: order_id,
-      description: `Frete Power Cell - ${order.brand} ${order.model}`,
-      postalService: false,
-    };
-
-    const createPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        access_token: ASAAS_API_KEY,
-      },
-      body: JSON.stringify(paymentBody),
-    });
-
-    const paymentData = await createPaymentRes.json();
-    if (!createPaymentRes.ok) {
-      console.error("Erro ao criar pagamento Asaas:", paymentData);
-      return new Response(JSON.stringify({ error: paymentData.errors?.[0]?.description || "Erro ao criar cobrança" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      await supabase.from("payment_logs").insert({
+        order_id: order.id,
+        provider: "asaas",
+        status: payment.status,
+        payload: { payment_id: payment.id, billingType: type, value: amount, stage: "created" },
       });
     }
 
-    let responseData: any = {
-      payment_id: paymentData.id,
-      status: paymentData.status,
-      expirationDate: paymentData.dueDate,
-      invoiceUrl: paymentData.invoiceUrl,
-    };
+    // ---------- QR CODE PIX ----------
+    let encodedImage: string | null = null;
+    let payload: string | null = null;
+    let expirationDate: string | null = payment.dueDate ?? null;
 
-    // 5. Se for PIX, buscar QR Code
     if (type === "PIX") {
-      const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${paymentData.id}/pixQrCode`, {
-        headers: { access_token: ASAAS_API_KEY },
+      const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${payment.id}/pixQrCode`, {
+        headers: asaasHeaders(),
       });
-      const qrData = await qrRes.json();
-      responseData.qr_code_base64 = qrData.encodedImage;
-      responseData.qr_code = qrData.payload;
+      const qr = await qrRes.json().catch(() => ({}));
+      if (!qrRes.ok || !qr?.payload) {
+        const e = asaasError(qr);
+        console.error("Asaas pixQrCode error", qrRes.status, e.code);
+        return fail("pixQrCode", qrRes.status || 500, e.message, e.code ?? undefined);
+      }
+      encodedImage = qr.encodedImage ?? null;
+      payload = qr.payload;
+      expirationDate = qr.expirationDate ?? expirationDate;
     }
 
-    // 6. Atualizar pedido
-    await supabase
-      .from("orders")
-      .update({
-        payment_id: paymentData.id,
-        payment_provider: "asaas",
-        freight_payment_status: "pending",
-      })
-      .eq("id", order_id);
-
-    return new Response(
-      JSON.stringify(responseData),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return json({
+      success: true,
+      paymentId: payment.id,
+      encodedImage,
+      payload,
+      expirationDate,
+      invoiceUrl: payment.invoiceUrl ?? null,
+      status: payment.status ?? "PENDING",
+      value: amount,
+      // compat com clientes antigos
+      payment_id: payment.id,
+      qr_code: payload,
+      qr_code_base64: encodedImage,
+    });
   } catch (err) {
     console.error("asaas-create-pix error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return fail("payment", 500, "Erro interno ao criar a cobrança.");
   }
 });
