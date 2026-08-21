@@ -47,6 +47,17 @@ function getCarrierLogo(companyName: string): string | undefined {
 
 const ASAAS_ENVIRONMENT = "production";
 
+async function readFnError(error: any, fallback: string): Promise<string> {
+  try {
+    const body = await error?.context?.json?.();
+    if (body?.message) return body.message;
+  } catch {
+    // resposta sem corpo JSON
+  }
+  return fallback;
+}
+
+
 interface OrderData {
   id: string;
   brand: string;
@@ -79,6 +90,8 @@ export default function FreightPayment() {
   const [pixQrBase64, setPixQrBase64] = useState("");
   const [pixCode, setPixCode] = useState("");
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+  const [pixInvoiceUrl, setPixInvoiceUrl] = useState("");
+
   const [pixPolling, setPixPolling] = useState(false);
 
   // Card state
@@ -131,7 +144,19 @@ export default function FreightPayment() {
     })();
   }, [orderId, trackingToken, navigate]);
 
+  // Reutilizar cobrança Pix pendente ao recarregar a página
+  const pixRestored = useRef(false);
+  useEffect(() => {
+    const anyOrder = order as any;
+    if (!order || pixRestored.current) return;
+    if (anyOrder.payment_provider === "asaas" && anyOrder.payment_id && anyOrder.payment_billing_type === "PIX") {
+      pixRestored.current = true;
+      handlePixPayment();
+    }
+  }, [order]);
+
   // Poll for Pix payment
+
   useEffect(() => {
     if (!pixPolling || !orderId) return;
     let attempts = 0;
@@ -166,7 +191,7 @@ export default function FreightPayment() {
   }, [pixPolling, orderId, trackingToken, navigate]);
 
   const handlePixPayment = async () => {
-    if (!orderId) return;
+    if (!orderId || pixLoading) return;
     setPixLoading(true);
 
     try {
@@ -177,12 +202,13 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao criar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao gerar Pix"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao gerar Pix");
 
-      setPixQrBase64(data.qr_code_base64 || "");
-      setPixCode(data.qr_code || "");
-      setPixPaymentId(data.payment_id);
+      setPixQrBase64(data.encodedImage || "");
+      setPixCode(data.payload || "");
+      setPixInvoiceUrl(data.invoiceUrl || "");
+      setPixPaymentId(data.paymentId || null);
       setPixPolling(true);
     } catch (err: any) {
       toast.error(err.message || "Erro ao gerar Pix");
@@ -190,9 +216,10 @@ export default function FreightPayment() {
     setPixLoading(false);
   };
 
+
   const handleCardPayment = async () => {
-    if (!orderId || !order) return;
-    
+    if (!orderId || !order || cardLoading) return;
+
     setCardLoading(true);
 
     try {
@@ -212,8 +239,9 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao processar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao processar pagamento"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao processar pagamento");
+
 
       if (data.status === "approved") {
         toast.success("Pagamento aprovado!");
@@ -232,7 +260,7 @@ export default function FreightPayment() {
   };
 
   const handleDebitPayment = async () => {
-    if (!orderId) return;
+    if (!orderId || cardLoading) return;
     setCardLoading(true);
 
     try {
@@ -244,8 +272,9 @@ export default function FreightPayment() {
         },
       });
 
-      if (error) throw new Error("Erro ao criar pagamento");
-      if (data?.error) throw new Error(data.error);
+      if (error) throw new Error(await readFnError(error, "Erro ao criar pagamento"));
+      if (data?.success === false) throw new Error(data.message || "Erro ao criar pagamento");
+
 
       if (data.invoiceUrl) {
         window.location.href = data.invoiceUrl;
@@ -413,16 +442,27 @@ export default function FreightPayment() {
                 {/* Copy code */}
                 <div className="rounded-xl border bg-card p-4 space-y-3">
                   <p className="text-sm font-semibold">Pix copia e cola</p>
-                  <div className="bg-secondary rounded-lg p-3">
+                  <div className="bg-secondary rounded-lg p-3 max-h-32 overflow-y-auto">
                     <p className="text-xs text-muted-foreground break-all font-mono">
-                      {pixCode.length > 100 ? pixCode.slice(0, 100) + "..." : pixCode}
+                      {pixCode}
                     </p>
                   </div>
                   <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopyPix}>
                     <Copy className="w-4 h-4" />
                     Copiar código Pix
                   </Button>
+                  {pixInvoiceUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => window.open(pixInvoiceUrl, "_blank", "noopener")}
+                    >
+                      Abrir link de pagamento
+                    </Button>
+                  )}
                 </div>
+
 
                 {/* Polling status */}
                 {pixPolling && (
