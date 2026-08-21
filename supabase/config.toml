@@ -41,3 +41,22 @@ verify_jwt = false
 
 [functions.generate-label]
 verify_jwt = false
+
+[functions.asaas-create-pix]
+verify_jwt = false
+
+[functions.asaas-pay-credit-card]
+verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
+
+[functions.asaas-setup-webhook]
+verify_jwt = false
+
+[functions.asaas-stats]
+verify_jwt = false
+
+[functions.public-order-status]
+verify_jwt = false
+
