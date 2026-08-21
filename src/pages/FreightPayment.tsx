@@ -430,16 +430,27 @@ export default function FreightPayment() {
                 {/* Copy code */}
                 <div className="rounded-xl border bg-card p-4 space-y-3">
                   <p className="text-sm font-semibold">Pix copia e cola</p>
-                  <div className="bg-secondary rounded-lg p-3">
+                  <div className="bg-secondary rounded-lg p-3 max-h-32 overflow-y-auto">
                     <p className="text-xs text-muted-foreground break-all font-mono">
-                      {pixCode.length > 100 ? pixCode.slice(0, 100) + "..." : pixCode}
+                      {pixCode}
                     </p>
                   </div>
                   <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopyPix}>
                     <Copy className="w-4 h-4" />
                     Copiar código Pix
                   </Button>
+                  {pixInvoiceUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => window.open(pixInvoiceUrl, "_blank", "noopener")}
+                    >
+                      Abrir link de pagamento
+                    </Button>
+                  )}
                 </div>
+
 
                 {/* Polling status */}
                 {pixPolling && (
