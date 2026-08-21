@@ -79,6 +79,8 @@ export default function FreightPayment() {
   const [pixQrBase64, setPixQrBase64] = useState("");
   const [pixCode, setPixCode] = useState("");
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+  const [pixInvoiceUrl, setPixInvoiceUrl] = useState("");
+
   const [pixPolling, setPixPolling] = useState(false);
 
   // Card state
