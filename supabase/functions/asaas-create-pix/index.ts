@@ -101,7 +101,7 @@ serve(async (req) => {
         name: order.customer_name || "Cliente Power Cell",
         externalReference: order.id,
       };
-      if (order.id !== '7202d965-c579-4792-92eb-280b0ba7c3f8' && cpf && cpf.length >= 11) {
+      if (cpf && cpf.length >= 11) {
         customerBody.cpfCnpj = cpf;
       }
       if (order.customer_email) customerBody.email = order.customer_email;
