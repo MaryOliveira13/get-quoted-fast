@@ -121,47 +121,67 @@ serve(async (req) => {
       await supabase.from("orders").update({ asaas_customer_id: customerId }).eq("id", order.id);
     }
 
-    // ---------- CRIAR COBRANÇA ----------
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 1);
+    // ---------- CRIAR OU RECUPERAR COBRANÇA ----------
+    let payment: any = null;
 
-    const paymentBody = {
-      customer: customerId,
-      billingType: type,
-      value: amount,
-      dueDate: dueDate.toISOString().split("T")[0],
-      description: `Frete pedido ${order.id}`,
-      externalReference: order.id,
-    };
-
-    console.log("Creating Asaas payment for customer:", customerId, "Body:", JSON.stringify(paymentBody));
-
-    const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
-      method: "POST",
-      headers: asaasHeaders(),
-      body: JSON.stringify(paymentBody),
-    });
-    
-    const payment = await createRes.json().catch(() => ({}));
-    console.log("Asaas payment response status:", createRes.status, "Body:", JSON.stringify(payment));
-
-    if (!createRes.ok || !payment?.id) {
-      const e = asaasError(payment);
-      return fail("payment", createRes.status || 500, e.message, e.code ?? undefined);
+    // Verificar se já existe uma cobrança PENDENTE para este pedido no Asaas
+    if (order.payment_id && order.payment_billing_type === type && order.freight_payment_status === "pending") {
+      console.log("Checking existing Asaas payment:", order.payment_id);
+      const checkPaymentRes = await fetch(`${ASAAS_BASE_URL}/payments/${order.payment_id}`, {
+        headers: asaasHeaders(),
+      });
+      if (checkPaymentRes.ok) {
+        payment = await checkPaymentRes.json().catch(() => ({}));
+        if (payment?.status !== "PENDING") {
+          payment = null; // Se não estiver pendente, criamos uma nova ou seguimos fluxo
+        } else {
+          console.log("Recovered existing pending payment:", payment.id);
+        }
+      }
     }
 
-    await supabase
-      .from("orders")
-      .update({
-        payment_id: payment.id,
-        payment_provider: "asaas",
-        freight_payment_status: "pending",
-        payment_external_reference: order.id,
-        payment_created_at: new Date().toISOString(),
-        payment_billing_type: type,
-        payment_total_value: amount,
-      })
-      .eq("id", order.id);
+    if (!payment) {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 1);
+
+      const paymentBody = {
+        customer: customerId,
+        billingType: type,
+        value: amount,
+        dueDate: dueDate.toISOString().split("T")[0],
+        description: `Frete pedido ${order.id}`,
+        externalReference: order.id,
+      };
+
+      console.log("Creating Asaas payment for customer:", customerId, "Body:", JSON.stringify(paymentBody));
+
+      const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
+        method: "POST",
+        headers: asaasHeaders(),
+        body: JSON.stringify(paymentBody),
+      });
+      
+      payment = await createRes.json().catch(() => ({}));
+      console.log("Asaas payment response status:", createRes.status, "Body:", JSON.stringify(payment));
+
+      if (!createRes.ok || !payment?.id) {
+        const e = asaasError(payment);
+        return fail("payment", createRes.status || 500, e.message, e.code ?? undefined);
+      }
+
+      await supabase
+        .from("orders")
+        .update({
+          payment_id: payment.id,
+          payment_provider: "asaas",
+          freight_payment_status: "pending",
+          payment_external_reference: order.id,
+          payment_created_at: new Date().toISOString(),
+          payment_billing_type: type,
+          payment_total_value: amount,
+        })
+        .eq("id", order.id);
+    }
 
     // ---------- QR CODE PIX ----------
     let encodedImage: string | null = null;
