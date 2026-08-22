@@ -179,68 +179,105 @@ const Index = () => {
           }}
         />
 
-        {/* Subtitle Section */}
+        {/* How it works Payment Card */}
         <div 
-          className="flex flex-col items-center text-center"
+          className="relative w-full max-w-[calc(100%-36px)] sm:max-w-[650px] md:max-w-[700px] mx-auto mb-[28px] sm:mb-[32px] overflow-hidden"
           style={{ 
-            width: "calc(100% - 32px)",
-            maxWidth: 680,
-            marginBottom: 32
+            background: "linear-gradient(145deg, #151515, #111111)",
+            border: "1px solid rgba(255,107,0,0.15)",
+            borderRadius: 18,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,107,0,0.03)",
           }}
         >
-          {/* Mensagem Principal */}
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              fontSize: "clamp(16px, 4vw, 20px)",
-              color: "rgba(255,255,255,0.9)",
-              lineHeight: 1.5,
-              textWrap: "balance",
-              margin: 0
-            }}
-          >
-            Preencha seus dados e pague agora <span style={{ fontWeight: 700, color: "white" }}>somente o frete</span> para enviar seu aparelho.
-          </p>
-
-          {/* Explicação */}
-          <p
-            style={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 400,
-              fontSize: "clamp(14px, 3.5vw, 17px)",
-              color: "rgba(255,255,255,0.45)",
-              lineHeight: 1.6,
-              marginTop: 8,
-              textWrap: "balance",
-              marginRight: "auto",
-              marginLeft: "auto"
-            }}
-          >
-            Após a análise técnica, você recebe o orçamento completo e decide se deseja continuar.
-          </p>
-
-          {/* Garantia / Selo */}
-          <div
-            className="flex items-center gap-2 px-4 py-2 mt-[14px]"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,107,0,0.15)",
-              borderRadius: 8,
-              maxWidth: "100%"
-            }}
-          >
-            <ShieldCheck className="w-4 h-4 text-[#FF6B00] shrink-0" />
-            <span
+          {/* Header */}
+          <div className="pt-5 px-5 sm:pt-6 sm:px-6 flex items-center gap-2 mb-4 sm:mb-6 justify-center sm:justify-start">
+            <ShieldCheck className="w-4 h-4 text-[#FF6B00]" />
+            <h4 
               style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "clamp(12px, 3vw, 13px)",
-                color: "rgba(255,255,255,0.8)",
-                fontWeight: 500,
-                textAlign: "left"
+                fontFamily: "var(--font-display)",
+                fontWeight: 800,
+                fontSize: "clamp(11px, 3vw, 12px)",
+                textTransform: "uppercase",
+                letterSpacing: 2,
+                color: "#FF6B00",
               }}
             >
-              Não realizamos nenhum conserto sem a sua aprovação.
+              COMO FUNCIONA O PAGAMENTO
+            </h4>
+          </div>
+
+          {/* Steps Grid */}
+          <div className="px-5 pb-5 sm:px-6 sm:pb-6 grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
+            {/* Vertical Divider (Desktop) */}
+            <div className="hidden sm:block absolute left-1/2 top-4 bottom-4 w-[1px] bg-white/5" />
+            
+            {/* Horizontal Divider (Mobile) */}
+            <div className="sm:hidden w-full h-[1px] bg-white/5 my-0 order-2" />
+
+            {/* Step 1 */}
+            <div className="flex flex-col items-start text-left order-1">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-6 h-6 rounded-full bg-[#FF6B00] flex items-center justify-center text-white text-[12px] font-bold">
+                  1
+                </div>
+                <span style={{ 
+                  fontFamily: "var(--font-display)", 
+                  fontWeight: 800, 
+                  fontSize: "clamp(12px, 3vw, 13px)", 
+                  color: "white",
+                  letterSpacing: 0.5
+                }}>
+                  AGORA
+                </span>
+              </div>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(14px, 3.5vw, 16px)",
+                color: "rgba(255,255,255,0.7)",
+                lineHeight: 1.5,
+              }}>
+                Você paga <span style={{ fontWeight: 700, color: "white" }}>somente o frete</span> para enviar seu aparelho.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-start text-left order-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-white/50 text-[12px] font-bold">
+                  2
+                </div>
+                <span style={{ 
+                  fontFamily: "var(--font-display)", 
+                  fontWeight: 800, 
+                  fontSize: "clamp(12px, 3vw, 13px)", 
+                  color: "white",
+                  letterSpacing: 0.5
+                }}>
+                  DEPOIS DA ANÁLISE
+                </span>
+              </div>
+              <p style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(14px, 3.5vw, 16px)",
+                color: "rgba(255,255,255,0.7)",
+                lineHeight: 1.5,
+              }}>
+                Você recebe o <span style={{ fontWeight: 700, color: "white" }}>orçamento completo</span> e decide se deseja continuar.
+              </p>
+            </div>
+          </div>
+
+          {/* Guarantee Footer */}
+          <div className="bg-white/[0.02] border-t border-white/5 py-3 px-5 sm:px-6 flex items-center justify-center gap-2">
+            <Check className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
+            <span style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(12px, 3vw, 13px)",
+              color: "rgba(255,255,255,0.5)",
+              fontWeight: 500,
+              textAlign: "center"
+            }}>
+              Nenhum conserto é realizado sem a sua aprovação.
             </span>
           </div>
         </div>
