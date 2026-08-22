@@ -18,6 +18,7 @@ export default function PixPayment() {
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
   const [pixData, setPixData] = useState<any>(null);
+  const isGeneratingPix = useRef(false);
   const [pixLoading, setPixLoading] = useState(false);
   const [polling, setPolling] = useState(false);
 
