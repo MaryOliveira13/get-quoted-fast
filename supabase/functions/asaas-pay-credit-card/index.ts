@@ -110,7 +110,7 @@ serve(async (req) => {
         name: order.customer_name || "Cliente Power Cell",
         externalReference: order.id,
       };
-      if (cpf) customerBody.cpfCnpj = cpf;
+      if (cpf && cpf.length >= 11) customerBody.cpfCnpj = cpf;
       if (order.customer_email) customerBody.email = order.customer_email;
       if (phone) customerBody.mobilePhone = phone;
 
