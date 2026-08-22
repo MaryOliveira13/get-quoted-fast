@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
 import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Search, X } from "lucide-react";
 
@@ -109,6 +110,7 @@ export default function BrandSelection() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageHeader title="Novo Orçamento" backTo="/" />
       <main className="px-4 py-5 max-w-lg mx-auto">
         {/* Search */}
         <div ref={wrapperRef} className="relative mb-4">
