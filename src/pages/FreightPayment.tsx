@@ -86,6 +86,7 @@ export default function FreightPayment() {
   const [cardType, setCardType] = useState<"credit" | "debit">("credit");
 
   // Pix state
+  const isGeneratingPix = useRef(false);
   const [pixLoading, setPixLoading] = useState(false);
   const [pixQrBase64, setPixQrBase64] = useState("");
   const [pixCode, setPixCode] = useState("");
