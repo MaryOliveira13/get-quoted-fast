@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, Play, Upload, ShieldCheck } from "lucide-react";
+import { Check, ChevronDown, Play, Upload, ShieldCheck, Truck, ClipboardCheck, ArrowRight, ArrowDown } from "lucide-react";
 import { useState, useRef } from "react";
 
 const STEPS = [
@@ -179,105 +179,223 @@ const Index = () => {
           }}
         />
 
-        {/* How it works Payment Card */}
-        <div 
-          className="relative w-full max-w-[calc(100%-36px)] sm:max-w-[650px] md:max-w-[700px] mx-auto mb-[28px] sm:mb-[32px] overflow-hidden"
-          style={{ 
-            background: "linear-gradient(145deg, #151515, #111111)",
-            border: "1px solid rgba(255,107,0,0.15)",
-            borderRadius: 18,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,107,0,0.03)",
-          }}
-        >
+        {/* How it works Payment Flow */}
+        <div className="w-full max-w-[760px] mx-auto mb-[30px] flex flex-col items-center">
           {/* Header */}
-          <div className="pt-5 px-5 sm:pt-6 sm:px-6 flex items-center gap-2 mb-4 sm:mb-6 justify-center sm:justify-start">
-            <ShieldCheck className="w-4 h-4 text-[#FF6B00]" />
+          <div className="text-center mb-[18px]">
             <h4 
               style={{
                 fontFamily: "var(--font-display)",
-                fontWeight: 800,
-                fontSize: "clamp(11px, 3vw, 12px)",
+                fontWeight: 700,
+                fontSize: "clamp(15px, 4vw, 17px)",
                 textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "#FF6B00",
+                letterSpacing: "0.05em",
+                color: "white",
               }}
             >
-              COMO FUNCIONA O PAGAMENTO
+              PAGAMENTO SIMPLES E TRANSPARENTE
             </h4>
+            <p 
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "14px",
+                color: "rgba(255,255,255,0.5)",
+                marginTop: "5px",
+              }}
+            >
+              Você decide antes de qualquer conserto.
+            </p>
           </div>
 
-          {/* Steps Grid */}
-          <div className="px-5 pb-5 sm:px-6 sm:pb-6 grid grid-cols-1 sm:grid-cols-2 gap-6 relative">
-            {/* Vertical Divider (Desktop) */}
-            <div className="hidden sm:block absolute left-1/2 top-4 bottom-4 w-[1px] bg-white/5" />
-            
-            {/* Horizontal Divider (Mobile) */}
-            <div className="sm:hidden w-full h-[1px] bg-white/5 my-0 order-2" />
-
+          {/* Steps Container */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_56px_1fr] items-stretch gap-4 md:gap-0">
             {/* Step 1 */}
-            <div className="flex flex-col items-start text-left order-1">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-6 h-6 rounded-full bg-[#FF6B00] flex items-center justify-center text-white text-[12px] font-bold">
-                  1
+            <div 
+              className="group transition-all duration-200 hover:-translate-y-[2px]"
+              style={{
+                background: "linear-gradient(145deg, #171717, #111111)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderTop: "2px solid #FF6B00",
+                borderRadius: 18,
+                padding: "22px",
+                textAlign: "left",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.4), 0 0 15px rgba(255,107,0,0.02)",
+                height: "100%",
+              }}
+            >
+              <div className="flex items-center sm:items-start gap-4 mb-3 sm:mb-0">
+                <div 
+                  className="flex items-center justify-center shrink-0"
+                  style={{
+                    width: 42,
+                    height: 42,
+                    background: "rgba(255,107,0,0.1)",
+                    border: "1px solid rgba(255,107,0,0.2)",
+                    borderRadius: 12,
+                  }}
+                >
+                  <Truck className="w-5 h-5 text-[#FF6B00]" />
                 </div>
+                <div className="sm:hidden flex flex-col">
+                  <span style={{ 
+                    fontFamily: "var(--font-display)", 
+                    fontWeight: 700, 
+                    fontSize: "11px", 
+                    color: "#FF6B00",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase"
+                  }}>
+                    1 · AGORA
+                  </span>
+                </div>
+              </div>
+              <div className="hidden sm:block">
                 <span style={{ 
                   fontFamily: "var(--font-display)", 
-                  fontWeight: 800, 
-                  fontSize: "clamp(12px, 3vw, 13px)", 
-                  color: "white",
-                  letterSpacing: 0.5
+                  fontWeight: 700, 
+                  fontSize: "11px", 
+                  color: "#FF6B00",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  marginTop: "8px",
+                  display: "block"
                 }}>
-                  AGORA
+                  1 · AGORA
                 </span>
               </div>
+              <h5 style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "clamp(16px, 4vw, 18px)",
+                color: "white",
+                marginTop: "12px",
+              }}>
+                Pague somente o frete
+              </h5>
               <p style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "clamp(14px, 3.5vw, 16px)",
-                color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.5,
+                fontSize: "clamp(13px, 3.5vw, 14.5px)",
+                color: "rgba(255,255,255,0.6)",
+                lineHeight: 1.55,
+                marginTop: "7px",
               }}>
-                Você paga <span style={{ fontWeight: 700, color: "white" }}>somente o frete</span> para enviar seu aparelho.
+                Você paga apenas o frete para enviar seu aparelho à assistência.
               </p>
+            </div>
+
+            {/* Connector */}
+            <div className="flex md:flex-col items-center justify-center py-2 md:py-0">
+              {/* Desktop Connector */}
+              <div className="hidden md:flex items-center w-full">
+                <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 to-transparent" />
+                <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-[#080808] z-10">
+                  <ArrowRight className="w-3 h-3 text-white/30" />
+                </div>
+                <div className="flex-1 h-[1px] bg-gradient-to-l from-white/10 to-transparent" />
+              </div>
+              {/* Mobile Connector */}
+              <div className="md:hidden flex flex-col items-center">
+                <div className="w-[1px] h-6 bg-gradient-to-b from-white/10 to-transparent" />
+                <ArrowDown className="w-4 h-4 text-white/20 my-1" />
+                <div className="w-[1px] h-6 bg-gradient-to-t from-white/10 to-transparent" />
+              </div>
             </div>
 
             {/* Step 2 */}
-            <div className="flex flex-col items-start text-left order-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center text-white/50 text-[12px] font-bold">
-                  2
+            <div 
+              className="group transition-all duration-200 hover:-translate-y-[2px]"
+              style={{
+                background: "linear-gradient(145deg, #171717, #111111)",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderTop: "2px solid #FF6B00",
+                borderRadius: 18,
+                padding: "22px",
+                textAlign: "left",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.4), 0 0 15px rgba(255,107,0,0.02)",
+                height: "100%",
+              }}
+            >
+              <div className="flex items-center sm:items-start gap-4 mb-3 sm:mb-0">
+                <div 
+                  className="flex items-center justify-center shrink-0"
+                  style={{
+                    width: 42,
+                    height: 42,
+                    background: "rgba(255,107,0,0.1)",
+                    border: "1px solid rgba(255,107,0,0.2)",
+                    borderRadius: 12,
+                  }}
+                >
+                  <ClipboardCheck className="w-5 h-5 text-[#FF6B00]" />
                 </div>
+                <div className="sm:hidden flex flex-col">
+                  <span style={{ 
+                    fontFamily: "var(--font-display)", 
+                    fontWeight: 700, 
+                    fontSize: "11px", 
+                    color: "#FF6B00",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase"
+                  }}>
+                    2 · APÓS A ANÁLISE
+                  </span>
+                </div>
+              </div>
+              <div className="hidden sm:block">
                 <span style={{ 
                   fontFamily: "var(--font-display)", 
-                  fontWeight: 800, 
-                  fontSize: "clamp(12px, 3vw, 13px)", 
-                  color: "white",
-                  letterSpacing: 0.5
+                  fontWeight: 700, 
+                  fontSize: "11px", 
+                  color: "#FF6B00",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  marginTop: "8px",
+                  display: "block"
                 }}>
-                  DEPOIS DA ANÁLISE
+                  2 · APÓS A ANÁLISE
                 </span>
               </div>
+              <h5 style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "clamp(16px, 4vw, 18px)",
+                color: "white",
+                marginTop: "12px",
+              }}>
+                Receba o orçamento completo
+              </h5>
               <p style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "clamp(14px, 3.5vw, 16px)",
-                color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.5,
+                fontSize: "clamp(13px, 3.5vw, 14.5px)",
+                color: "rgba(255,255,255,0.6)",
+                lineHeight: 1.55,
+                marginTop: "7px",
               }}>
-                Você recebe o <span style={{ fontWeight: 700, color: "white" }}>orçamento completo</span> e decide se deseja continuar.
+                Confira o valor e decida se deseja autorizar o conserto.
               </p>
             </div>
           </div>
 
-          {/* Guarantee Footer */}
-          <div className="bg-white/[0.02] border-t border-white/5 py-3 px-5 sm:px-6 flex items-center justify-center gap-2">
-            <Check className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
+          {/* Guarantee Bar */}
+          <div 
+            className="w-full mt-[14px] flex items-center justify-center gap-3"
+            style={{
+              background: "rgba(255,106,0,0.03)",
+              border: "1px solid rgba(255,106,0,0.25)",
+              borderRadius: 13,
+              padding: "12px 18px",
+            }}
+          >
+            <ShieldCheck className="w-5 h-5 text-[#FF6B00] shrink-0" />
             <span style={{
               fontFamily: "var(--font-body)",
-              fontSize: "clamp(12px, 3vw, 13px)",
-              color: "rgba(255,255,255,0.5)",
+              fontSize: "clamp(12px, 3vw, 13.5px)",
+              color: "rgba(255,255,255,0.6)",
               fontWeight: 500,
-              textAlign: "center"
+              textAlign: "center",
+              lineHeight: 1.4
             }}>
-              Nenhum conserto é realizado sem a sua aprovação.
+              Você mantém o controle: <span className="text-white font-semibold">nenhum conserto é realizado sem a sua aprovação</span>.
             </span>
           </div>
         </div>
