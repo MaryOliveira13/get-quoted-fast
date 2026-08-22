@@ -114,6 +114,8 @@ serve(async (req) => {
       });
       console.log("Asaas Customer Body:", JSON.stringify(customerBody));
       const customerData = await createCustomerRes.json().catch(() => ({}));
+      console.log("Asaas Customer Response Status:", createCustomerRes.status);
+      console.log("Asaas Customer Response Body:", JSON.stringify(customerData));
       if (!createCustomerRes.ok || !customerData?.id) {
         const e = asaasError(customerData);
         console.error("Asaas customer error", createCustomerRes.status, e.code);
