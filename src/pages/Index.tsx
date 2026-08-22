@@ -188,14 +188,14 @@ const Index = () => {
             color: "rgba(255,255,255,0.45)",
             textAlign: "center",
             lineHeight: 1.7,
-            maxWidth: 360,
+            maxWidth: 400,
             marginBottom: 36,
           }}
         >
-          Preencha uma vez, receba{" "}
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>propostas</span> de
-          múltiplos fornecedores.{" "}
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>Sem complicação.</span>
+          Preencha seus dados em poucos passos e pague agora somente o{" "}
+          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>frete para enviar seu aparelho</span>.
+          Após a <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>orçamento completo</span> e decide se deseja continuar.{" "}
+          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>Nenhum conserto é realizado sem a sua aprovação.</span>
         </p>
 
         {/* Buttons */}
