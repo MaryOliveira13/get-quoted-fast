@@ -15,8 +15,9 @@ export function PageHeader({ title, subtitle, backTo }: PageHeaderProps) {
       <div className="flex items-center gap-3 max-w-lg mx-auto">
         {backTo && (
           <button
+            type="button"
             onClick={() => navigate(backTo)}
-            className="p-2 -ml-2 rounded-full hover:bg-card transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-card transition-colors cursor-pointer flex items-center justify-center min-w-[40px] min-h-[40px]"
             aria-label="Voltar"
           >
             <ArrowLeft className="w-5 h-5" />

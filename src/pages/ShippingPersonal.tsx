@@ -56,7 +56,7 @@ export default function ShippingPersonal() {
   if (!quote) {
     return (
       <div className="min-h-screen bg-background">
-        <PageHeader title="Dados Pessoais" backTo="/envio" />
+        <PageHeader title="Dados Pessoais" backTo="/orcamento-revisao" />
         <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
           <AlertCircle className="w-12 h-12 text-destructive" />
           <p className="text-lg font-semibold text-center">Nenhum orçamento encontrado.</p>
@@ -112,7 +112,7 @@ export default function ShippingPersonal() {
         }}
       />
 
-      <PageHeader title="Dados Pessoais" backTo="/envio" />
+      <PageHeader title="Dados Pessoais" backTo="/orcamento-revisao" />
 
       {/* Custom Stepper */}
       <div className="flex items-center justify-center gap-0 px-4 py-4">
