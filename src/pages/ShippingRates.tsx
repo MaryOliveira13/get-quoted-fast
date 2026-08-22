@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,16 +55,7 @@ export default function ShippingRates() {
   }, []);
 
   if (!quote) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Frete" backTo="/envio/confirmacao" />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">Nenhum orçamento encontrado.</p>
-          <Button variant="outline" onClick={() => navigate("/orcamento")}>Voltar</Button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const fetchQuotes = async (postalCode?: string) => {
