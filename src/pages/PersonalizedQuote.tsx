@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { MessageCircle, ArrowLeft } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { PageHeader } from "@/components/PageHeader";
 
 const UF_LIST = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
@@ -129,46 +130,7 @@ _Mensagem enviada pelo app Power Cell_`;
         }}
       />
 
-      {/* Subheader */}
-      <div
-        className="sticky top-0 z-10"
-        style={{
-          background: "#161616",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-        }}
-      >
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate("/orcamento")} className="p-1" style={{ color: "#FF6B00" }}>
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 800,
-                fontSize: 13,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "white",
-                margin: 0,
-              }}
-            >
-              Orçamento Personalizado
-            </h1>
-            <p
-              style={{
-                fontFamily: "var(--font-body)",
-                fontWeight: 400,
-                fontSize: 12,
-                color: "rgba(255,255,255,0.35)",
-                margin: 0,
-              }}
-            >
-              Preencha os dados abaixo
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Orçamento Personalizado" backTo="/orcamento" subtitle="Preencha os dados abaixo" />
 
       <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 120 }}>
         {/* Card 1 — Dados Principais */}
