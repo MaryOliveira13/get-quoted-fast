@@ -628,6 +628,35 @@ export default function FreightPayment() {
             )}
           </div>
         )}
+        {/* Summary (Moved to bottom) */}
+        <div className="rounded-xl border bg-card p-5 space-y-3 mt-4">
+          <h3 className="font-semibold text-sm text-muted-foreground">Resumo do Pedido</h3>
+          <div className="flex items-center gap-3">
+            {getBrandLogo(order.brand) ? (
+              <div className="w-10 h-10 bg-white rounded-lg p-1 flex items-center justify-center flex-shrink-0">
+                <img src={getBrandLogo(order.brand)} alt={order.brand} className="w-full h-full object-contain" />
+              </div>
+            ) : null}
+            <p className="text-sm">{order.brand} {order.model}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {getCarrierLogo(companyName) ? (
+              <div className="w-10 h-10 bg-white rounded-lg p-1.5 flex items-center justify-center flex-shrink-0">
+                <img src={getCarrierLogo(companyName)!} alt={companyName} className="w-full h-full object-contain" />
+              </div>
+            ) : null}
+            <p className="text-sm text-muted-foreground">
+              {serviceName}{companyName ? ` (${companyName})` : ""}
+            </p>
+          </div>
+          <div className="border-t pt-3 flex justify-between items-center">
+            <span className="text-sm font-semibold">Valor do frete:</span>
+            <span className="text-xl font-bold">{formatBRL(order.shipping_amount * 100)}</span>
+          </div>
+          <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-2">
+            ⚠️ Você está pagando apenas o frete de envio. O valor do conserto será combinado após análise técnica.
+          </p>
+        </div>
       </main>
     </div>
   );
