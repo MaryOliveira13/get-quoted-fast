@@ -194,7 +194,8 @@ const Index = () => {
         >
           Preencha seus dados em poucos passos e pague agora somente o{" "}
           <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>frete para enviar seu aparelho</span>.
-          Após a <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>orçamento completo</span> e decide se deseja continuar.{" "}
+          Após a análise técnica, você recebe o{" "}
+          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>orçamento completo</span> e decide se deseja continuar.{" "}
           <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>Nenhum conserto é realizado sem a sua aprovação.</span>
         </p>
 
