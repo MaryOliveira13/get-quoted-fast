@@ -1,25 +1,31 @@
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const BASE_URL = "https://api.asaas.com/v3";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
-Deno.serve(async (req) => {
+const ASAAS_BASE_URL = "https://api.asaas.com/v3";
+
+serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
-  const apiKey = Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2");
+  const apiKey = Deno.env.get("ASAAS_API_KEY");
   if (!apiKey) {
-    return new Response(JSON.stringify({ ok: false, error: "ASAAS_API_KEY não configurada" }), {
+    return new Response(JSON.stringify({ ok: false, error: "ASAAS_API_KEY não configurada no Secret." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/customers?limit=1`, {
+    const res = await fetch(`${ASAAS_BASE_URL}/customers?limit=1`, {
       method: "GET",
       headers: {
-        access_token: apiKey,
+        access_token: apiKey.trim(),
         "User-Agent": "PowerCell/1.0",
         "Content-Type": "application/json",
       },
@@ -29,13 +35,13 @@ Deno.serve(async (req) => {
     let code: string | null = null;
     let description: string | null = null;
     try {
-      const json = JSON.parse(text);
-      if (json?.errors?.length) {
-        code = json.errors[0]?.code ?? null;
-        description = json.errors[0]?.description ?? null;
+      const data = JSON.parse(text);
+      if (data?.errors?.length) {
+        code = data.errors[0]?.code ?? null;
+        description = data.errors[0]?.description ?? null;
       }
     } catch (_e) {
-      // non-json body
+      // Body not JSON
     }
 
     return new Response(
@@ -44,13 +50,13 @@ Deno.serve(async (req) => {
         http_status: res.status,
         code,
         description,
-        base_url: BASE_URL,
+        base_url: ASAAS_BASE_URL,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (e) {
+  } catch (err) {
     return new Response(
-      JSON.stringify({ ok: false, error: e instanceof Error ? e.message : "erro desconhecido" }),
+      JSON.stringify({ ok: false, error: err instanceof Error ? err.message : "Erro desconhecido" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

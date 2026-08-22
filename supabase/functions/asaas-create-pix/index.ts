@@ -14,7 +14,7 @@ function asaasHeaders() {
     accept: "application/json",
     "content-type": "application/json",
     "User-Agent": "PowerCell/1.0",
-    access_token: (Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2") ?? "").trim(),
+    access_token: (Deno.env.get("ASAAS_API_KEY") ?? "").trim(),
   };
 }
 
@@ -48,8 +48,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!(Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2") ?? "").trim()) {
-      return fail("authentication", 500, "ASAAS_PRODUCTION_API_KEY_V2 não configurada.");
+    if (!(Deno.env.get("ASAAS_API_KEY") ?? "").trim()) {
+      return fail("authentication", 500, "ASAAS_API_KEY não configurada.");
     }
 
     const { order_id, tracking_token, billing_type } = await req.json();
