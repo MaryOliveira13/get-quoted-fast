@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import powercellBrand from "@/assets/powercell-brand.png";
 
 export function TechHeader() {
@@ -12,7 +13,13 @@ export function TechHeader() {
       />
 
       <div className="max-w-lg mx-auto flex items-center gap-3 relative">
-        <img src={powercellBrand} alt="POWER CELL" className="h-[72px] object-contain" />
+        <Link 
+          to="/" 
+          className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-opacity hover:opacity-90"
+          aria-label="Ir para a página inicial"
+        >
+          <img src={powercellBrand} alt="POWER CELL" className="h-[72px] object-contain" />
+        </Link>
       </div>
     </header>
   );
