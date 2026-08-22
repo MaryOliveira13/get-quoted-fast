@@ -10,11 +10,12 @@ const corsHeaders = {
 const ASAAS_BASE_URL = "https://api.asaas.com/v3";
 
 function asaasHeaders() {
+  const key = (Deno.env.get("ASAAS_API_KEY") ?? "").trim();
   return {
     accept: "application/json",
     "content-type": "application/json",
     "User-Agent": "PowerCell/1.0",
-    access_token: (Deno.env.get("ASAAS_API_KEY") ?? "").trim(),
+    access_token: key,
   };
 }
 
@@ -25,12 +26,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function fail(
-  stage: string,
-  httpStatus: number,
-  message: string,
-  code?: string,
-) {
+function fail(stage: string, httpStatus: number, message: string, code?: string) {
   return json({ success: false, stage, httpStatus, code: code ?? null, message }, httpStatus);
 }
 
@@ -48,7 +44,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!(Deno.env.get("ASAAS_API_KEY") ?? "").trim()) {
+    const key = (Deno.env.get("ASAAS_API_KEY") ?? "").trim();
+    if (!key) {
       return fail("authentication", 500, "ASAAS_API_KEY não configurada.");
     }
 
@@ -83,109 +80,88 @@ serve(async (req) => {
 
     // ---------- CLIENTE ----------
     let customerId: string | null = order.asaas_customer_id || null;
-
     if (customerId) {
       const checkRes = await fetch(`${ASAAS_BASE_URL}/customers/${customerId}`, {
         headers: asaasHeaders(),
       });
-      if (!checkRes.ok) {
-        // ID antigo (ex.: sandbox) — descartar
-        customerId = null;
-      }
+      if (!checkRes.ok) customerId = null;
     }
 
     if (!customerId) {
       const cpf = (order.cpf || "").replace(/\D/g, "");
       const phone = (order.customer_phone || "").replace(/\D/g, "");
+      
       const customerBody: Record<string, unknown> = {
         name: order.customer_name || "Cliente Power Cell",
         externalReference: order.id,
       };
+      
       if (cpf && cpf.length >= 11) {
         customerBody.cpfCnpj = cpf;
       }
       if (order.customer_email) customerBody.email = order.customer_email;
       if (phone) customerBody.mobilePhone = phone;
 
+      console.log("Creating Asaas customer for order:", order.id, "Body:", JSON.stringify(customerBody));
+
       const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
         method: "POST",
         headers: asaasHeaders(),
-        body: JSON.stringify(customerBody, null, 2),
+        body: JSON.stringify(customerBody),
       });
-      console.log("Asaas Customer Body:", JSON.stringify(customerBody));
+      
       const customerData = await createCustomerRes.json().catch(() => ({}));
-      console.log("Asaas Customer Response Status:", createCustomerRes.status);
-      console.log("Asaas Customer Response Body:", JSON.stringify(customerData));
+      console.log("Asaas customer response status:", createCustomerRes.status, "Body:", JSON.stringify(customerData));
+
       if (!createCustomerRes.ok || !customerData?.id) {
         const e = asaasError(customerData);
-        console.error("Asaas customer error DETAILS:", createCustomerRes.status, JSON.stringify(customerData));
         return fail("customer", createCustomerRes.status || 500, e.message, e.code ?? undefined);
       }
       customerId = customerData.id;
       await supabase.from("orders").update({ asaas_customer_id: customerId }).eq("id", order.id);
     }
 
-    // ---------- REUTILIZAR COBRANÇA PENDENTE ----------
-    let payment: any = null;
-    if (order.payment_id && order.payment_provider === "asaas") {
-      const existingRes = await fetch(`${ASAAS_BASE_URL}/payments/${order.payment_id}`, {
-        headers: asaasHeaders(),
-      });
-      if (existingRes.ok) {
-        const existing = await existingRes.json();
-        if (existing?.billingType === type && existing?.status === "PENDING") {
-          payment = existing;
-        }
-      }
-    }
-
     // ---------- CRIAR COBRANÇA ----------
-    if (!payment) {
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + 1);
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 1);
 
-      const paymentBody = {
-        customer: customerId,
-        billingType: type,
-        value: amount,
-        dueDate: dueDate.toISOString().split("T")[0],
-        description: "Frete do pedido Power Cell",
-        externalReference: order.id,
-      };
+    const paymentBody = {
+      customer: customerId,
+      billingType: type,
+      value: amount,
+      dueDate: dueDate.toISOString().split("T")[0],
+      description: `Frete pedido ${order.id}`,
+      externalReference: order.id,
+    };
 
-      const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
-        method: "POST",
-        headers: asaasHeaders(),
-        body: JSON.stringify(paymentBody),
-      });
-      const created = await createRes.json().catch(() => ({}));
-      if (!createRes.ok || !created?.id) {
-        const e = asaasError(created);
-        console.error("Asaas payment error", createRes.status, e.code);
-        return fail("payment", createRes.status || 500, e.message, e.code ?? undefined);
-      }
-      payment = created;
+    console.log("Creating Asaas payment for customer:", customerId, "Body:", JSON.stringify(paymentBody));
 
-      await supabase
-        .from("orders")
-        .update({
-          payment_id: payment.id,
-          payment_provider: "asaas",
-          freight_payment_status: "pending",
-          payment_external_reference: order.id,
-          payment_created_at: new Date().toISOString(),
-          payment_billing_type: type,
-          payment_total_value: amount,
-        })
-        .eq("id", order.id);
+    const createRes = await fetch(`${ASAAS_BASE_URL}/payments`, {
+      method: "POST",
+      headers: asaasHeaders(),
+      body: JSON.stringify(paymentBody),
+    });
+    
+    const payment = await createRes.json().catch(() => ({}));
+    console.log("Asaas payment response status:", createRes.status, "Body:", JSON.stringify(payment));
 
-      await supabase.from("payment_logs").insert({
-        order_id: order.id,
-        provider: "asaas",
-        status: payment.status,
-        payload: { payment_id: payment.id, billingType: type, value: amount, stage: "created" },
-      });
+    if (!createRes.ok || !payment?.id) {
+      const e = asaasError(payment);
+      return fail("payment", createRes.status || 500, e.message, e.code ?? undefined);
     }
+
+    await supabase
+      .from("orders")
+      .update({
+        payment_id: payment.id,
+        payment_provider: "asaas",
+        freight_payment_status: "pending",
+        payment_external_reference: order.id,
+        payment_created_at: new Date().toISOString(),
+        payment_billing_type: type,
+        payment_total_value: amount,
+      })
+      .eq("id", order.id);
 
     // ---------- QR CODE PIX ----------
     let encodedImage: string | null = null;
@@ -197,14 +173,11 @@ serve(async (req) => {
         headers: asaasHeaders(),
       });
       const qr = await qrRes.json().catch(() => ({}));
-      if (!qrRes.ok || !qr?.payload) {
-        const e = asaasError(qr);
-        console.error("Asaas pixQrCode error", qrRes.status, e.code);
-        return fail("pixQrCode", qrRes.status || 500, e.message, e.code ?? undefined);
+      if (qrRes.ok && qr?.payload) {
+        encodedImage = qr.encodedImage ?? null;
+        payload = qr.payload;
+        expirationDate = qr.expirationDate ?? expirationDate;
       }
-      encodedImage = qr.encodedImage ?? null;
-      payload = qr.payload;
-      expirationDate = qr.expirationDate ?? expirationDate;
     }
 
     return json({
@@ -216,7 +189,7 @@ serve(async (req) => {
       invoiceUrl: payment.invoiceUrl ?? null,
       status: payment.status ?? "PENDING",
       value: amount,
-      // compat com clientes antigos
+      // legacy support
       payment_id: payment.id,
       qr_code: payload,
       qr_code_base64: encodedImage,
