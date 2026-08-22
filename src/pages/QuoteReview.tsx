@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
 import { setQuoteDraft } from "@/lib/storage";
@@ -23,20 +23,7 @@ export default function QuoteReview() {
   const state = location.state as QuoteState | null;
 
   if (!state || !state.services?.length) {
-    return (
-      <div className="min-h-screen bg-background">
-        <TechHeader />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">
-            Nenhum orçamento selecionado. Volte e selecione os serviços.
-          </p>
-          <Button variant="outline" onClick={() => navigate("/orcamento")}>
-            Voltar
-          </Button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const { brandId, brandName, modelSlug, modelName, services, totalCents } = state;
