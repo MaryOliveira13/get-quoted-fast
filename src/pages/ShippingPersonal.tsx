@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getShippingDraft, updateShippingDraft, getQuoteDraft } from "@/lib/storage";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 
 const STEPS = ["Dados Pessoais", "Aparelho", "Confirmação"];
 
@@ -104,9 +104,20 @@ export default function ShippingPersonal() {
       />
 
       {/* PageHeader removed because TechHeader is already present globally */}
+      
+      <div className="max-w-lg mx-auto px-4 pt-4">
+        <button
+          type="button"
+          onClick={() => navigate("/", { replace: true })}
+          className="p-2 -ml-2 rounded-full hover:bg-[rgba(255,255,255,0.05)] transition-colors cursor-pointer flex items-center justify-center min-w-[44px] min-h-[44px] text-[rgba(255,255,255,0.8)]"
+          aria-label="Voltar para a página inicial"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+      </div>
 
       {/* Custom Stepper */}
-      <div className="flex items-center justify-center gap-0 px-4 py-4">
+      <div className="flex items-center justify-center gap-0 px-4 py-2">
         {STEPS.map((label, i) => {
           const active = i === 0;
           const done = i < 0;
