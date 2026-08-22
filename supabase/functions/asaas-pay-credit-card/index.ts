@@ -14,7 +14,7 @@ function asaasHeaders() {
     accept: "application/json",
     "content-type": "application/json",
     "User-Agent": "PowerCell/1.0",
-    access_token: (Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2") ?? "").trim(),
+    access_token: (Deno.env.get("ASAAS_API_KEY") ?? "").trim(),
   };
 }
 
@@ -57,8 +57,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!(Deno.env.get("ASAAS_PRODUCTION_API_KEY_V2") ?? "").trim()) {
-      return fail("authentication", 500, "ASAAS_PRODUCTION_API_KEY_V2 não configurada.");
+    if (!(Deno.env.get("ASAAS_API_KEY") ?? "").trim()) {
+      return fail("authentication", 500, "ASAAS_API_KEY não configurada.");
     }
 
     const body = await req.json();
@@ -110,7 +110,7 @@ serve(async (req) => {
         name: order.customer_name || "Cliente Power Cell",
         externalReference: order.id,
       };
-      if (cpf) customerBody.cpfCnpj = cpf;
+      if (cpf && cpf.length >= 11) customerBody.cpfCnpj = cpf;
       if (order.customer_email) customerBody.email = order.customer_email;
       if (phone) customerBody.mobilePhone = phone;
 
