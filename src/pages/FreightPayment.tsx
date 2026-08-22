@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -347,15 +347,7 @@ export default function FreightPayment() {
   }
 
   if (!order) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Pagamento" backTo="/envio/frete" />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">Pedido não encontrado.</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const shippingOpt = order.shipping_option || {};
