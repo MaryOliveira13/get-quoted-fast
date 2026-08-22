@@ -54,7 +54,8 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        access_token: ASAAS_API_KEY,
+        "User-Agent": "PowerCell/1.0",
+        access_token: ASAAS_API_KEY.trim(),
       },
       body: JSON.stringify(webhookBody),
     });
