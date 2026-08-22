@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, Play, Upload } from "lucide-react";
+import { Check, ChevronDown, Play, Upload, ShieldCheck } from "lucide-react";
 import { useState, useRef } from "react";
 
 const STEPS = [
@@ -179,25 +179,71 @@ const Index = () => {
           }}
         />
 
-        {/* Subtitle */}
-        <p
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 400,
-            fontSize: 15,
-            color: "rgba(255,255,255,0.45)",
-            textAlign: "center",
-            lineHeight: 1.7,
-            maxWidth: 400,
-            marginBottom: 36,
+        {/* Subtitle Section */}
+        <div 
+          className="flex flex-col items-center text-center"
+          style={{ 
+            width: "calc(100% - 32px)",
+            maxWidth: 680,
+            marginBottom: 32
           }}
         >
-          Preencha seus dados em poucos passos e pague agora somente o{" "}
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>frete para enviar seu aparelho</span>.
-          Após a análise técnica, você recebe o{" "}
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>orçamento completo</span> e decide se deseja continuar.{" "}
-          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>Nenhum conserto é realizado sem a sua aprovação.</span>
-        </p>
+          {/* Mensagem Principal */}
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontWeight: 500,
+              fontSize: "clamp(16px, 4vw, 20px)",
+              color: "rgba(255,255,255,0.9)",
+              lineHeight: 1.5,
+              textWrap: "balance",
+              margin: 0
+            }}
+          >
+            Preencha seus dados e pague agora <span style={{ fontWeight: 700, color: "white" }}>somente o frete</span> para enviar seu aparelho.
+          </p>
+
+          {/* Explicação */}
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontWeight: 400,
+              fontSize: "clamp(14px, 3.5vw, 17px)",
+              color: "rgba(255,255,255,0.45)",
+              lineHeight: 1.6,
+              marginTop: 8,
+              textWrap: "balance",
+              marginRight: "auto",
+              marginLeft: "auto"
+            }}
+          >
+            Após a análise técnica, você recebe o orçamento completo e decide se deseja continuar.
+          </p>
+
+          {/* Garantia / Selo */}
+          <div
+            className="flex items-center gap-2 px-4 py-2 mt-[14px]"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,107,0,0.15)",
+              borderRadius: 8,
+              maxWidth: "100%"
+            }}
+          >
+            <ShieldCheck className="w-4 h-4 text-[#FF6B00] shrink-0" />
+            <span
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "clamp(12px, 3vw, 13px)",
+                color: "rgba(255,255,255,0.8)",
+                fontWeight: 500,
+                textAlign: "left"
+              }}
+            >
+              Não realizamos nenhum conserto sem a sua aprovação.
+            </span>
+          </div>
+        </div>
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mb-10">
