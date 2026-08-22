@@ -168,11 +168,11 @@ export default function PixPayment() {
           <>
             {/* QR Code */}
             <div className="flex justify-center">
-              <div className="bg-white p-4 rounded-xl">
+              <div className="bg-white p-4 rounded-xl border-4 border-white shadow-lg">
                 <img
                   src={`data:image/png;base64,${pixData.qr_code_base64}`}
                   alt="QR Code Pix"
-                  className="w-[200px] h-[200px]"
+                  className="w-[220px] h-[220px] object-contain"
                 />
               </div>
             </div>
