@@ -130,7 +130,7 @@ _Mensagem enviada pelo app Power Cell_`;
         }}
       />
 
-      <PageHeader title="Orçamento Personalizado" backTo="/orcamento" subtitle="Preencha os dados abaixo" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       <main className="relative z-10 px-4 py-5 max-w-lg mx-auto space-y-4" style={{ paddingBottom: 120 }}>
         {/* Card 1 — Dados Principais */}

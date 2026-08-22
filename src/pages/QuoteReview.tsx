@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/money";
 import { setQuoteDraft } from "@/lib/storage";
@@ -23,20 +23,7 @@ export default function QuoteReview() {
   const state = location.state as QuoteState | null;
 
   if (!state || !state.services?.length) {
-    return (
-      <div className="min-h-screen bg-background">
-        <TechHeader />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">
-            Nenhum orçamento selecionado. Volte e selecione os serviços.
-          </p>
-          <Button variant="outline" onClick={() => navigate("/orcamento")}>
-            Voltar
-          </Button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const { brandId, brandName, modelSlug, modelName, services, totalCents } = state;
@@ -71,21 +58,7 @@ export default function QuoteReview() {
         }}
       />
 
-      <header className="sticky top-0 z-10 bg-[#0d0d0d]/95 backdrop-blur-sm border-b border-[rgba(255,255,255,0.08)] px-4 py-3">
-        <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <button
-            type="button"
-            onClick={handleEdit}
-            className="p-2 -ml-2 rounded-full hover:bg-[rgba(255,255,255,0.05)] transition-colors cursor-pointer flex items-center justify-center min-w-[40px] min-h-[40px]"
-            aria-label="Voltar"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-[18px] font-semibold text-white truncate font-['Inter']">Revisão do Orçamento</h1>
-          </div>
-        </div>
-      </header>
+      {/* Sub-header removed because TechHeader is already present globally */}
 
       <main className="px-4 py-6 max-w-lg mx-auto relative z-[1]">
         {/* Pill "PASSO FINAL" */}

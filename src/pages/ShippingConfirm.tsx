@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { getQuoteDraft, getShippingDraft } from "@/lib/storage";
@@ -15,16 +15,7 @@ export default function ShippingConfirm() {
   const [agreed, setAgreed] = useState(false);
 
   if (!quote) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Confirmação" backTo="/envio/aparelho" />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">Nenhum orçamento encontrado.</p>
-          <Button variant="outline" onClick={() => navigate("/orcamento")}>Voltar</Button>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const device = draft.devices?.[0];
@@ -56,7 +47,7 @@ export default function ShippingConfirm() {
         }}
       />
 
-      <PageHeader title="Confirmação" backTo="/envio/aparelho" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       {/* Stepper */}
       <div className="flex items-center justify-center gap-0 px-4 py-4">
