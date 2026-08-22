@@ -162,7 +162,7 @@ export default function PixPayment() {
         {pixLoading ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
+            <p className="text-sm text-muted-foreground">Gerando seu Pix...</p>
           </div>
         ) : pixData ? (
           <>
