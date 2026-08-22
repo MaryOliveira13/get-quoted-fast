@@ -192,29 +192,54 @@ export default function FreightPayment() {
   }, [pixPolling, orderId, trackingToken, navigate]);
 
   const handlePixPayment = async () => {
-    if (!orderId || pixLoading) return;
+    if (!orderId || isGeneratingPix.current) return;
+    isGeneratingPix.current = true;
     setPixLoading(true);
 
-    try {
-      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
-        body: {
-          order_id: orderId,
-          tracking_token: trackingToken,
-        },
-      });
+    let attempts = 0;
+    const maxAttempts = 3;
 
-      if (error) throw new Error(await readFnError(error, "Erro ao gerar Pix"));
-      if (data?.success === false) throw new Error(data.message || "Erro ao gerar Pix");
+    const executePixGeneration = async (): Promise<boolean> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
+          body: {
+            order_id: orderId,
+            tracking_token: trackingToken,
+          },
+        });
 
-      setPixQrBase64(data.encodedImage || "");
-      setPixCode(data.payload || "");
-      setPixInvoiceUrl(data.invoiceUrl || "");
-      setPixPaymentId(data.paymentId || null);
-      setPixPolling(true);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar Pix");
-    }
+        if (error) {
+          const msg = await readFnError(error, "Erro ao gerar Pix");
+          // Don't retry 400 errors (invalid data)
+          if (error.status === 400) throw new Error(msg);
+          throw new Error(msg);
+        }
+
+        if (data?.success === false) {
+          throw new Error(data.message || "Erro ao gerar Pix");
+        }
+
+        setPixQrBase64(data.encodedImage || "");
+        setPixCode(data.payload || "");
+        setPixInvoiceUrl(data.invoiceUrl || "");
+        setPixPaymentId(data.paymentId || null);
+        setPixPolling(true);
+        return true;
+      } catch (err: any) {
+        if (attempts < maxAttempts - 1 && (!err.message || !err.message.includes("400"))) {
+          attempts++;
+          const delay = attempts * 2000;
+          await new Promise(r => setTimeout(r, delay));
+          return executePixGeneration();
+        }
+        toast.error(err.message || "Erro ao gerar Pix");
+        return false;
+      }
+    };
+
+    await executePixGeneration();
     setPixLoading(false);
+    isGeneratingPix.current = false;
   };
 
 
@@ -343,36 +368,6 @@ export default function FreightPayment() {
       <PageHeader title="Pagamento do Frete" backTo="/envio/frete" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-5">
-        {/* Summary */}
-        <div className="rounded-xl border bg-card p-5 space-y-3">
-          <h3 className="font-semibold text-sm text-muted-foreground">Resumo do Pedido</h3>
-          <div className="flex items-center gap-3">
-            {getBrandLogo(order.brand) ? (
-              <div className="w-10 h-10 bg-white rounded-lg p-1 flex items-center justify-center flex-shrink-0">
-                <img src={getBrandLogo(order.brand)} alt={order.brand} className="w-full h-full object-contain" />
-              </div>
-            ) : null}
-            <p className="text-sm">{order.brand} {order.model}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {getCarrierLogo(companyName) ? (
-              <div className="w-10 h-10 bg-white rounded-lg p-1.5 flex items-center justify-center flex-shrink-0">
-                <img src={getCarrierLogo(companyName)!} alt={companyName} className="w-full h-full object-contain" />
-              </div>
-            ) : null}
-            <p className="text-sm text-muted-foreground">
-              {serviceName}{companyName ? ` (${companyName})` : ""}
-            </p>
-          </div>
-          <div className="border-t pt-3 flex justify-between items-center">
-            <span className="text-sm font-semibold">Valor do frete:</span>
-            <span className="text-xl font-bold">{formatBRL(order.shipping_amount * 100)}</span>
-          </div>
-          <p className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-2">
-            ⚠️ Você está pagando apenas o frete de envio. O valor do conserto será combinado após análise técnica.
-          </p>
-        </div>
-
         {/* Payment method tabs */}
         <div className="flex gap-2">
           <button
@@ -417,12 +412,12 @@ export default function FreightPayment() {
                   {pixLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Gerando Pix…
+                      Gerando seu Pix...
                     </>
                   ) : (
                     <>
                       <QrCode className="w-5 h-5" />
-                      Pagar {formatBRL(order.shipping_amount * 100)} no Pix
+                      Gerar Pix
                     </>
                   )}
                 </Button>
@@ -431,11 +426,11 @@ export default function FreightPayment() {
               <div className="space-y-4">
                 {/* QR Code */}
                 <div className="flex justify-center">
-                  <div className="bg-white p-4 rounded-xl">
+                  <div className="bg-white p-4 rounded-xl border-4 border-white shadow-lg">
                     <img
                       src={`data:image/png;base64,${pixQrBase64}`}
                       alt="QR Code Pix"
-                      className="w-[200px] h-[200px]"
+                      className="w-[220px] h-[220px] object-contain"
                     />
                   </div>
                 </div>
@@ -443,8 +438,8 @@ export default function FreightPayment() {
                 {/* Copy code */}
                 <div className="rounded-xl border bg-card p-4 space-y-3">
                   <p className="text-sm font-semibold">Pix copia e cola</p>
-                  <div className="bg-secondary rounded-lg p-3 max-h-32 overflow-y-auto">
-                    <p className="text-xs text-muted-foreground break-all font-mono">
+                  <div className="bg-secondary rounded-lg p-3 overflow-hidden">
+                    <p className="text-xs text-muted-foreground break-all font-mono whitespace-pre-wrap">
                       {pixCode}
                     </p>
                   </div>
@@ -485,6 +480,7 @@ export default function FreightPayment() {
         {tab === "card" && (
           <div className="space-y-4">
              {/* Card selection (Credit/Debit) */}
+
             <div className="flex gap-4 p-1 bg-secondary rounded-lg">
               <button
                 onClick={() => setCardType("credit")}
