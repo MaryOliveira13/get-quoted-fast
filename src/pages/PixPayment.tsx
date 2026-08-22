@@ -180,9 +180,9 @@ export default function PixPayment() {
             {/* Copy code */}
             <div className="rounded-xl border bg-card p-4 space-y-3">
               <p className="text-sm font-semibold">Pix copia e cola</p>
-              <div className="bg-secondary rounded-lg p-3">
-                <p className="text-xs text-muted-foreground break-all font-mono">
-                  {pixData.qr_code.length > 100 ? pixData.qr_code.slice(0, 100) + "..." : pixData.qr_code}
+              <div className="bg-secondary rounded-lg p-3 overflow-hidden">
+                <p className="text-xs text-muted-foreground break-all font-mono whitespace-pre-wrap">
+                  {pixData.qr_code}
                 </p>
               </div>
               <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopy}>
