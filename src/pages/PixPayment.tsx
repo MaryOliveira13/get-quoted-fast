@@ -58,18 +58,42 @@ export default function PixPayment() {
   };
 
   const generatePix = async (id: string) => {
+    if (isGeneratingPix.current) return;
+    isGeneratingPix.current = true;
     setPixLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
-        body: { order_id: id, tracking_token: trackingToken },
-      });
-      if (error) throw error;
-      setPixData(data);
-      setPolling(true);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar Pix");
-    }
+
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    const executePixGeneration = async (): Promise<boolean> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
+          body: { order_id: id, tracking_token: trackingToken },
+        });
+
+        if (error) {
+          if (error.status === 400) throw error;
+          throw error;
+        }
+
+        setPixData(data);
+        setPolling(true);
+        return true;
+      } catch (err: any) {
+        if (attempts < maxAttempts - 1 && (!err.status || err.status !== 400)) {
+          attempts++;
+          const delay = attempts * 2000;
+          await new Promise(r => setTimeout(r, delay));
+          return executePixGeneration();
+        }
+        toast.error(err.message || "Erro ao gerar Pix");
+        return false;
+      }
+    };
+
+    await executePixGeneration();
     setPixLoading(false);
+    isGeneratingPix.current = false;
   };
 
   // Poll for status
