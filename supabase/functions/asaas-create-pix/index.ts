@@ -110,8 +110,9 @@ serve(async (req) => {
       const createCustomerRes = await fetch(`${ASAAS_BASE_URL}/customers`, {
         method: "POST",
         headers: asaasHeaders(),
-        body: JSON.stringify(customerBody),
+        body: JSON.stringify(customerBody, null, 2),
       });
+      console.log("Asaas Customer Body:", JSON.stringify(customerBody));
       const customerData = await createCustomerRes.json().catch(() => ({}));
       if (!createCustomerRes.ok || !customerData?.id) {
         const e = asaasError(customerData);
