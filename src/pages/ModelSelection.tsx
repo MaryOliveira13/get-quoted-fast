@@ -51,8 +51,8 @@ export default function ModelSelection() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-card rounded-2xl border flex flex-col overflow-hidden" style={{ maxHeight: "85vh" }}>
-        {/* Header */}
-        <PageHeader title={brand.name} backTo="/orcamento" />
+        {/* Header content moved into component structure if needed, or using standard header from App.tsx */}
+
 
         <div className="px-5 pt-5 pb-5">
           <div className="mb-2">
