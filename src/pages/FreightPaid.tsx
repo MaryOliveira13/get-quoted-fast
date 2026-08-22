@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Navigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -225,15 +225,7 @@ export default function FreightPaid() {
   }
 
   if (error || !order) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Etiqueta" backTo="/" />
-        <div className="flex flex-col items-center justify-center px-4 py-20 gap-4">
-          <AlertCircle className="w-12 h-12 text-destructive" />
-          <p className="text-lg font-semibold text-center">{error || "Erro desconhecido."}</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/" replace />;
   }
 
   const safe = (val: string | null | undefined) => val || "Não informado";
