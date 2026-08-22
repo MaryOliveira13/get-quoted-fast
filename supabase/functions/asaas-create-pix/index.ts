@@ -189,14 +189,37 @@ serve(async (req) => {
     let expirationDate: string | null = payment.dueDate ?? null;
 
     if (type === "PIX") {
-      const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${payment.id}/pixQrCode`, {
-        headers: asaasHeaders(),
-      });
-      const qr = await qrRes.json().catch(() => ({}));
-      if (qrRes.ok && qr?.payload) {
-        encodedImage = qr.encodedImage ?? null;
-        payload = qr.payload;
-        expirationDate = qr.expirationDate ?? expirationDate;
+      // Tentar obter o QR Code com retentativas caso o Asaas ainda não tenha gerado
+      let qrAttempts = 0;
+      const maxQrAttempts = 5;
+      
+      while (qrAttempts < maxQrAttempts) {
+        qrAttempts++;
+        console.log(`Fetching QR Code attempt ${qrAttempts} for payment ${payment.id}`);
+        
+        const qrRes = await fetch(`${ASAAS_BASE_URL}/payments/${payment.id}/pixQrCode`, {
+          headers: asaasHeaders(),
+        });
+        
+        const qr = await qrRes.json().catch(() => ({}));
+        
+        if (qrRes.ok && qr?.payload) {
+          encodedImage = qr.encodedImage ?? null;
+          payload = qr.payload;
+          expirationDate = qr.expirationDate ?? expirationDate;
+          console.log("QR Code obtained successfully");
+          break;
+        }
+        
+        if (qrAttempts < maxQrAttempts) {
+          const delay = qrAttempts * 1000; // Progressive delay: 1s, 2s, 3s, 4s
+          console.log(`QR Code not ready. Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      
+      if (!payload) {
+        return fail("pix_qr_code", 500, "O Asaas criou a cobrança, mas o QR Code Pix ainda não está disponível. Tente gerar novamente em alguns segundos.");
       }
     }
 
