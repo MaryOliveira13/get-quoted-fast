@@ -7,7 +7,7 @@ import { formatBRL } from "@/lib/money";
 import { AlertCircle, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function PixPayment() {
   const navigate = useNavigate();
