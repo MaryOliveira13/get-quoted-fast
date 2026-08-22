@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ArrowLeft, Search, AlertCircle } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { findBrand, MODELS_BY_BRAND, slugify } from "@/data/catalog";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function ModelSelection() {
   const { brand: brandSlug } = useParams<{ brand: string }>();
@@ -48,25 +49,17 @@ export default function ModelSelection() {
     : models;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-card rounded-2xl border flex flex-col overflow-hidden" style={{ maxHeight: "85vh" }}>
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-          <button
-            onClick={() => navigate("/orcamento")}
-            className="p-2 -ml-2 rounded-full hover:bg-muted/40 transition-colors"
-            aria-label="Voltar"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <div>
+        <PageHeader title={brand.name} backTo="/orcamento" />
+
+        <div className="px-5 pt-5 pb-5">
+          <div className="mb-2">
             <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-[1px] font-[family-name:var(--font-body)]">
               Passo 2 de 3
             </span>
           </div>
-        </div>
-
-        <div className="px-5 pb-5">
           <h1 className="text-[26px] leading-none tracking-[0.5px] text-foreground uppercase font-extrabold font-[family-name:var(--font-display)]">
             Escolha o modelo
           </h1>
