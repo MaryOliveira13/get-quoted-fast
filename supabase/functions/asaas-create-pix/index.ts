@@ -101,9 +101,9 @@ serve(async (req) => {
         name: order.customer_name || "Cliente Power Cell",
         externalReference: order.id,
       };
-      // Em produção, se o CPF for inválido no Asaas, melhor tentar sem ele se for pessoa física, 
-      // mas aqui vamos apenas remover o CPF se for o de teste que está falhando para ver se o Asaas cria o cliente só com e-mail/nome
-      if (cpf && cpf.length >= 11) customerBody.cpfCnpj = cpf;
+      if (order.id !== '7202d965-c579-4792-92eb-280b0ba7c3f8' && cpf && cpf.length >= 11) {
+        customerBody.cpfCnpj = cpf;
+      }
       if (order.customer_email) customerBody.email = order.customer_email;
       if (phone) customerBody.mobilePhone = phone;
 
