@@ -7,7 +7,7 @@ import { formatBRL } from "@/lib/money";
 import { AlertCircle, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function PixPayment() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export default function PixPayment() {
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
   const [pixData, setPixData] = useState<any>(null);
+  const isGeneratingPix = useRef(false);
   const [pixLoading, setPixLoading] = useState(false);
   const [polling, setPolling] = useState(false);
 
@@ -57,18 +58,42 @@ export default function PixPayment() {
   };
 
   const generatePix = async (id: string) => {
+    if (isGeneratingPix.current) return;
+    isGeneratingPix.current = true;
     setPixLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
-        body: { order_id: id, tracking_token: trackingToken },
-      });
-      if (error) throw error;
-      setPixData(data);
-      setPolling(true);
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao gerar Pix");
-    }
+
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    const executePixGeneration = async (): Promise<boolean> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("asaas-create-pix", {
+          body: { order_id: id, tracking_token: trackingToken },
+        });
+
+        if (error) {
+          if (error.status === 400) throw error;
+          throw error;
+        }
+
+        setPixData(data);
+        setPolling(true);
+        return true;
+      } catch (err: any) {
+        if (attempts < maxAttempts - 1 && (!err.status || err.status !== 400)) {
+          attempts++;
+          const delay = attempts * 2000;
+          await new Promise(r => setTimeout(r, delay));
+          return executePixGeneration();
+        }
+        toast.error(err.message || "Erro ao gerar Pix");
+        return false;
+      }
+    };
+
+    await executePixGeneration();
     setPixLoading(false);
+    isGeneratingPix.current = false;
   };
 
   // Poll for status
@@ -137,17 +162,17 @@ export default function PixPayment() {
         {pixLoading ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
+            <p className="text-sm text-muted-foreground">Gerando seu Pix...</p>
           </div>
         ) : pixData ? (
           <>
             {/* QR Code */}
             <div className="flex justify-center">
-              <div className="bg-white p-4 rounded-xl">
+              <div className="bg-white p-4 rounded-xl border-4 border-white shadow-lg">
                 <img
                   src={`data:image/png;base64,${pixData.qr_code_base64}`}
                   alt="QR Code Pix"
-                  className="w-[200px] h-[200px]"
+                  className="w-[220px] h-[220px] object-contain"
                 />
               </div>
             </div>
@@ -155,9 +180,9 @@ export default function PixPayment() {
             {/* Copy code */}
             <div className="rounded-xl border bg-card p-4 space-y-3">
               <p className="text-sm font-semibold">Pix copia e cola</p>
-              <div className="bg-secondary rounded-lg p-3">
-                <p className="text-xs text-muted-foreground break-all font-mono">
-                  {pixData.qr_code.length > 100 ? pixData.qr_code.slice(0, 100) + "..." : pixData.qr_code}
+              <div className="bg-secondary rounded-lg p-3 overflow-hidden">
+                <p className="text-xs text-muted-foreground break-all font-mono whitespace-pre-wrap">
+                  {pixData.qr_code}
                 </p>
               </div>
               <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleCopy}>
