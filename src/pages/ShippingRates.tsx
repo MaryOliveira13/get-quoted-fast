@@ -215,7 +215,7 @@ export default function ShippingRates() {
         }}
       />
 
-      <PageHeader title="Escolha o frete" backTo="/envio/confirmacao" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-5 relative z-10" style={{ paddingBottom: '100px' }}>
         {/* Título */}

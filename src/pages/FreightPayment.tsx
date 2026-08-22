@@ -357,7 +357,7 @@ export default function FreightPayment() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <PageHeader title="Pagamento do Frete" backTo="/envio/frete" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-5">
         {/* Payment method tabs */}

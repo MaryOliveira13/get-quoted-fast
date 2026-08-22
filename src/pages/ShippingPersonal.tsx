@@ -103,7 +103,7 @@ export default function ShippingPersonal() {
         }}
       />
 
-      <PageHeader title="Dados Pessoais" backTo="/" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       {/* Custom Stepper */}
       <div className="flex items-center justify-center gap-0 px-4 py-4">

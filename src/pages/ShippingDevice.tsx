@@ -126,7 +126,7 @@ export default function ShippingDevice() {
         }}
       />
 
-      <PageHeader title="Aparelho" backTo="/envio/dados-pessoais" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       {/* Custom Stepper */}
       <div className="flex items-center justify-center gap-0 px-4 py-4">

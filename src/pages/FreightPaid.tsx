@@ -279,7 +279,7 @@ Vou postar o aparelho e envio o comprovante. Pode me orientar os próximos passo
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <PageHeader title="Etiqueta de envio" backTo="/" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-5">
         {/* Status */}

@@ -47,7 +47,7 @@ export default function ShippingConfirm() {
         }}
       />
 
-      <PageHeader title="Confirmação" backTo="/envio/aparelho" />
+      {/* PageHeader removed because TechHeader is already present globally */}
 
       {/* Stepper */}
       <div className="flex items-center justify-center gap-0 px-4 py-4">
