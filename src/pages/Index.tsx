@@ -208,10 +208,10 @@ const Index = () => {
           </div>
 
           {/* Steps Container */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-[1fr_56px_1fr] items-stretch gap-4 md:gap-0">
+          <div className="w-full flex flex-col md:grid md:grid-cols-[1fr_56px_1fr] items-center md:items-stretch gap-4 md:gap-0">
             {/* Step 1 */}
             <div 
-              className="group transition-all duration-200 hover:-translate-y-[2px]"
+              className="group transition-all duration-200 hover:-translate-y-[2px] w-[calc(100%-32px)] max-w-[380px] md:w-full md:max-w-none"
               style={{
                 background: "linear-gradient(145deg, #171717, #111111)",
                 border: "1px solid rgba(255,255,255,0.09)",
@@ -283,9 +283,8 @@ const Index = () => {
               </p>
             </div>
 
-            {/* Connector */}
-            <div className="flex md:flex-col items-center justify-center py-2 md:py-0">
-              {/* Desktop Connector */}
+            {/* Desktop Connector */}
+            <div className="hidden md:flex flex-col items-center justify-center py-2 md:py-0">
               <div className="hidden md:flex items-center w-full">
                 <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 to-transparent" />
                 <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-[#080808] z-10">
@@ -293,17 +292,11 @@ const Index = () => {
                 </div>
                 <div className="flex-1 h-[1px] bg-gradient-to-l from-white/10 to-transparent" />
               </div>
-              {/* Mobile Connector */}
-              <div className="md:hidden flex flex-col items-center">
-                <div className="w-[1px] h-6 bg-gradient-to-b from-white/10 to-transparent" />
-                <ArrowDown className="w-4 h-4 text-white/20 my-1" />
-                <div className="w-[1px] h-6 bg-gradient-to-t from-white/10 to-transparent" />
-              </div>
             </div>
 
             {/* Step 2 */}
             <div 
-              className="group transition-all duration-200 hover:-translate-y-[2px]"
+              className="group transition-all duration-200 hover:-translate-y-[2px] w-[calc(100%-32px)] max-w-[380px] md:w-full md:max-w-none mt-[14px] md:mt-0"
               style={{
                 background: "linear-gradient(145deg, #171717, #111111)",
                 border: "1px solid rgba(255,255,255,0.09)",
