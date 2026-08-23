@@ -115,6 +115,36 @@ const Auth = () => {
     boxSizing: "border-box",
   };
 
+  const forgotPasswordStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: "12px",
+    fontFamily: "'Inter', sans-serif",
+    cursor: "pointer",
+    textAlign: "right",
+    padding: "0",
+    marginTop: "-8px",
+    transition: "color 0.2s",
+  };
+
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      toast.error("Informe seu e-mail para receber o link de recuperação");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Link de recuperação enviado! Verifique seu e-mail.");
+    }
+  };
+
   const labelStyle: React.CSSProperties = {
     fontFamily: "'Inter', sans-serif",
     fontSize: 13,
@@ -219,6 +249,15 @@ const Auth = () => {
                 </button>
               </div>
             </div>
+            <button 
+              type="button" 
+              onClick={handleForgotPassword} 
+              style={forgotPasswordStyle}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6B00")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+            >
+              Esqueci minha senha
+            </button>
             <button type="submit" style={btnStyle} disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </button>
