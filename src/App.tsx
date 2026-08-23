@@ -31,6 +31,7 @@ import SelfLabelSuccess from "./pages/SelfLabelSuccess";
 import FreightPaid from "./pages/FreightPaid";
 import FreightCancelled from "./pages/FreightCancelled";
 import FreightPayment from "./pages/FreightPayment";
+import ResetPassword from "./pages/ResetPassword";
 import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/" element={<><TechHeader /><Index /></>} />
           <Route path="/home" element={<><TechHeader /><Index /></>} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/orcamento" element={<><TechHeader /><BrandSelection /></>} />
           <Route path="/orcamento/:brand" element={<><TechHeader /><ModelSelection /></>} />
           <Route path="/orcamento/:brand/:model" element={<><TechHeader /><ServiceSelection /></>} />
