@@ -32,7 +32,7 @@ interface SearchableSelectProps {
   maxResults?: number;
 }
 
-export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectProps>(function SearchableSelect({
+export function SearchableSelect({
   options,
   value,
   onChange,
@@ -41,7 +41,7 @@ export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectPr
   emptyMessage = "Nenhum resultado encontrado",
   disabled = false,
   maxResults = 30,
-}, ref) {
+}: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
