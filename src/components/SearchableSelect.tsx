@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,48 +28,40 @@ interface SearchableSelectProps {
   searchPlaceholder?: string;
   emptyMessage?: string;
   disabled?: boolean;
-  /** Debounce in ms applied to the typed term */
-  debounceMs?: number;
   /** Max results rendered per search */
   maxResults?: number;
 }
 
-export function SearchableSelect({
+export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectProps>(function SearchableSelect({
   options,
   value,
   onChange,
   placeholder = "Selecione",
   searchPlaceholder = "Pesquisar...",
   emptyMessage = "Nenhum resultado encontrado",
-  disabled,
-  debounceMs = 300,
+  disabled = false,
   maxResults = 30,
-}: SearchableSelectProps) {
+}, ref) {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
-  const [debounced, setDebounced] = useState("");
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isDisabled = disabled === true;
 
   useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setDebounced(term), debounceMs);
-    return () => timer.current && clearTimeout(timer.current);
-  }, [term, debounceMs]);
-
-  useEffect(() => {
-    if (!open) {
+    if (open && !isDisabled) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
       setTerm("");
-      setDebounced("");
     }
-  }, [open]);
+  }, [open, isDisabled]);
 
   const filtered = useMemo(() => {
-    const q = debounced.trim().toLowerCase();
+    const q = term.trim().toLowerCase();
     const base = q
       ? options.filter((o) => o.label.toLowerCase().includes(q))
       : options;
     return base.slice(0, maxResults);
-  }, [options, debounced, maxResults]);
+  }, [options, term, maxResults]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,7 +71,8 @@ export function SearchableSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          disabled={disabled}
+          disabled={isDisabled}
+          ref={ref}
           className={cn(
             "w-full justify-between font-normal bg-background border-input h-10 px-3",
             "hover:bg-background hover:text-foreground data-[state=open]:border-primary",
@@ -92,22 +85,25 @@ export function SearchableSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="p-0 w-[--radix-popover-trigger-width] max-w-[calc(100vw-2rem)] z-50"
+        position="popper"
+        sideOffset={4}
+        className="z-[9999] p-0 w-[--radix-popover-trigger-width] max-w-[calc(100vw-2rem)]"
       >
-        {/* shouldFilter=false: filtering is handled by the debounced term */}
         <Command shouldFilter={false}>
           <CommandInput
+            ref={inputRef}
             value={term}
             onValueChange={setTerm}
             placeholder={searchPlaceholder}
+            disabled={false}
           />
-          <CommandList className="max-h-60 overflow-y-auto">
+          <CommandList className="max-h-60 overflow-y-auto overscroll-contain">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {filtered.map((o) => (
                 <CommandItem
                   key={o.id}
-                  value={o.id}
+                  value={o.label}
                   onSelect={() => {
                     onChange(o.label, o);
                     setOpen(false);
@@ -132,4 +128,4 @@ export function SearchableSelect({
       </PopoverContent>
     </Popover>
   );
-}
+});
