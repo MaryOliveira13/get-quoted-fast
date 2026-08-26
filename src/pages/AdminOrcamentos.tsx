@@ -464,21 +464,26 @@ export default function AdminOrcamentos() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Marca *</label>
-              <Select value={marca} onValueChange={(v) => { setMarca(v); setModelo(""); }}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {BRANDS.map((b) => <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={BRANDS.map((b) => ({ id: b.id, label: b.name }))}
+                value={marca}
+                onChange={(label) => { setMarca(label); setModelo(""); }}
+                placeholder="Selecione"
+                searchPlaceholder="Pesquisar marca..."
+                emptyMessage="Nenhuma marca encontrada"
+              />
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Modelo *</label>
-              <Select value={modelo} onValueChange={setModelo} disabled={!marca}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {models.map((m) => <SelectItem key={m.model} value={m.model}>{m.model}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={models.map((m) => ({ id: `${m.brand}-${m.model}`, label: m.model }))}
+                value={modelo}
+                onChange={(label) => setModelo(label)}
+                disabled={!marca}
+                placeholder={marca ? "Selecione" : "Escolha a marca"}
+                searchPlaceholder="Pesquisar modelo..."
+                emptyMessage="Nenhum modelo encontrado"
+              />
             </div>
           </div>
 
