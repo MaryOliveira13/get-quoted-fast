@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string | null
+          created_at: string
+          data_after: Json | null
+          data_before: Json | null
+          id: string
+          record_id: string | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          data_after?: Json | null
+          data_before?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          data_after?: Json | null
+          data_before?: Json | null
+          id?: string
+          record_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      device_models: {
+        Row: {
+          active: boolean
+          brand_id: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          brand_id: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          brand_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       envios: {
         Row: {
           cliente_nome: string
@@ -147,48 +254,72 @@ export type Database = {
       }
       orcamentos: {
         Row: {
+          brand_id: string | null
           cliente_nome: string
           cliente_telefone: string | null
           created_at: string
           created_by: string | null
+          device_model_id: string | null
           id: string
           marca: string
           modelo: string
           observacoes: string | null
           servicos: Json
+          servicos_snapshot: Json
           status: string
           validade_dias: number
           valor_total: number
         }
         Insert: {
+          brand_id?: string | null
           cliente_nome: string
           cliente_telefone?: string | null
           created_at?: string
           created_by?: string | null
+          device_model_id?: string | null
           id?: string
           marca: string
           modelo: string
           observacoes?: string | null
           servicos?: Json
+          servicos_snapshot?: Json
           status?: string
           validade_dias?: number
           valor_total?: number
         }
         Update: {
+          brand_id?: string | null
           cliente_nome?: string
           cliente_telefone?: string | null
           created_at?: string
           created_by?: string | null
+          device_model_id?: string | null
           id?: string
           marca?: string
           modelo?: string
           observacoes?: string | null
           servicos?: Json
+          servicos_snapshot?: Json
           status?: string
           validade_dias?: number
           valor_total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orcamentos_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orcamentos_device_model_id_fkey"
+            columns: ["device_model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -526,6 +657,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      repair_prices: {
+        Row: {
+          active: boolean
+          created_at: string
+          device_model_id: string
+          id: string
+          price: number
+          repair_service_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          device_model_id: string
+          id?: string
+          price: number
+          repair_service_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          device_model_id?: string
+          id?: string
+          price?: number
+          repair_service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_prices_device_model_id_fkey"
+            columns: ["device_model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_prices_repair_service_id_fkey"
+            columns: ["repair_service_id"]
+            isOneToOne: false
+            referencedRelation: "repair_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_services: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
