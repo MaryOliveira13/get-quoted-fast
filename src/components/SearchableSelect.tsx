@@ -82,6 +82,7 @@ export function SearchableSelect({
           disabled={disabled}
           className={cn(
             "w-full justify-between font-normal bg-background border-input h-10 px-3",
+            "hover:bg-background hover:text-foreground data-[state=open]:border-primary",
             !value && "text-muted-foreground"
           )}
         >
