@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ interface SearchableSelectProps {
   maxResults?: number;
 }
 
-export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectProps>(function SearchableSelect({
+export function SearchableSelect({
   options,
   value,
   onChange,
@@ -41,7 +41,7 @@ export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectPr
   emptyMessage = "Nenhum resultado encontrado",
   disabled = false,
   maxResults = 30,
-}, ref) {
+}: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +72,6 @@ export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectPr
           role="combobox"
           aria-expanded={open}
           disabled={isDisabled}
-          ref={ref}
           className={cn(
             "w-full justify-between font-normal bg-background border-input h-10 px-3",
             "hover:bg-background hover:text-foreground data-[state=open]:border-primary",
@@ -85,7 +84,6 @@ export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectPr
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        position="popper"
         sideOffset={4}
         className="z-[9999] p-0 w-[--radix-popover-trigger-width] max-w-[calc(100vw-2rem)]"
       >
@@ -128,4 +126,4 @@ export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectPr
       </PopoverContent>
     </Popover>
   );
-});
+}
