@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { findBrand, findModel, getModelServices } from "@/data/catalog";
+import { useBrands, useDeviceModels, useModelPrices } from "@/hooks/useCatalog";
 import { formatBRL } from "@/lib/money";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,29 @@ export default function ServiceSelection() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const brand = findBrand(brandSlug ?? "");
-  const model = brand ? findModel(brand.id, modelSlug ?? "") : undefined;
+  const { data: brands = [], isLoading: loadingBrands } = useBrands();
+  const { data: allModels = [], isLoading: loadingModels } = useDeviceModels();
+
+  const brandRow = useMemo(
+    () => brands.find((b) => b.slug === brandSlug || b.id === brandSlug),
+    [brands, brandSlug]
+  );
+  const modelRow = useMemo(
+    () => (brandRow ? allModels.find((m) => m.brand_id === brandRow.id && m.slug === modelSlug) : undefined),
+    [allModels, brandRow, modelSlug]
+  );
+  const { data: modelPrices = [] } = useModelPrices(modelRow?.id ?? null);
+
+  const brand = brandRow ? { id: brandRow.slug, name: brandRow.name } : undefined;
+  const model = modelRow?.name;
+
+  if (loadingBrands || loadingModels) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Carregando serviços...</p>
+      </div>
+    );
+  }
 
   if (!brand) {
     return (
@@ -45,7 +66,7 @@ export default function ServiceSelection() {
     );
   }
 
-  const services = getModelServices(brand.name, model);
+  const services = modelPrices.map((p: any) => ({ name: p.repair_services?.name ?? "Serviço", price: Number(p.price) }));
   const hasServices = services.length > 0;
 
   const toggle = (id: string) => {

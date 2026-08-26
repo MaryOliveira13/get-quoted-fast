@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Database,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Pedidos", icon: ClipboardList, path: "/admin/pedidos" },
   { label: "Orçamentos", icon: FileText, path: "/admin/orcamentos" },
+  { label: "Gestão do Site", icon: Database, path: "/admin/gestao" },
   { label: "Logística", icon: PackageCheck, path: "/admin/logistica" },
   { label: "Envios Pós", icon: Truck, path: "/admin/envios-pos" },
   

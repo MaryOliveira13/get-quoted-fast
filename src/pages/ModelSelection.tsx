@@ -1,16 +1,34 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, AlertCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { findBrand, MODELS_BY_BRAND, slugify } from "@/data/catalog";
+import { useBrands, useDeviceModels } from "@/hooks/useCatalog";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/PageHeader";
 
 export default function ModelSelection() {
   const { brand: brandSlug } = useParams<{ brand: string }>();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  const brand = findBrand(brandSlug ?? "");
+  const { data: brands = [], isLoading: loadingBrands } = useBrands();
+  const { data: allModels = [], isLoading: loadingModels } = useDeviceModels();
+
+  const brand = useMemo(
+    () => brands.find((b) => b.slug === brandSlug || b.id === brandSlug),
+    [brands, brandSlug]
+  );
+
+  const models = useMemo(
+    () => (brand ? allModels.filter((m) => m.brand_id === brand.id) : []),
+    [allModels, brand]
+  );
+
+  if (loadingBrands || loadingModels) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Carregando aparelhos...</p>
+      </div>
+    );
+  }
 
   if (!brand) {
     return (
@@ -23,8 +41,6 @@ export default function ModelSelection() {
       </div>
     );
   }
-
-  const models = MODELS_BY_BRAND[brand.id] ?? [];
 
   if (models.length === 0) {
     return (
@@ -45,15 +61,12 @@ export default function ModelSelection() {
 
   const trimmed = query.trim();
   const filtered = trimmed.length >= 1
-    ? models.filter((m) => m.toLowerCase().includes(trimmed.toLowerCase()))
+    ? models.filter((m) => m.name.toLowerCase().includes(trimmed.toLowerCase()))
     : models;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-card rounded-2xl border flex flex-col overflow-hidden" style={{ maxHeight: "85vh" }}>
-        {/* Header content moved into component structure if needed, or using standard header from App.tsx */}
-
-
         <div className="px-5 pt-5 pb-5">
           <div className="mb-2">
             <span className="bg-primary/10 text-primary text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-[1px] font-[family-name:var(--font-body)]">
@@ -87,11 +100,11 @@ export default function ModelSelection() {
         <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-1.5">
           {filtered.map((model) => (
             <button
-              key={model}
-              onClick={() => navigate(`/orcamento/${brand.id}/${slugify(model)}`)}
+              key={model.id}
+              onClick={() => navigate(`/orcamento/${brand.slug}/${model.slug}`)}
               className="w-full text-left px-4 py-3 rounded-xl bg-background border border-transparent hover:border-primary/40 hover:bg-muted/40 transition-all active:scale-[0.98]"
             >
-              <span className="font-medium text-foreground text-[14px] font-[family-name:var(--font-body)]">{model}</span>
+              <span className="font-medium text-foreground text-[14px] font-[family-name:var(--font-body)]">{model.name}</span>
             </button>
           ))}
           {filtered.length === 0 && (

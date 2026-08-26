@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { BRANDS, MODELS_DATABASE } from "@/data/catalog";
+import { useBrands, useDeviceModels, useRepairPrices, useRepairServices } from "@/hooks/useCatalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,12 +48,6 @@ interface OutroDefeito {
   valor: string;
 }
 
-const getBrandSlug = (brandName: string) => {
-  const brand = BRANDS.find((b) => b.name.toLowerCase() === brandName.toLowerCase());
-  return brand?.id || brandName.toLowerCase();
-};
-
-const getModelOptionId = (brandName: string, modelName: string) => `${getBrandSlug(brandName)}::${modelName}`;
 
 export default function AdminOrcamentos() {
   const [tab, setTab] = useState<"form" | "history">("form");
@@ -63,6 +57,8 @@ export default function AdminOrcamentos() {
   const [clienteTelefone, setClienteTelefone] = useState("");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
+  const [brandId, setBrandId] = useState<string | null>(null);
+  const [deviceModelId, setDeviceModelId] = useState<string | null>(null);
   const [serviceLines, setServiceLines] = useState<ServiceLine[]>([]);
   const [outrosDefeitos, setOutrosDefeitos] = useState<OutroDefeito[]>([{ descricao: "", valor: "" }]);
   const [observacoes, setObservacoes] = useState("");
@@ -74,39 +70,53 @@ export default function AdminOrcamentos() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Catálogo vindo do banco
+  const { data: dbBrands = [] } = useBrands(true);
+  const { data: dbModels = [] } = useDeviceModels(true);
+  const { data: dbServices = [] } = useRepairServices(true);
+  const { data: dbPrices = [] } = useRepairPrices(true);
+
+  const brandNameById = useMemo(
+    () => new Map(dbBrands.map((b) => [b.id, b.name])),
+    [dbBrands]
+  );
+
   const modelOptions = useMemo(() => {
-    return [...MODELS_DATABASE]
+    return [...dbModels]
       .sort((a, b) => {
         if (!marca) return 0;
-        const aMatchesBrand = a.brand.toLowerCase() === marca.toLowerCase();
-        const bMatchesBrand = b.brand.toLowerCase() === marca.toLowerCase();
-        if (aMatchesBrand === bMatchesBrand) return 0;
-        return aMatchesBrand ? -1 : 1;
+        const aM = (brandNameById.get(a.brand_id) ?? "").toLowerCase() === marca.toLowerCase();
+        const bM = (brandNameById.get(b.brand_id) ?? "").toLowerCase() === marca.toLowerCase();
+        if (aM === bM) return 0;
+        return aM ? -1 : 1;
       })
       .map((m) => ({
-        id: getModelOptionId(m.brand, m.model),
-        label: `${m.brand} — ${m.model}`,
+        id: m.id,
+        label: `${brandNameById.get(m.brand_id) ?? ""} — ${m.name}`,
       }));
-  }, [marca]);
-
-  const selectedModel = useMemo(() => {
-    return MODELS_DATABASE.find((m) => m.brand.toLowerCase() === marca.toLowerCase() && m.model === modelo);
-  }, [marca, modelo]);
+  }, [dbModels, brandNameById, marca]);
 
   useEffect(() => {
-    if (selectedModel) {
-      setServiceLines(
-        selectedModel.services.map((s) => ({
-          name: s.name,
-          price: s.price,
-          selected: false,
-          customPrice: s.price.toFixed(2).replace(".", ","),
-        }))
-      );
-    } else {
+    if (!deviceModelId) {
       setServiceLines([]);
+      return;
     }
-  }, [selectedModel]);
+    const lines = dbPrices
+      .filter((p) => p.device_model_id === deviceModelId && p.active)
+      .map((p) => {
+        const svc = dbServices.find((s) => s.id === p.repair_service_id);
+        return { svc, price: Number(p.price) };
+      })
+      .filter((x) => x.svc && x.svc.active)
+      .sort((a, b) => (a.svc!.sort_order ?? 0) - (b.svc!.sort_order ?? 0))
+      .map(({ svc, price }) => ({
+        name: svc!.name,
+        price,
+        selected: false,
+        customPrice: price.toFixed(2).replace(".", ","),
+      }));
+    setServiceLines(lines);
+  }, [deviceModelId, dbPrices, dbServices]);
 
   const valorTotal = useMemo(() => {
     let total = serviceLines
@@ -163,6 +173,17 @@ export default function AdminOrcamentos() {
       valor_total: valorTotal,
       observacoes: observacoes || null,
       validade_dias: parseInt(validadeDias) || 7,
+      brand_id: brandId,
+      device_model_id: deviceModelId,
+      servicos_snapshot: {
+        marca,
+        modelo,
+        brand_id: brandId,
+        device_model_id: deviceModelId,
+        servicos: selectedServices,
+        valor_total: valorTotal,
+        capturado_em: new Date().toISOString(),
+      },
     } as any);
 
     if (error) {
@@ -174,6 +195,8 @@ export default function AdminOrcamentos() {
       setClienteTelefone("");
       setMarca("");
       setModelo("");
+      setBrandId(null);
+      setDeviceModelId(null);
       setServiceLines([]);
       setOutrosDefeitos([{ descricao: "", valor: "" }]);
       setObservacoes("");
@@ -483,9 +506,14 @@ export default function AdminOrcamentos() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Marca *</label>
               <SearchableSelect
-                options={BRANDS.map((b) => ({ id: b.id, label: b.name }))}
+                options={dbBrands.map((b) => ({ id: b.id, label: b.name }))}
                 value={marca}
-                onChange={(label) => { setMarca(label); setModelo(""); }}
+                onChange={(label, option) => {
+                  setMarca(label);
+                  setBrandId(option.id);
+                  setModelo("");
+                  setDeviceModelId(null);
+                }}
                 disabled={false}
                 placeholder="Selecione"
                 searchPlaceholder="Digite para buscar uma marca..."
@@ -498,12 +526,12 @@ export default function AdminOrcamentos() {
                 options={modelOptions}
                 value={modelo}
                 onChange={(_, option) => {
-                  const selectedModel = MODELS_DATABASE.find(
-                    (m) => getModelOptionId(m.brand, m.model) === option.id
-                  );
-                  if (!selectedModel) return;
-                  setMarca(selectedModel.brand);
-                  setModelo(selectedModel.model);
+                  const picked = dbModels.find((m) => m.id === option.id);
+                  if (!picked) return;
+                  setMarca(brandNameById.get(picked.brand_id) ?? "");
+                  setBrandId(picked.brand_id);
+                  setModelo(picked.name);
+                  setDeviceModelId(picked.id);
                 }}
                 disabled={false}
                 placeholder="Selecione"

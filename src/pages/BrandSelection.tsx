@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { BRANDS, MODELS_BY_BRAND, slugify } from "@/data/catalog";
+import { useBrands, useDeviceModels } from "@/hooks/useCatalog";
 import { Search, X } from "lucide-react";
 
 import appleLogo from "@/assets/brands/apple.svg";
@@ -30,23 +30,11 @@ const LOGO_SIZE: Record<string, string> = {
 };
 
 interface SearchEntry {
-  brandId: string;
+  brandSlug: string;
   brandName: string;
   model: string;
+  modelSlug: string;
 }
-
-function buildModelEntries(): SearchEntry[] {
-  const entries: SearchEntry[] = [];
-  for (const brand of BRANDS) {
-    const models = MODELS_BY_BRAND[brand.id] ?? [];
-    for (const model of models) {
-      entries.push({ brandId: brand.id, brandName: brand.name, model });
-    }
-  }
-  return entries;
-}
-
-const ALL_MODEL_ENTRIES = buildModelEntries();
 
 function highlightMatch(text: string, query: string) {
   if (!query) return text;
@@ -66,6 +54,18 @@ export default function BrandSelection() {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const { data: brands = [] } = useBrands();
+  const { data: models = [] } = useDeviceModels();
+
+  const modelEntries = useMemo<SearchEntry[]>(() => {
+    const byId = new Map(brands.map((b) => [b.id, b]));
+    return models
+      .map((m) => {
+        const b = byId.get(m.brand_id);
+        return b ? { brandSlug: b.slug, brandName: b.name, model: m.name, modelSlug: m.slug } : null;
+      })
+      .filter(Boolean) as SearchEntry[];
+  }, [brands, models]);
   
 
   useEffect(() => {
@@ -82,27 +82,26 @@ export default function BrandSelection() {
 
   const allModelSuggestions = useMemo(() => {
     if (!q) return [];
-    return ALL_MODEL_ENTRIES.filter((entry) => {
+    return modelEntries.filter((entry) => {
       const full = `${entry.brandName} ${entry.model}`.toLowerCase();
       return full.includes(q) || entry.model.toLowerCase().includes(q);
     });
-  }, [q]);
+  }, [q, modelEntries]);
 
   
 
   const filteredBrands = useMemo(() => {
-    if (!q) return BRANDS;
-    return BRANDS.filter((b) => {
+    if (!q) return brands;
+    return brands.filter((b) => {
       if (b.name.toLowerCase().includes(q)) return true;
-      const models = MODELS_BY_BRAND[b.id] ?? [];
-      return models.some((m) => m.toLowerCase().includes(q));
+      return modelEntries.some((m) => m.brandSlug === b.slug && m.model.toLowerCase().includes(q));
     });
-  }, [q]);
+  }, [q, brands, modelEntries]);
 
   const handleSelect = (entry: SearchEntry) => {
     setSearch("");
     setShowDropdown(false);
-    navigate(`/orcamento/${entry.brandId}/${slugify(entry.model)}`);
+    navigate(`/orcamento/${entry.brandSlug}/${entry.modelSlug}`);
   };
 
   const hasSearch = q.length > 0;
@@ -152,7 +151,7 @@ export default function BrandSelection() {
               >
                 {allModelSuggestions.map((entry, i) => (
                   <button
-                    key={`${entry.brandId}-${entry.model}-${i}`}
+                    key={`${entry.brandSlug}-${entry.model}-${i}`}
                     onClick={() => handleSelect(entry)}
                     className="dropdown-item w-full flex flex-col px-4 py-3 hover:bg-secondary/60 text-left border-b border-foreground/[0.05] last:border-b-0"
                     style={{ "--i": i } as React.CSSProperties}
@@ -192,17 +191,21 @@ export default function BrandSelection() {
           {filteredBrands.map((brand) => (
             <button
               key={brand.id}
-              onClick={() => navigate(`/orcamento/${brand.id}`)}
+              onClick={() => navigate(`/orcamento/${brand.slug}`)}
               className="group relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all active:scale-[0.97] overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               
               <div className="w-full aspect-square rounded-xl bg-white flex items-center justify-center p-4">
+                {!BRAND_LOGO[brand.slug] ? (
+                  <span className="text-2xl font-extrabold text-[#0d0d0d] font-[Montserrat]">{brand.name}</span>
+                ) : (
                 <img
-                  src={BRAND_LOGO[brand.id]}
+                  src={BRAND_LOGO[brand.slug]}
                   alt={`${brand.name} logo`}
-                  className={`${LOGO_SIZE[brand.id] ?? "h-12"} w-auto object-contain`}
+                  className={`${LOGO_SIZE[brand.slug] ?? "h-12"} w-auto object-contain`}
                 />
+                )}
               </div>
               <span className="font-semibold text-foreground text-[14px] font-[family-name:var(--font-body)]">{brand.name}</span>
             </button>
