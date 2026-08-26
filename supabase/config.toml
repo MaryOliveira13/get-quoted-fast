@@ -59,4 +59,3 @@ verify_jwt = false
 
 [functions.public-order-status]
 verify_jwt = false
-
