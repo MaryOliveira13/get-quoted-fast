@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ interface SearchableSelectProps {
   maxResults?: number;
 }
 
-export function SearchableSelect({
+export const SearchableSelect = forwardRef<HTMLButtonElement, SearchableSelectProps>(function SearchableSelect({
   options,
   value,
   onChange,
@@ -41,7 +41,7 @@ export function SearchableSelect({
   emptyMessage = "Nenhum resultado encontrado",
   disabled = false,
   maxResults = 30,
-}: SearchableSelectProps) {
+}, ref) {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +72,7 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           disabled={isDisabled}
+          ref={ref}
           className={cn(
             "w-full justify-between font-normal bg-background border-input h-10 px-3",
             "hover:bg-background hover:text-foreground data-[state=open]:border-primary",
@@ -127,4 +128,4 @@ export function SearchableSelect({
       </PopoverContent>
     </Popover>
   );
-}
+});
