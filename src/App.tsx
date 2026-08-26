@@ -24,6 +24,7 @@ import AdminOrcamentos from "./pages/AdminOrcamentos";
 import AdminLogistica from "./pages/AdminLogistica";
 import AdminEnviosPos from "./pages/AdminEnviosPos";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import AdminGestao from "./pages/AdminGestao";
 import SelfLabelPersonal from "./pages/SelfLabelPersonal";
 import SelfLabelDevice from "./pages/SelfLabelDevice";
 import SelfLabelConfirm from "./pages/SelfLabelConfirm";
@@ -76,6 +77,7 @@ const App = () => (
           <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
           <Route path="/admin/pedidos" element={<AdminPage><AdminOrders /></AdminPage>} />
           <Route path="/admin/orcamentos" element={<AdminPage><AdminOrcamentos /></AdminPage>} />
+          <Route path="/admin/gestao" element={<AdminPage><AdminGestao /></AdminPage>} />
           <Route path="/admin/logistica" element={<AdminPage><AdminLogistica /></AdminPage>} />
           <Route path="/admin/envios-pos" element={<AdminPage><AdminEnviosPos /></AdminPage>} />
           <Route path="/admin/integracoes" element={<AdminPage><AdminIntegrations /></AdminPage>} />
