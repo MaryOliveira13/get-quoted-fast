@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,6 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           disabled={isDisabled}
-          ref={ref}
           className={cn(
             "w-full justify-between font-normal bg-background border-input h-10 px-3",
             "hover:bg-background hover:text-foreground data-[state=open]:border-primary",
@@ -85,7 +84,6 @@ export function SearchableSelect({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        position="popper"
         sideOffset={4}
         className="z-[9999] p-0 w-[--radix-popover-trigger-width] max-w-[calc(100vw-2rem)]"
       >
@@ -128,4 +126,4 @@ export function SearchableSelect({
       </PopoverContent>
     </Popover>
   );
-});
+}
