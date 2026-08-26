@@ -48,6 +48,13 @@ interface OutroDefeito {
   valor: string;
 }
 
+const getBrandSlug = (brandName: string) => {
+  const brand = BRANDS.find((b) => b.name.toLowerCase() === brandName.toLowerCase());
+  return brand?.id || brandName.toLowerCase();
+};
+
+const getModelOptionId = (brandName: string, modelName: string) => `${getBrandSlug(brandName)}::${modelName}`;
+
 export default function AdminOrcamentos() {
   const [tab, setTab] = useState<"form" | "history">("form");
 
@@ -67,9 +74,19 @@ export default function AdminOrcamentos() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const models = useMemo(() => {
-    if (!marca) return [];
-    return MODELS_DATABASE.filter((m) => m.brand.toLowerCase() === marca.toLowerCase());
+  const modelOptions = useMemo(() => {
+    return [...MODELS_DATABASE]
+      .sort((a, b) => {
+        if (!marca) return 0;
+        const aMatchesBrand = a.brand.toLowerCase() === marca.toLowerCase();
+        const bMatchesBrand = b.brand.toLowerCase() === marca.toLowerCase();
+        if (aMatchesBrand === bMatchesBrand) return 0;
+        return aMatchesBrand ? -1 : 1;
+      })
+      .map((m) => ({
+        id: getModelOptionId(m.brand, m.model),
+        label: `${m.brand} — ${m.model}`,
+      }));
   }, [marca]);
 
   const selectedModel = useMemo(() => {
@@ -478,12 +495,19 @@ export default function AdminOrcamentos() {
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-1 block">Modelo *</label>
               <SearchableSelect
-                options={models.map((m) => ({ id: `${m.brand}-${m.model}`, label: m.model }))}
+                options={modelOptions}
                 value={modelo}
-                onChange={(label) => setModelo(label)}
-                disabled={!marca}
-                placeholder={marca ? "Selecione" : "Escolha a marca"}
-                searchPlaceholder="Digite para buscar um modelo..."
+                onChange={(_, option) => {
+                  const selectedModel = MODELS_DATABASE.find(
+                    (m) => getModelOptionId(m.brand, m.model) === option.id
+                  );
+                  if (!selectedModel) return;
+                  setMarca(selectedModel.brand);
+                  setModelo(selectedModel.model);
+                }}
+                disabled={false}
+                placeholder="Selecione"
+                searchPlaceholder="Digite marca ou modelo..."
                 emptyMessage="Nenhum modelo encontrado"
               />
             </div>
