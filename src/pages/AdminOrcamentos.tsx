@@ -469,8 +469,9 @@ export default function AdminOrcamentos() {
                 options={BRANDS.map((b) => ({ id: b.id, label: b.name }))}
                 value={marca}
                 onChange={(label) => { setMarca(label); setModelo(""); }}
+                disabled={false}
                 placeholder="Selecione"
-                searchPlaceholder="Pesquisar marca..."
+                searchPlaceholder="Digite para buscar uma marca..."
                 emptyMessage="Nenhuma marca encontrada"
               />
             </div>
@@ -482,7 +483,7 @@ export default function AdminOrcamentos() {
                 onChange={(label) => setModelo(label)}
                 disabled={!marca}
                 placeholder={marca ? "Selecione" : "Escolha a marca"}
-                searchPlaceholder="Pesquisar modelo..."
+                searchPlaceholder="Digite para buscar um modelo..."
                 emptyMessage="Nenhum modelo encontrado"
               />
             </div>
