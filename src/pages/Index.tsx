@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, Play, Upload, ShieldCheck, Truck, ClipboardCheck, ArrowRight, ArrowDown } from "lucide-react";
+import { Check, ChevronDown, Play, ShieldCheck, Truck, ClipboardCheck, ArrowRight, ArrowDown } from "lucide-react";
 import { useState, useRef } from "react";
 
 const STEPS = [
@@ -17,9 +17,7 @@ const STATS = [
 const Index = () => {
   const navigate = useNavigate();
   const [showVideo, setShowVideo] = useState(false);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const videoSectionRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleShowVideo = () => {
     setShowVideo((prev) => {
@@ -31,13 +29,6 @@ const Index = () => {
       }
       return next;
     });
-  };
-
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setVideoSrc(URL.createObjectURL(file));
-    }
   };
 
   return (
@@ -571,40 +562,13 @@ const Index = () => {
                 Tutorial
               </div>
 
-              {videoSrc ? (
-                <video
-                  src={videoSrc}
-                  controls
-                  className="w-full h-full"
-                  style={{ objectFit: "cover" }}
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-6">
-                  <span style={{ fontSize: 36, color: "rgba(255,255,255,0.1)", lineHeight: 1 }}>🎬</span>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontWeight: 700,
-                      fontSize: 15,
-                      color: "rgba(255,255,255,0.25)",
-                      marginTop: 10,
-                    }}
-                  >
-                    Vídeo em breve
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 400,
-                      fontSize: 12,
-                      color: "rgba(255,255,255,0.15)",
-                      marginTop: 6,
-                    }}
-                  >
-                    O tutorial estará disponível em breve
-                  </span>
-                </div>
-              )}
+              <iframe
+                src="https://player.vimeo.com/video/1225780170?title=0&byline=0&portrait=0&dnt=1"
+                title="Tutorial Power Cell"
+                className="absolute inset-0 h-full w-full border-0"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                allowFullScreen
+              />
             </div>
           </div>
         )}
